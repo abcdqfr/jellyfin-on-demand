@@ -66,3 +66,10 @@ dotnet build plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmpla
 This repo has **no** public GitHub `origin`. Do not add one casually — accidental
 push to a public fork is worse than a missing remote. Nested plugin remotes were
 removed for the same reason.
+
+## Release (local)
+
+```sh
+./scripts/package_release.sh 0.1.0
+# tag: v0.1.0 — see docs/releases/0.1.0.md
+```

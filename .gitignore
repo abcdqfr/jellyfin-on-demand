@@ -26,3 +26,6 @@ third-party/seerr/
 torrent/native/build/
 *.o
 *.a
+
+# Packaged releases (build locally)
+dist/
