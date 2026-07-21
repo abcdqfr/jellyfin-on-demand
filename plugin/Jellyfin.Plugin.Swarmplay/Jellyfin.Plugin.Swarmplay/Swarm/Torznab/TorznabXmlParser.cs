@@ -33,10 +33,32 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm.Torznab
 
         private static string? FindMagnet(XElement item)
         {
-            var link = item.Element("link")?.Value;
-            return link?.StartsWith("magnet:?", StringComparison.OrdinalIgnoreCase) == true
-                ? link
-                : null;
+            // Prowlarr often puts the magnet in <guid>, with <link> as a download URL.
+            foreach (var candidate in new[]
+            {
+                item.Element("guid")?.Value,
+                item.Element("link")?.Value,
+                FindAttributeString(item, "magneturl"),
+                FindAttributeString(item, "magnetUrl")
+            })
+            {
+                if (!string.IsNullOrWhiteSpace(candidate)
+                    && candidate.StartsWith("magnet:?", StringComparison.OrdinalIgnoreCase))
+                {
+                    return candidate.Trim();
+                }
+            }
+
+            return null;
+        }
+
+        private static string? FindAttributeString(XElement item, string name)
+        {
+            return item.Elements()
+                .FirstOrDefault(element =>
+                    element.Name.LocalName == "attr" &&
+                    string.Equals((string?)element.Attribute("name"), name, StringComparison.OrdinalIgnoreCase))
+                ?.Attribute("value")?.Value;
         }
 
         private static T FindAttributeValue<T>(

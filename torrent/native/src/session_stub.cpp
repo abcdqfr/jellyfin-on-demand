@@ -27,7 +27,7 @@ constexpr int kOk = 0;
 constexpr int kInvalidArgument = -2;
 constexpr int kMetadataTimeout = -3;
 constexpr int kInvalidFileIndex = -4;
-constexpr auto kMetadataTimeoutDuration = std::chrono::seconds(5);
+constexpr auto kMetadataTimeoutDuration = std::chrono::seconds(60);
 
 struct Entry {
     lt::torrent_handle handle;

@@ -1502,16 +1502,39 @@
             button.onclick = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                button.disabled = true;
+                const prevHtml = button.innerHTML;
+                button.innerHTML = `<span>Starting…</span><span class="jellyseerr-button-spinner"></span>`;
                 if (typeof JE.toast === 'function') {
-                    JE.toast(`Swarmplay: finding releases for ${title}…`, 3000);
+                    JE.toast(`Swarmplay: Torznab → Ensure for ${title}…`, 4000);
                 }
-                if (typeof JE.feelingLucky === 'function') {
-                    const result = await JE.feelingLucky(query);
-                    if (result && result.ready && typeof JE.toast === 'function') {
-                        JE.toast(`Swarmplay: ready — ${title}`, 3000);
+                try {
+                    const result = typeof JE.feelingLucky === 'function'
+                        ? await JE.feelingLucky(query)
+                        : null;
+                    const ready = !!(result && (result.ready === true || result.Ready === true));
+                    const path = result?.path || result?.Path;
+                    const err = result?.error || result?.Error;
+                    const phase = result?.phase || result?.Phase;
+                    if (ready && path) {
+                        const played = typeof JE.swarmAttemptPlayback === 'function'
+                            ? await JE.swarmAttemptPlayback(result, title)
+                            : false;
+                        if (typeof JE.toast === 'function') {
+                            JE.toast(
+                                played
+                                    ? `Swarmplay: playing ${title}`
+                                    : `Swarmplay: ready at ${path} (open Play when virtual-item bind lands)`,
+                                5000
+                            );
+                        }
                     } else if (typeof JE.toast === 'function') {
-                        JE.toast(`Swarmplay: Torznab/Ensure still warming up for ${title}`, 4000);
+                        const why = err || phase || 'not_ready';
+                        JE.toast(`Swarmplay: ${why} — ${title}`, 6000);
                     }
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = prevHtml;
                 }
             };
             return;

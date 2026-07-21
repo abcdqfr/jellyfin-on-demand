@@ -66,7 +66,13 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             return Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var source = string.IsNullOrWhiteSpace(request.Magnet) ? request.Btih : request.Magnet;
+                // Prefer 40-char hex BTIH: CharSet.Ansi corrupts long magnet URIs
+                // (dn=/tracker query UTF-8) and parse_magnet_uri then returns -2.
+                var btih = (request.Btih ?? string.Empty).Trim().ToLowerInvariant();
+                var magnet = request.Magnet?.Trim();
+                var source = btih.Length is 40 or 32
+                    ? btih
+                    : (!string.IsNullOrWhiteSpace(magnet) ? magnet : btih);
                 var resultCode = swarm_ensure(
                     source ?? string.Empty,
                     request.FileIndex,

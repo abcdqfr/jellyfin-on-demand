@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.2 — 2026-07-21
+
+### Fixed
+- Play called fixture Torznab stubs with no magnets → Ensure never started (“still warming up” forever)
+- Torznab URLs mangled on save (`…/swarmplay/http:/127.0.0.1…`); normalize on read/save
+- Prowlarr magnets live in `<guid>`, not `<link>` — parser now accepts guid/magneturl
+
+### Added
+- `POST /Swarmplay/swarm/lucky` — live Torznab → rank #1 → play-bind
+- Play button drives lucky + best-effort `playbackManager.play` when Path ready
+
+### Fixed (Ensure)
+- Native Ensure preferred magnet URI over BTIH; ANSI P/Invoke corrupted magnets → `native_error_-2`
+- Metadata wait raised 5s → 60s for cold DHT fetches
+
 ## 0.1.1 — 2026-07-21
 
 ### Fixed

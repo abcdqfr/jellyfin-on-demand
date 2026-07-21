@@ -4749,8 +4749,8 @@
             config.ElsewhereCustomBrandingText = document.querySelector('#ElsewhereCustomBrandingText').value;
             config.ElsewhereCustomBrandingImageUrl = document.querySelector('#ElsewhereCustomBrandingImageUrl').value;
             config.SwarmplayDiscoveryEnabled = document.querySelector('#swarmplayDiscoveryEnabled').checked;
-            config.TorznabNyaaUrl = document.querySelector('#TorznabNyaaUrl').value.trim();
-            config.TorznabTpbUrl = document.querySelector('#TorznabTpbUrl').value.trim();
+            config.TorznabNyaaUrl = (function(u){u=(u||'').trim();var i=u.search(/https?:/i);if(i>0)u=u.slice(i);return u.replace(/^(https?:)\/(?!\/)/i,'$1//');})(document.querySelector('#TorznabNyaaUrl').value);
+            config.TorznabTpbUrl = (function(u){u=(u||'').trim();var i=u.search(/https?:/i);if(i>0)u=u.slice(i);return u.replace(/^(https?:)\/(?!\/)/i,'$1//');})(document.querySelector('#TorznabTpbUrl').value);
             config.RankMinSeeders = parseInt(document.querySelector('#RankMinSeeders').value, 10) || 0;
             config.RankPreferMaxResolution = document.querySelector('#RankPreferMaxResolution').value;
             config.WarmTailMib = parseInt(document.querySelector('#WarmTailMib').value, 10) || 0;
