@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 — 2026-07-21
+
+### Fixed
+- `native_error_-2` now surfaces in English: invalid torrent identity (rejected infohash/magnet)
+- All native Ensure/play-bind errors carry `Message` for transparent toasts
+
+### Changed
+- Play opens a **fast ranked Torznab picker** (not auto-lucky blocking Ensure)
+- Selecting a release → play-bind with strmarr-style file_index pick (SxxExx / largest video)
+- Native `swarm_list_files` + re-bind file index on existing torrents
+
 ## 0.1.2 — 2026-07-21
 
 ### Fixed

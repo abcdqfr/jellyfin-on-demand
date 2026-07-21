@@ -1490,7 +1490,7 @@
             return;
         }
 
-        // Swarmplay: same cards, Play instead of Request → *arr.
+        // Swarmplay: same cards, Play opens ranked Torznab picker (not auto-lucky).
         const swarmPlay = JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false && !JE.pluginConfig?.JellyseerrEnabled;
         if (swarmPlay && item.mediaType !== 'collection') {
             const title = item.title || item.name || 'title';
@@ -1502,40 +1502,19 @@
             button.onclick = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                button.disabled = true;
-                const prevHtml = button.innerHTML;
-                button.innerHTML = `<span>Starting…</span><span class="jellyseerr-button-spinner"></span>`;
-                if (typeof JE.toast === 'function') {
-                    JE.toast(`Swarmplay: Torznab → Ensure for ${title}…`, 4000);
-                }
-                try {
-                    const result = typeof JE.feelingLucky === 'function'
-                        ? await JE.feelingLucky(query)
-                        : null;
-                    const ready = !!(result && (result.ready === true || result.Ready === true));
-                    const path = result?.path || result?.Path;
-                    const err = result?.error || result?.Error;
-                    const phase = result?.phase || result?.Phase;
-                    if (ready && path) {
-                        const played = typeof JE.swarmAttemptPlayback === 'function'
-                            ? await JE.swarmAttemptPlayback(result, title)
-                            : false;
-                        if (typeof JE.toast === 'function') {
-                            JE.toast(
-                                played
-                                    ? `Swarmplay: playing ${title}`
-                                    : `Swarmplay: ready at ${path} (open Play when virtual-item bind lands)`,
-                                5000
-                            );
-                        }
-                    } else if (typeof JE.toast === 'function') {
-                        const why = err || phase || 'not_ready';
-                        JE.toast(`Swarmplay: ${why} — ${title}`, 6000);
+                if (typeof JE.swarmShowReleasePicker !== 'function') {
+                    if (typeof JE.toast === 'function') {
+                        JE.toast('Swarmplay: release picker not loaded', 4000);
                     }
-                } finally {
-                    button.disabled = false;
-                    button.innerHTML = prevHtml;
+                    return;
                 }
+                await JE.swarmShowReleasePicker({
+                    query,
+                    title,
+                    mediaType: item.mediaType,
+                    season: item.mediaType === 'tv' ? 1 : null,
+                    episode: item.mediaType === 'tv' ? 1 : null
+                });
             };
             return;
         }

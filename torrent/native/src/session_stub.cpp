@@ -14,10 +14,12 @@
 #include <array>
 #include <chrono>
 #include <cctype>
+#include <cstdio>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -180,14 +182,6 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
 
     Session& session = Session::get();
     std::lock_guard<std::mutex> lock(session.mutex);
-    auto existing = session.torrents.find(key);
-    if (existing != session.torrents.end()) {
-        out->path = existing->second.path.c_str();
-        out->ready = warm_complete(existing->second) ? 1 : 0;
-        out->err = kOk;
-        return kOk;
-    }
-
     std::filesystem::path const save_path =
         std::filesystem::path("/tmp/swarmplay") / key;
     std::error_code filesystem_error;
@@ -196,8 +190,16 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
         set_ensure_error(out, kInvalidArgument);
         return kInvalidArgument;
     }
-    params.save_path = save_path.string();
-    lt::torrent_handle const handle = session.session.add_torrent(params);
+
+    auto existing = session.torrents.find(key);
+    lt::torrent_handle handle;
+    if (existing != session.torrents.end()) {
+        handle = existing->second.handle;
+    } else {
+        params.save_path = save_path.string();
+        handle = session.session.add_torrent(params);
+    }
+
     if (!wait_for_metadata(handle)) {
         set_ensure_error(out, kMetadataTimeout);
         return kMetadataTimeout;
@@ -208,13 +210,15 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
         set_ensure_error(out, kInvalidFileIndex);
         return kInvalidFileIndex;
     }
+
     Entry entry;
     entry.handle = handle;
     entry.path = info->files().file_path(lt::file_index_t(file_index), save_path.string());
     entry.warm_pieces = apply_warm_priorities(handle, *info, file_index, tail_mib, head_mib);
-    auto [inserted, _] = session.torrents.emplace(key, std::move(entry));
-    out->path = inserted->second.path.c_str();
-    out->ready = warm_complete(inserted->second) ? 1 : 0;
+    session.torrents[key] = std::move(entry);
+    auto& stored = session.torrents[key];
+    out->path = stored.path.c_str();
+    out->ready = warm_complete(stored) ? 1 : 0;
     out->err = kOk;
     return kOk;
 }
@@ -252,5 +256,75 @@ int swarm_stop(const char* btih, int remove_files) {
     session.session.remove_torrent(entry->second.handle,
         remove_files ? lt::session_handle::delete_files : lt::remove_flags_t{});
     session.torrents.erase(entry);
+    return kOk;
+}
+
+static std::string json_escape(std::string const& input) {
+    std::string out;
+    out.reserve(input.size() + 8);
+    for (char c : input) {
+        switch (c) {
+        case '\\': out += "\\\\"; break;
+        case '"': out += "\\\""; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default: out.push_back(c); break;
+        }
+    }
+    return out;
+}
+
+int swarm_list_files(const char* source, char* json_out, int json_cap) {
+    if (json_out == nullptr || json_cap < 3) return kInvalidArgument;
+    json_out[0] = '\0';
+
+    lt::add_torrent_params params;
+    std::string key;
+    if (!parse_source(source, params, key)) return kInvalidArgument;
+
+    Session& session = Session::get();
+    std::lock_guard<std::mutex> lock(session.mutex);
+
+    lt::torrent_handle handle;
+    auto existing = session.torrents.find(key);
+    if (existing != session.torrents.end()) {
+        handle = existing->second.handle;
+    } else {
+        std::filesystem::path const save_path =
+            std::filesystem::path("/tmp/swarmplay") / key;
+        std::error_code filesystem_error;
+        std::filesystem::create_directories(save_path, filesystem_error);
+        if (filesystem_error) return kInvalidArgument;
+        params.save_path = save_path.string();
+        handle = session.session.add_torrent(params);
+        if (!wait_for_metadata(handle)) return kMetadataTimeout;
+        // Keep a placeholder entry so later ensure can reuse the handle.
+        Entry entry;
+        entry.handle = handle;
+        entry.path = save_path.string();
+        session.torrents.emplace(key, std::move(entry));
+    }
+
+    if (!wait_for_metadata(handle)) return kMetadataTimeout;
+    auto const info = handle.torrent_file();
+    if (!info) return kInvalidArgument;
+
+    std::ostringstream oss;
+    oss << '[';
+    int const n = info->files().num_files();
+    for (int i = 0; i < n; ++i) {
+        if (i) oss << ',';
+        auto const idx = lt::file_index_t(i);
+        auto const path = info->files().file_path(idx);
+        auto const size = info->files().file_size(idx);
+        oss << "{\"index\":" << i
+            << ",\"size\":" << size
+            << ",\"path\":\"" << json_escape(path) << "\"}";
+    }
+    oss << ']';
+    std::string const json = oss.str();
+    if (static_cast<int>(json.size()) + 1 > json_cap) return kInvalidArgument;
+    std::snprintf(json_out, static_cast<size_t>(json_cap), "%s", json.c_str());
     return kOk;
 }

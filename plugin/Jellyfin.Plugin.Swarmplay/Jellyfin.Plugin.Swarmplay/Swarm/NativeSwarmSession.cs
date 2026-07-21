@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +13,7 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
     public sealed class NativeSwarmSession : ISwarmSession
     {
         private const string NativeLibrary = "libswarmplay_native.so";
-        private const int SwarmErrorUnavailable = -1;
+        private const int ListFilesBufferBytes = 512 * 1024;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct SwarmEnsureResultNative
@@ -46,12 +48,16 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             [MarshalAs(UnmanagedType.LPStr)] string btih,
             int removeFiles);
 
+        [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern int swarm_list_files(
+            [MarshalAs(UnmanagedType.LPStr)] string source,
+            byte[] jsonOut,
+            int jsonCap);
+
         internal static ISwarmSession CreateOrStub()
         {
             try
             {
-                // A deliberately invalid source forces the runtime to resolve the library
-                // without creating a libtorrent session or starting network activity.
                 _ = swarm_status("invalid", out _);
                 return new NativeSwarmSession();
             }
@@ -66,27 +72,25 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             return Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                // Prefer 40-char hex BTIH: CharSet.Ansi corrupts long magnet URIs
-                // (dn=/tracker query UTF-8) and parse_magnet_uri then returns -2.
-                var btih = (request.Btih ?? string.Empty).Trim().ToLowerInvariant();
-                var magnet = request.Magnet?.Trim();
-                var source = btih.Length is 40 or 32
-                    ? btih
-                    : (!string.IsNullOrWhiteSpace(magnet) ? magnet : btih);
+                var source = PreferAsciiSource(request);
                 var resultCode = swarm_ensure(
-                    source ?? string.Empty,
+                    source,
                     request.FileIndex,
                     request.TailMib,
                     request.HeadMib,
                     out var nativeResult);
 
-                return new SwarmEnsureResult
+                var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var result = new SwarmEnsureResult
                 {
                     Path = nativeResult.Path == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(nativeResult.Path),
                     Ready = nativeResult.Ready != 0,
-                    Phase = GetPhase(resultCode, nativeResult.Error, nativeResult.Ready != 0),
-                    Error = GetError(resultCode, nativeResult.Error)
+                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "warming") : "error",
+                    Error = errorCode == 0 ? null : $"native_error_{errorCode}",
+                    ErrorCode = errorCode == 0 ? null : errorCode
                 };
+                SwarmErrorText.Apply(result);
+                return result;
             }, cancellationToken);
         }
 
@@ -96,12 +100,23 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var resultCode = swarm_status(btih, out var nativeResult);
-                return new SwarmStatusResult
+                var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var result = new SwarmStatusResult
                 {
                     Ready = nativeResult.Ready != 0,
-                    Phase = GetPhase(resultCode, nativeResult.Error, nativeResult.Ready != 0),
-                    Error = GetError(resultCode, nativeResult.Error)
+                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "warming") : "error",
+                    Error = errorCode == 0 ? null : $"native_error_{errorCode}",
+                    ErrorCode = errorCode == 0 ? null : errorCode
                 };
+                if (result.Error != null)
+                {
+                    var (code, message, n) = SwarmErrorText.Describe(result.ErrorCode, result.Error);
+                    result.Error = code;
+                    result.Message = message;
+                    result.ErrorCode = n;
+                }
+
+                return result;
             }, cancellationToken);
         }
 
@@ -118,20 +133,63 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             }, cancellationToken);
         }
 
-        private static string GetPhase(int resultCode, int nativeError, bool ready)
+        public Task<IReadOnlyList<SwarmTorrentFile>> ListFilesAsync(string btihOrMagnet, CancellationToken cancellationToken)
         {
-            if (resultCode == 0 && nativeError == 0)
+            return Task.Run(() =>
             {
-                return ready ? "ready" : "warming";
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+                var source = PreferAsciiSource(new SwarmEnsureRequest { Btih = btihOrMagnet, Magnet = btihOrMagnet });
+                var buffer = new byte[ListFilesBufferBytes];
+                var rc = swarm_list_files(source, buffer, buffer.Length);
+                if (rc != 0)
+                {
+                    return (IReadOnlyList<SwarmTorrentFile>)Array.Empty<SwarmTorrentFile>();
+                }
 
-            return nativeError == SwarmErrorUnavailable ? "unavailable" : "error";
+                var end = Array.IndexOf(buffer, (byte)0);
+                var json = System.Text.Encoding.UTF8.GetString(buffer, 0, end < 0 ? buffer.Length : end);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return Array.Empty<SwarmTorrentFile>();
+                }
+
+                try
+                {
+                    var rows = JsonSerializer.Deserialize<List<NativeFileRow>>(json);
+                    if (rows == null) return Array.Empty<SwarmTorrentFile>();
+                    var list = new List<SwarmTorrentFile>(rows.Count);
+                    foreach (var row in rows)
+                    {
+                        list.Add(new SwarmTorrentFile
+                        {
+                            Index = row.index,
+                            Size = row.size,
+                            Path = row.path ?? string.Empty
+                        });
+                    }
+
+                    return list;
+                }
+                catch
+                {
+                    return Array.Empty<SwarmTorrentFile>();
+                }
+            }, cancellationToken)!;
         }
 
-        private static string? GetError(int resultCode, int nativeError)
+        private static string PreferAsciiSource(SwarmEnsureRequest request)
         {
-            var error = nativeError != 0 ? nativeError : resultCode;
-            return error == 0 ? null : $"native_error_{error}";
+            var btih = (request.Btih ?? string.Empty).Trim().ToLowerInvariant();
+            if (btih.Length is 40 or 32) return btih;
+            var magnet = request.Magnet?.Trim();
+            return !string.IsNullOrWhiteSpace(magnet) ? magnet : btih;
+        }
+
+        private sealed class NativeFileRow
+        {
+            public int index { get; set; }
+            public long size { get; set; }
+            public string? path { get; set; }
         }
     }
 }

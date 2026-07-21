@@ -5,7 +5,7 @@
 .PHONY: help build native package gate deploy start stop restart status up \
 	smoke verify uninstall
 
-VERSION ?= 0.1.2
+VERSION ?= 0.1.3
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 DOTNET ?= $(ROOT)/.tools/dotnet/dotnet
 export PATH := $(ROOT)/.tools/dotnet:$(PATH)
@@ -58,10 +58,11 @@ start:
 	@$(SUDO) systemctl enable jellyfin.service
 	@$(SUDO) systemctl start jellyfin.service
 	@echo "jellyfin: waiting for HTTP..."
-	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+	@for i in $$(seq 1 60); do \
 		curl -sf -m 2 $(JF_URL)/System/Info/Public >/dev/null && break; \
 		sleep 1; \
 	done
+	@curl -sf -m 3 $(JF_URL)/System/Info/Public >/dev/null || (echo "jellyfin: HTTP not ready" >&2; exit 1)
 	@echo "jellyfin: started (enable on boot)"
 
 stop:

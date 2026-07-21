@@ -1,180 +1,143 @@
 (function (JE) {
     'use strict';
 
-    const logPrefix = '🪼 Swarmplay search:';
-    const fixtures = [
-        { id: 'fixture-2160', title: 'Example Film 2160p BluRay', resolution: '2160p', source: 'bluray', seeders: 42, size_bytes: 12000000000, language: 'en', indexer: 'nyaa' },
-        { id: 'fixture-1080', title: 'Example Film 1080p WEB-DL', resolution: '1080p', source: 'web-dl', seeders: 180, size_bytes: 4500000000, language: 'en', indexer: 'tpb' },
-        { id: 'fixture-720', title: 'Example Film 720p WEBRip', resolution: '720p', source: 'webrip', seeders: 90, size_bytes: 1800000000, language: 'en', indexer: 'nyaa' }
-    ];
+    const logPrefix = '🪼 Swarmplay releases:';
 
-    function stubSearch(query) {
-        const queryTitle = String(query || '').trim();
-        if (!queryTitle) return [];
-        return fixtures.map(release => ({ ...release, query_title: queryTitle }));
+    function formatBytes(n) {
+        const v = Number(n) || 0;
+        if (v < 1e9) return `${(v / 1e6).toFixed(0)} MB`;
+        return `${(v / 1e9).toFixed(1)} GB`;
     }
 
-    function hasConfiguredTorznab() {
-        const config = JE.pluginConfig || {};
-        return config.TorznabNyaaConfigured === true ||
-            config.TorznabTpbConfigured === true ||
-            Boolean(config.TorznabNyaaUrl || config.TorznabTpbUrl);
-    }
-
-    function ensureSearchIcon() {
-        const anchor = document.querySelector('.searchFields .inputContainer') ||
-            document.querySelector('#searchPage .searchFields');
-        if (!anchor) return;
-
-        let icon = document.getElementById('swarmplay-search-icon');
-        if (!icon) {
-            icon = document.createElement('span');
-            icon.id = 'swarmplay-search-icon';
-            icon.className = 'swarmplay-search-icon';
-            icon.setAttribute('role', 'img');
-            icon.setAttribute('aria-label', 'Swarmplay discovery enabled');
-            icon.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 20.2 7v10L12 21.5 3.8 17V7L12 2.5Zm0 2.3L5.8 8.2v7.6l6.2 3.4 6.2-3.4V8.2L12 4.8Zm-2 4.3v6l5-3-5-3Z"/></svg>';
-            anchor.appendChild(icon);
-        }
-
-        const suffix = hasConfiguredTorznab() ? '' : ' (fixtures — configure Torznab in plugin settings)';
-        icon.title = `Swarmplay discovery enabled${suffix}`;
-        icon.setAttribute('aria-label', icon.title);
-        icon.classList.add('is-active');
-    }
-
-    function ensureSearchStyles() {
-        if (document.getElementById('swarmplay-search-icon-styles')) return;
+    function ensurePickerStyles() {
+        if (document.getElementById('swarmplay-release-picker-styles')) return;
         const style = document.createElement('style');
-        style.id = 'swarmplay-search-icon-styles';
+        style.id = 'swarmplay-release-picker-styles';
         style.textContent = `
-            #swarmplay-search-icon { position:absolute; right:10px; top:68%; transform:translateY(-50%); user-select:none; z-index:10; width:30px; height:50px; display:flex; align-items:center; justify-content:center; pointer-events:none; transition:filter .2s,opacity .2s,transform .2s; }
-            #swarmplay-search-icon svg { width:24px; height:24px; fill:#56d7ff; filter:drop-shadow(0 0 5px rgba(123,92,255,.9)); }
-            #swarmplay-search-icon.is-active { opacity:1; filter:drop-shadow(2px 2px 6px #000); }
-            .searchFields .inputContainer { position:relative !important; }
+            .swarmplay-picker-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99998; display:flex; align-items:center; justify-content:center; padding:1rem; }
+            .swarmplay-picker { width:min(720px,100%); max-height:min(80vh,640px); overflow:auto; background:#1c1c1e; color:#f5f5f7; border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.45); }
+            .swarmplay-picker header { padding:1rem 1.1rem .5rem; position:sticky; top:0; background:#1c1c1e; z-index:1; }
+            .swarmplay-picker h2 { margin:0; font-size:1.15rem; }
+            .swarmplay-picker .sub { opacity:.7; margin:.35rem 0 0; font-size:.9rem; }
+            .swarmplay-picker ul { list-style:none; margin:0; padding:.25rem 0 1rem; }
+            .swarmplay-picker li { margin:0 .75rem .45rem; padding:.7rem .85rem; border-radius:8px; background:rgba(255,255,255,.06); cursor:pointer; }
+            .swarmplay-picker li:hover, .swarmplay-picker li:focus { background:rgba(86,215,255,.18); outline:none; }
+            .swarmplay-picker .meta { opacity:.75; font-size:.85rem; margin-top:.25rem; }
+            .swarmplay-picker .close { float:right; background:transparent; border:0; color:inherit; font-size:1.4rem; cursor:pointer; line-height:1; }
+            .swarmplay-picker .empty, .swarmplay-picker .loading { padding:1.25rem; opacity:.8; }
         `;
         document.head.appendChild(style);
     }
 
-    function renderRankedList(container, releases) {
-        if (!container || typeof container.replaceChildren !== 'function') return [];
-        const ranker = JE.ranker || JE.swarmRanker;
-        const ranked = typeof ranker?.rank === 'function' ? ranker.rank(releases) : (releases || []).slice();
-        const list = document.createElement('ul');
-        list.className = 'swarmplay-release-list';
-        list.style.cssText = 'list-style:none;margin:0;padding:0.5rem 0;display:flex;flex-direction:column;gap:0.35rem;';
-
-        ranked.forEach(release => {
-            const item = document.createElement('li');
-            item.className = 'swarmplay-release-item';
-            item.style.cssText = 'padding:0.6rem 0.8rem;border-radius:6px;background:rgba(255,255,255,0.06);cursor:pointer;';
-            item.textContent = `${release.title} — ${release.resolution || 'unknown'} — ${release.seeders || 0} seeders (${release.indexer || '?'})`;
-            item.title = 'Swarmplay fixture release (Torznab live search comes next)';
-            item.addEventListener('click', () => {
-                if (typeof JE.toast === 'function') {
-                    JE.toast(`Swarmplay: selected ${release.title}`, 2500);
-                }
-                console.log(logPrefix, 'selected release', release);
-            });
-            list.appendChild(item);
-        });
-        container.replaceChildren(list);
-        return ranked;
+    function closePicker() {
+        document.getElementById('swarmplay-picker-backdrop')?.remove();
     }
 
-    function ensureSection(searchPage) {
-        let section = searchPage.querySelector('.swarmplay-section');
-        if (section) return section;
-
-        section = document.createElement('div');
-        section.className = 'verticalSection swarmplay-section';
-        const subtitle = hasConfiguredTorznab()
-            ? 'Internal discovery (not Jellyseerr). Torznab indexers configured.'
-            : 'Internal discovery (not Jellyseerr). Fixture releases until Torznab is configured.';
-        section.innerHTML = `
-            <div class="sectionTitleContainer sectionTitleContainer-cards">
-                <h2 class="sectionTitle sectionTitle-cards">Swarmplay</h2>
-                <p class="sectionTitleText" style="opacity:0.7;margin:0.25rem 0 0;">
-                    ${subtitle}
-                </p>
-            </div>
-            <div class="swarmplay-results itemsContainer"></div>
-        `;
-
-        const searchResults = searchPage.querySelector('.searchResults, [class*="searchResults"], .padded-top.padded-bottom-page');
-        if (searchResults) {
-            searchResults.insertBefore(section, searchResults.firstChild);
-        } else {
-            searchPage.appendChild(section);
+    async function playRelease(release, ctx) {
+        closePicker();
+        const title = ctx.title || release.title || 'title';
+        if (typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: starting ${release.title || title}…`, 3500);
         }
-        return section;
+        const btih = release.btih || release.Btih || (JE.swarmMagnet && JE.swarmMagnet.parse(release.magnet || release.Magnet));
+        const bind = await JE.swarm.playBind({
+            Btih: btih || '',
+            Magnet: btih ? null : (release.magnet || release.Magnet || null),
+            FileIndex: 0,
+            Season: ctx.season || null,
+            Episode: ctx.episode || null,
+            MediaType: ctx.mediaType || null,
+            TailMib: 8,
+            HeadMib: 8
+        });
+        const ready = !!(bind && (bind.ready === true || bind.Ready === true));
+        const path = bind?.path || bind?.Path;
+        if (ready && path) {
+            const played = typeof JE.swarmAttemptPlayback === 'function'
+                ? await JE.swarmAttemptPlayback(bind, title)
+                : false;
+            if (typeof JE.toast === 'function') {
+                JE.toast(
+                    played
+                        ? `Swarmplay: playing ${title}`
+                        : `Swarmplay: ready (file #${bind.FileIndex ?? bind.fileIndex ?? 0}) — virtual-item Play bind still open`,
+                    5000
+                );
+            }
+            return;
+        }
+        const why = (JE.swarm && JE.swarm.formatError)
+            ? JE.swarm.formatError(bind)
+            : (bind?.Message || bind?.message || bind?.Error || bind?.error || 'not ready');
+        if (typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: ${why}`, 7000);
+        }
     }
 
-    function clearSection(searchPage) {
-        const section = searchPage.querySelector('.swarmplay-section');
-        if (section) section.remove();
-    }
-
-    function runSearch(query) {
-        const searchPage = document.querySelector('#searchPage, .searchPage, [data-type="search"]')
-            || document.querySelector('.searchResults')?.closest('.page');
-        if (!searchPage) return;
-
-        const q = String(query || '').trim();
-        if (!q) {
-            clearSection(searchPage);
+    /**
+     * Fast ranked Torznab list for one title. User picks → play-bind with S/E intelligence.
+     * @param {{ query:string, title?:string, mediaType?:string, season?:number, episode?:number }} ctx
+     */
+    JE.swarmShowReleasePicker = async function (ctx) {
+        ensurePickerStyles();
+        closePicker();
+        const query = String(ctx?.query || ctx?.title || '').trim();
+        if (!query) {
+            if (typeof JE.toast === 'function') JE.toast('Swarmplay: empty search query', 3000);
             return;
         }
 
-        const section = ensureSection(searchPage);
-        const container = section.querySelector('.swarmplay-results');
-        const releases = stubSearch(q);
-        const ranked = renderRankedList(container, releases);
-        console.log(logPrefix, `query="${q}" → ${ranked.length} fixture release(s)`);
-    }
+        const backdrop = document.createElement('div');
+        backdrop.id = 'swarmplay-picker-backdrop';
+        backdrop.className = 'swarmplay-picker-backdrop';
+        backdrop.innerHTML = `
+            <div class="swarmplay-picker" role="dialog" aria-label="Swarmplay releases">
+                <header>
+                    <button type="button" class="close" aria-label="Close">&times;</button>
+                    <h2>${(ctx.title || query).replace(/</g, '&lt;')}</h2>
+                    <p class="sub">Ranked Torznab results — pick one to play</p>
+                </header>
+                <div class="loading">Searching indexers…</div>
+            </div>`;
+        document.body.appendChild(backdrop);
+        backdrop.querySelector('.close').onclick = closePicker;
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePicker(); });
 
-    JE.initializeSwarmSearch = function () {
-        console.log(`${logPrefix} Initializing (internal — no Jellyseerr process)`);
-        ensureSearchStyles();
-        let lastQuery = null;
-        let debounce = null;
-
-        const onInput = (ev) => {
-            const value = ev?.target?.value ?? '';
-            clearTimeout(debounce);
-            debounce = setTimeout(() => {
-                if (value === lastQuery) return;
-                lastQuery = value;
-                runSearch(value);
-            }, 250);
-        };
-
-        const attach = () => {
-            const input = document.querySelector('#searchPage input[type="search"], #searchPage input[type="text"], .searchFields input, input[aria-label*="Search" i]');
-            if (!input || input.dataset.swarmplayBound === '1') return !!input;
-            input.dataset.swarmplayBound = '1';
-            input.addEventListener('input', onInput);
-            ensureSearchIcon();
-            if (input.value?.trim()) runSearch(input.value);
-            console.log(`${logPrefix} Bound to search input`);
-            return true;
-        };
-
-        if (!attach()) {
-            const obs = new MutationObserver(() => {
-                if (attach()) obs.disconnect();
-            });
-            obs.observe(document.body, { childList: true, subtree: true });
+        const data = await JE.swarm.searchTorznab(query);
+        const panel = backdrop.querySelector('.swarmplay-picker');
+        const results = (data && data.results) || [];
+        if (!results.length) {
+            panel.querySelector('.loading')?.remove();
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = (data && (data.message || data.error))
+                ? String(data.message || data.error)
+                : 'No releases with magnets. Check Torznab / Prowlarr settings.';
+            panel.appendChild(empty);
+            return;
         }
 
-        // Hash / route changes to search
-        window.addEventListener('hashchange', () => {
-            setTimeout(() => {
-                const input = document.querySelector('#searchPage input[type="search"], #searchPage input[type="text"], .searchFields input');
-                if (input?.value?.trim()) runSearch(input.value);
-            }, 100);
+        panel.querySelector('.loading')?.remove();
+        const ul = document.createElement('ul');
+        results.forEach((rel, i) => {
+            const li = document.createElement('li');
+            li.tabIndex = 0;
+            const seeders = rel.seeders ?? rel.Seeders ?? 0;
+            const size = rel.sizeBytes ?? rel.SizeBytes ?? 0;
+            const indexer = rel.indexer || rel.Indexer || '?';
+            li.innerHTML = `
+                <div><strong>#${i + 1}</strong> ${(rel.title || rel.Title || 'release').replace(/</g, '&lt;')}</div>
+                <div class="meta">${formatBytes(size)} · ${seeders} seeders · ${indexer}</div>`;
+            const go = () => playRelease(rel, ctx);
+            li.addEventListener('click', go);
+            li.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); }
+            });
+            ul.appendChild(li);
         });
+        panel.appendChild(ul);
+        console.log(logPrefix, `query="${query}" → ${results.length} ranked release(s)`);
     };
 
-    JE.swarmReleases = { stubSearch, renderRankedList };
+    JE.swarmReleases = { showPicker: JE.swarmShowReleasePicker };
 })(window.JellyfinEnhanced);

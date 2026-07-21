@@ -62,7 +62,8 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
 
             var releases = await SearchConfiguredIndexersAsync(q.Trim(), cancellationToken).ConfigureAwait(false);
-            return Ok(new { query = q.Trim(), results = releases });
+            var ranked = RankReleases(releases, q.Trim()).ToList();
+            return Ok(new { query = q.Trim(), results = ranked });
         }
 
         /// <summary>
@@ -125,15 +126,37 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             [FromBody] SwarmEnsureRequest request,
             CancellationToken cancellationToken)
         {
-            var ensure = await _swarmSession.EnsureAsync(request, cancellationToken).ConfigureAwait(false);
+            request ??= new SwarmEnsureRequest();
             var btih = string.IsNullOrWhiteSpace(request.Btih)
                 ? ExtractBtih(request.Magnet)
                 : request.Btih.Trim().ToLowerInvariant();
+            request.Btih = btih;
+            if (!string.IsNullOrEmpty(btih))
+            {
+                request.Magnet = null; // avoid ANSI-corrupted magnet P/Invoke
+            }
 
+            // Resolve metadata + file list, then strmarr-style file_index pick.
+            var source = !string.IsNullOrEmpty(btih) ? btih : (request.Magnet ?? string.Empty);
+            if (!string.IsNullOrEmpty(source)
+                && (request.Season is > 0 || request.Episode is > 0
+                    || string.Equals(request.MediaType, "movie", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(request.MediaType, "tv", StringComparison.OrdinalIgnoreCase)))
+            {
+                var files = await _swarmSession.ListFilesAsync(source, cancellationToken).ConfigureAwait(false);
+                if (files.Count > 0)
+                {
+                    request.FileIndex = FileIndexPicker.Pick(files, request.Season, request.Episode, request.MediaType);
+                }
+            }
+
+            var ensure = await _swarmSession.EnsureAsync(request, cancellationToken).ConfigureAwait(false);
             var ready = ensure.Ready;
             var path = ensure.Path;
             var phase = ensure.Phase;
             var error = ensure.Error;
+            var errorCode = ensure.ErrorCode;
+            var message = ensure.Message;
 
             if (!ready && !string.IsNullOrEmpty(btih) && string.IsNullOrEmpty(error))
             {
@@ -145,17 +168,20 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                     ready = status.Ready;
                     phase = status.Phase;
                     error = status.Error;
+                    errorCode = status.ErrorCode;
+                    message = status.Message;
                     if (!string.IsNullOrEmpty(status.Path))
                     {
                         path = status.Path;
                     }
 
-                    // Mode C fail-open while waiting (ensure-ready.md).
                     if (!ready && string.IsNullOrEmpty(error) && HasFailOpenBytes(path))
                     {
                         ready = true;
                         phase = "fail_open";
                         error = null;
+                        message = null;
+                        errorCode = null;
                     }
 
                     if (ready || !string.IsNullOrEmpty(error))
@@ -172,34 +198,25 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 ready = true;
                 phase = "fail_open";
                 error = null;
+                message = null;
+                errorCode = null;
             }
 
-            if (string.IsNullOrEmpty(path) || !ready)
+            var bind = new SwarmPlayBindResult
             {
-                return Ok(new SwarmPlayBindResult
-                {
-                    VirtualItemKey = string.IsNullOrEmpty(btih) ? string.Empty : $"swarm:{btih}:{request.FileIndex}",
-                    Btih = btih ?? string.Empty,
-                    FileIndex = request.FileIndex,
-                    Path = path,
-                    Ready = false,
-                    Protocol = "File",
-                    Phase = phase ?? "error",
-                    Error = error ?? "not_ready"
-                });
-            }
-
-            return Ok(new SwarmPlayBindResult
-            {
-                VirtualItemKey = $"swarm:{btih}:{request.FileIndex}",
+                VirtualItemKey = string.IsNullOrEmpty(btih) ? string.Empty : $"swarm:{btih}:{request.FileIndex}",
                 Btih = btih ?? string.Empty,
                 FileIndex = request.FileIndex,
                 Path = path,
-                Ready = true,
+                Ready = ready && !string.IsNullOrEmpty(path),
                 Protocol = "File",
-                Phase = phase ?? "ready",
-                Error = null
-            });
+                Phase = phase ?? (ready ? "ready" : "error"),
+                Error = ready && !string.IsNullOrEmpty(path) ? null : (error ?? "not_ready"),
+                Message = message,
+                ErrorCode = errorCode
+            };
+            SwarmErrorText.Apply(bind);
+            return Ok(bind);
         }
 
         [HttpPost("stop")]
