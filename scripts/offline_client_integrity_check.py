@@ -95,6 +95,18 @@ def main() -> None:
         if proc.returncode != 0:
             fail(f"node --check failed for {rel}: {proc.stderr.strip()}")
 
+    # Path-only fake items toast "playing" without a player — require Http stream path.
+    lucky = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
+    if "/Swarmplay/swarm/stream" not in lucky:
+        fail("lucky.js must build /Swarmplay/swarm/stream URL for real playback")
+    if "Protocol: 'Http'" not in lucky and 'Protocol: "Http"' not in lucky:
+        fail("lucky.js must use MediaSource Protocol Http (not Path-only File)")
+    releases = (PLUGIN_JS / "swarm/releases.js").read_text(encoding="utf-8", errors="replace")
+    if "warming swarm" not in releases:
+        fail("releases.js must toast warming after release selection")
+    if "player did not start" not in releases:
+        fail("releases.js must not claim playing when the player did not start")
+
     print("PASS: offline_client_integrity_check")
 
 

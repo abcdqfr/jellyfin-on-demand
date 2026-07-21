@@ -25,10 +25,26 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm.Torznab
                     Title = item.Element("title")?.Value ?? string.Empty,
                     Guid = item.Element("guid")?.Value,
                     Magnet = FindMagnet(item),
-                    Size = FindAttributeValue<long>(item, "size", long.TryParse),
+                    Size = FindSize(item),
                     Seeders = FindAttributeValue<int>(item, "seeders", int.TryParse)
                 })
                 .ToList();
+        }
+
+        /// <summary>
+        /// Prowlarr uses RSS &lt;size&gt;; some indexers only set torznab:attr name="size".
+        /// </summary>
+        private static long FindSize(XElement item)
+        {
+            var element = item.Element("size")?.Value;
+            if (!string.IsNullOrWhiteSpace(element)
+                && long.TryParse(element, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fromElement)
+                && fromElement > 0)
+            {
+                return fromElement;
+            }
+
+            return FindAttributeValue<long>(item, "size", long.TryParse);
         }
 
         private static string? FindMagnet(XElement item)

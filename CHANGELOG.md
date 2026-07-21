@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.4 — 2026-07-21
+
+### Fixed
+- Torznab picker showed **0B** for every release: Prowlarr size lives in RSS `<size>`, not only `torznab:attr`
+- “Playing” toast with no player: Desktop ignores Path-only fake items — play via `GET /Swarmplay/swarm/stream` Http MediaSource
+
+### Changed
+- After release select: toast **warming** → play-bind → real `playbackManager.play` attempt; only toast “playing” if a player engages
+
 ## 0.1.3 — 2026-07-21
 
 ### Fixed

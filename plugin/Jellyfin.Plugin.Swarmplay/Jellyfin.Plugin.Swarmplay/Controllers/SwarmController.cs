@@ -230,6 +230,64 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Authenticated byte-range stream of the Ensure growing file (real JF playback path).
+        /// Client plays via Http MediaSource — Path-only fake items silently no-op in Desktop.
+        /// </summary>
+        [HttpGet("stream")]
+        [Authorize]
+        public async Task<IActionResult> Stream(
+            [FromQuery] string? btih,
+            [FromQuery] int fileIndex = 0,
+            CancellationToken cancellationToken = default)
+        {
+            btih = (btih ?? string.Empty).Trim().ToLowerInvariant();
+            if (btih.Length is not (40 or 32))
+            {
+                return BadRequest(new { error = "invalid_argument", message = "BTIH required for stream." });
+            }
+
+            var ensure = await _swarmSession.EnsureAsync(
+                new SwarmEnsureRequest
+                {
+                    Btih = btih,
+                    FileIndex = fileIndex,
+                    TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
+                        ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
+                        : 8,
+                    HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
+                        ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
+                        : 8
+                },
+                cancellationToken).ConfigureAwait(false);
+
+            var path = ensure.Path;
+            if (string.IsNullOrEmpty(path)
+                || !path.StartsWith("/tmp/swarmplay/", StringComparison.Ordinal)
+                || !System.IO.File.Exists(path))
+            {
+                return NotFound(new
+                {
+                    error = ensure.Error ?? "not_ready",
+                    message = ensure.Message ?? "Growing file not ready to stream yet."
+                });
+            }
+
+            // Full path under our save root only — no open proxy.
+            // ReadWrite share: libtorrent keeps writing the growing file while we stream.
+            var contentType = path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ? "video/mp4"
+                : path.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) ? "video/webm"
+                : "video/x-matroska";
+            var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite,
+                bufferSize: 1024 * 64,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            return File(stream, contentType, enableRangeProcessing: true);
+        }
+
         private async Task<List<TorznabReleaseDto>> SearchConfiguredIndexersAsync(
             string query,
             CancellationToken cancellationToken)

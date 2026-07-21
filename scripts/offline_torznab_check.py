@@ -29,6 +29,13 @@ def main() -> None:
     src = PARSER.read_text(encoding="utf-8")
     if 'item.Element("guid")' not in src:
         fail("TorznabXmlParser must read magnet from <guid> (Prowlarr)")
+    if "FindSize" not in src or 'item.Element("size")' not in src:
+        fail("TorznabXmlParser must read RSS <size> (Prowlarr; attr-only → 0B picker)")
+
+    # Fixture must exercise RSS <size> (attr-only was the 0B lab bug).
+    fixture_xml = FIXTURE.read_text(encoding="utf-8")
+    if "<size>" not in fixture_xml:
+        fail("torznab-sample.xml must include <size> elements")
 
     # Mirror FindMagnet against a Prowlarr-shaped item
     sample = """<?xml version="1.0"?>
@@ -55,8 +62,10 @@ def main() -> None:
         fail("SwarmController must normalize Torznab URLs")
     if 'HttpPost("lucky")' not in ctrl:
         fail("SwarmController must expose POST lucky")
+    if 'HttpGet("stream")' not in ctrl:
+        fail("SwarmController must expose GET stream (Http MediaSource playback)")
 
-    print(f"torznab items: {count}; magnet-from-guid: ok; lucky route: ok")
+    print(f"torznab items: {count}; magnet-from-guid: ok; size+stream routes: ok")
 
 
 if __name__ == "__main__":

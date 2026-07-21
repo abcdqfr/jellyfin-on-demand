@@ -5,6 +5,7 @@
 
     function formatBytes(n) {
         const v = Number(n) || 0;
+        if (v <= 0) return 'size ?';
         if (v < 1e9) return `${(v / 1e6).toFixed(0)} MB`;
         return `${(v / 1e9).toFixed(1)} GB`;
     }
@@ -35,11 +36,12 @@
 
     async function playRelease(release, ctx) {
         closePicker();
-        const title = ctx.title || release.title || 'title';
+        const title = ctx.title || release.title || release.Title || 'title';
         if (typeof JE.toast === 'function') {
-            JE.toast(`Swarmplay: starting ${release.title || title}…`, 3500);
+            JE.toast(`Swarmplay: warming swarm for ${release.title || release.Title || title}…`, 5000);
         }
-        const btih = release.btih || release.Btih || (JE.swarmMagnet && JE.swarmMagnet.parse(release.magnet || release.Magnet));
+        const btih = release.btih || release.Btih
+            || (JE.swarmMagnet && JE.swarmMagnet.parse(release.magnet || release.Magnet));
         const bind = await JE.swarm.playBind({
             Btih: btih || '',
             Magnet: btih ? null : (release.magnet || release.Magnet || null),
@@ -52,32 +54,41 @@
         });
         const ready = !!(bind && (bind.ready === true || bind.Ready === true));
         const path = bind?.path || bind?.Path;
-        if (ready && path) {
-            const played = typeof JE.swarmAttemptPlayback === 'function'
-                ? await JE.swarmAttemptPlayback(bind, title)
-                : false;
-            if (typeof JE.toast === 'function') {
-                JE.toast(
-                    played
-                        ? `Swarmplay: playing ${title}`
-                        : `Swarmplay: ready (file #${bind.FileIndex ?? bind.fileIndex ?? 0}) — virtual-item Play bind still open`,
-                    5000
-                );
-            }
+        if (!ready || !path) {
+            const why = (JE.swarm && JE.swarm.formatError)
+                ? JE.swarm.formatError(bind)
+                : (bind?.Message || bind?.message || bind?.Error || bind?.error || 'not ready');
+            if (typeof JE.toast === 'function') JE.toast(`Swarmplay: ${why}`, 7000);
             return;
         }
-        const why = (JE.swarm && JE.swarm.formatError)
-            ? JE.swarm.formatError(bind)
-            : (bind?.Message || bind?.message || bind?.Error || bind?.error || 'not ready');
+
         if (typeof JE.toast === 'function') {
-            JE.toast(`Swarmplay: ${why}`, 7000);
+            JE.toast(`Swarmplay: starting playback…`, 3000);
+        }
+        const attempt = typeof JE.swarmAttemptPlayback === 'function'
+            ? await JE.swarmAttemptPlayback(bind, title)
+            : { ok: false, reason: 'no_attempt_fn' };
+
+        // Back-compat: older attemptPlayback returned boolean
+        const ok = attempt === true || !!(attempt && attempt.ok);
+        const reason = attempt && attempt.reason;
+        const url = attempt && attempt.url;
+
+        if (ok) {
+            if (typeof JE.toast === 'function') JE.toast(`Swarmplay: playing ${title}`, 4000);
+            return;
+        }
+
+        console.warn(logPrefix, 'playback attempt failed', attempt);
+        if (typeof JE.toast === 'function') {
+            JE.toast(
+                `Swarmplay: warm ready but player did not start (${reason || 'unknown'}).`
+                + (url ? ' Stream URL built — check Desktop console.' : ''),
+                8000
+            );
         }
     }
 
-    /**
-     * Fast ranked Torznab list for one title. User picks → play-bind with S/E intelligence.
-     * @param {{ query:string, title?:string, mediaType?:string, season?:number, episode?:number }} ctx
-     */
     JE.swarmShowReleasePicker = async function (ctx) {
         ensurePickerStyles();
         closePicker();
@@ -95,7 +106,7 @@
                 <header>
                     <button type="button" class="close" aria-label="Close">&times;</button>
                     <h2>${(ctx.title || query).replace(/</g, '&lt;')}</h2>
-                    <p class="sub">Ranked Torznab results — pick one to play</p>
+                    <p class="sub">Ranked Torznab — pick one to warm &amp; play</p>
                 </header>
                 <div class="loading">Searching indexers…</div>
             </div>`;
@@ -123,7 +134,7 @@
             const li = document.createElement('li');
             li.tabIndex = 0;
             const seeders = rel.seeders ?? rel.Seeders ?? 0;
-            const size = rel.sizeBytes ?? rel.SizeBytes ?? 0;
+            const size = rel.sizeBytes ?? rel.SizeBytes ?? rel.size ?? rel.Size ?? 0;
             const indexer = rel.indexer || rel.Indexer || '?';
             li.innerHTML = `
                 <div><strong>#${i + 1}</strong> ${(rel.title || rel.Title || 'release').replace(/</g, '&lt;')}</div>
