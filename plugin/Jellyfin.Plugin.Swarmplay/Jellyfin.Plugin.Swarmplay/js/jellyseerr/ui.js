@@ -897,7 +897,10 @@
 
         const title = document.createElement('h2');
         title.className = 'sectionTitle sectionTitle-cards focuscontainer-x padded-left padded-right';
-        title.textContent = isJellyseerrOnlyMode ? JE.t('jellyseerr_results_title') : JE.t('jellyseerr_discover_title');
+        const swarmPlay = JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false && !JE.pluginConfig?.JellyseerrEnabled;
+        title.textContent = swarmPlay
+            ? 'Swarmplay'
+            : (isJellyseerrOnlyMode ? JE.t('jellyseerr_results_title') : JE.t('jellyseerr_discover_title'));
 
         // Add a refresh button beside the results heading
         const refreshBtn = document.createElement('button');
@@ -1484,6 +1487,33 @@
             button.innerHTML = `<span>${JE.t('jellyseerr_btn_user_not_found')}</span>${icons.person_off}`;
             button.disabled = true;
             button.classList.add('jellyseerr-button-no-user');
+            return;
+        }
+
+        // Swarmplay: same cards, Play instead of Request → *arr.
+        const swarmPlay = JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false && !JE.pluginConfig?.JellyseerrEnabled;
+        if (swarmPlay && item.mediaType !== 'collection') {
+            const title = item.title || item.name || 'title';
+            const year = (item.releaseDate || item.firstAirDate || '').substring(0, 4);
+            const query = year ? `${title} ${year}` : title;
+            button.innerHTML = `${icons.request || ''}<span>Play</span>`;
+            button.disabled = false;
+            button.className = 'jellyseerr-request-button jellyseerr-button-request jellyseerr-button-swarmplay-play';
+            button.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof JE.toast === 'function') {
+                    JE.toast(`Swarmplay: finding releases for ${title}…`, 3000);
+                }
+                if (typeof JE.feelingLucky === 'function') {
+                    const result = await JE.feelingLucky(query);
+                    if (result && result.ready && typeof JE.toast === 'function') {
+                        JE.toast(`Swarmplay: ready — ${title}`, 3000);
+                    } else if (typeof JE.toast === 'function') {
+                        JE.toast(`Swarmplay: Torznab/Ensure still warming up for ${title}`, 4000);
+                    }
+                }
+            };
             return;
         }
 

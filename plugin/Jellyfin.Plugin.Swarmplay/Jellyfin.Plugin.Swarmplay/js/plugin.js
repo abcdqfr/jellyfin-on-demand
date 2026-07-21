@@ -585,9 +585,8 @@
             }
 
             // Stage 3: Load component scripts
-            // Swarmplay (ADR-004): do NOT load Seerr/jellyseerr or *arr client scripts.
-            // Those trees remain on disk for retarget/reference; discovery chrome will
-            // be reintroduced via js/swarm/* talking to Torznab + Ensure.
+            // ADR-004: no Seerr process — but keep jellyseerr/* chrome for TMDB
+            // poster search (retargeted server-side). Omit *arr client scripts.
             const basePath = '/Swarmplay/js';
             const allComponentScripts = [
                 // enhanced
@@ -615,12 +614,22 @@
                 'elsewhere/elsewhere.js',
                 'elsewhere/reviews.js',
 
-                // swarmplay control plane (stub until native Ensure)
+                // swarmplay control plane (Torznab/Ensure — not the search chrome)
                 'swarm/api.js',
                 'swarm/ranker.js',
                 'swarm/releases.js',
                 'swarm/lucky.js',
                 'swarm/magnet.js',
+
+                // jellyseerr chrome (search/posters) — data from Swarmplay/TMDB
+                'jellyseerr/seerr-status.js',
+                'jellyseerr/request-manager.js',
+                'jellyseerr/api.js',
+                'jellyseerr/jellyseerr.js',
+                'jellyseerr/ui.js',
+                'jellyseerr/modal.js',
+                'jellyseerr/more-info-modal.js',
+                'jellyseerr/seamless-scroll.js',
 
                 // tags
                 'tags/genretags.js',
@@ -640,8 +649,7 @@
                 // others
                 'others/letterboxd-links.js',
             ];
-            // Intentionally omitted (Seerr/*arr product spine — ADR-004 / TRAVEL):
-            // jellyseerr/*, arr/*
+            // Intentionally omitted (*arr product spine — ADR-004): arr/*
             await loadScripts(allComponentScripts, basePath);
             console.log('🪼 Jellyfin Enhanced: All component scripts loaded.');
 
@@ -688,8 +696,15 @@
             // Stage 6: Initialize feature modules
             if (typeof JE.initializeEnhancedScript === 'function') JE.initializeEnhancedScript();
             if (typeof JE.initializeElsewhereScript === 'function' && JE.pluginConfig?.ElsewhereEnabled) JE.initializeElsewhereScript();
-            if (typeof JE.initializeJellyseerrScript === 'function' && JE.pluginConfig?.JellyseerrEnabled && JE.pluginConfig?.JellyseerrShowSearchResults !== false) JE.initializeJellyseerrScript();
-            if (typeof JE.jellyseerrIssueReporter?.initialize === 'function' && JE.pluginConfig?.JellyseerrEnabled && JE.pluginConfig?.JellyseerrShowReportButton) JE.jellyseerrIssueReporter.initialize();
+            // Same poster/rating search chrome as JE Seerr; backed by TMDB when
+            // SwarmplayDiscoveryEnabled (no Seerr). Do not require the legacy
+            // JellyseerrShowSearchResults flag — ADR-004 left it false.
+            const swarmDiscovery = JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false;
+            if (typeof JE.initializeJellyseerrScript === 'function'
+                && (swarmDiscovery
+                    || (JE.pluginConfig?.JellyseerrEnabled && JE.pluginConfig?.JellyseerrShowSearchResults !== false))) {
+                JE.initializeJellyseerrScript();
+            }
             if (typeof JE.initializePauseScreen === 'function') JE.initializePauseScreen();
             if (typeof JE.initializeBookmarks === 'function') JE.initializeBookmarks();
             if (typeof JE.initializeQualityTags === 'function' && JE.currentSettings?.qualityTagsEnabled) JE.initializeQualityTags();

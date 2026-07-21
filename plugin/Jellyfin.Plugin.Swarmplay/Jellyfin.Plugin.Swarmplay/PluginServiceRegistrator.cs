@@ -52,7 +52,7 @@ namespace Jellyfin.Plugin.Swarmplay
             // serviceCollection.AddSingleton<AutoMovieRequestMonitor>();
             // serviceCollection.AddSingleton<WatchlistMonitor>();
             // serviceCollection.AddSingleton<SeerrScanTriggerService>();
-            // serviceCollection.AddSingleton<TagCacheService>();
+            serviceCollection.AddSingleton<TagCacheService>();
             // serviceCollection.AddSingleton<TagCacheMonitor>();
             // Local CDN subsystem: serves every third-party static asset (icons, fonts,
             // theme sheets, flags, remote locales) from the plugin's own route, backed by

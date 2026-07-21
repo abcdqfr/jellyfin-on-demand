@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 — 2026-07-21
+
+### Fixed
+- Swarmplay discovery search was dead: ADR-004 left `JellyseerrShowSearchResults=false`, and re-enabling poster chrome still gated on that flag after removing fixtures
+- Admin TMDB Test called `/JellyfinEnhanced/tmdb/validate` (404) after route rename to `/Swarmplay`
+
+### Changed
+- Commit gate: `offline_client_integrity_check.py` + `live_public_config_smoke.py` (route rename + discovery flags)
+
 ## 0.1.0 — 2026-07-21
 
 First tagged Swarmplay cut for local integration testing (Jellyfin Desktop +

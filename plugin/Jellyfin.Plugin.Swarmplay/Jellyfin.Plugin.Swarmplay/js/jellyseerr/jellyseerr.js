@@ -7,12 +7,15 @@
      * This function sets up the state, observers, and event listeners.
      */
     JE.initializeJellyseerrScript = function() {
-        // Early exit if Seerr integration or search results are disabled in plugin settings
-        if (!JE.pluginConfig.JellyseerrEnabled) {
+        // Swarmplay discovery reuses this chrome with TMDB (no Seerr process).
+        const swarmDiscovery = JE.pluginConfig.SwarmplayDiscoveryEnabled !== false;
+        if (!JE.pluginConfig.JellyseerrEnabled && !swarmDiscovery) {
             console.log('🪼 Jellyfin Enhanced: Seerr Search: Integration is disabled in plugin settings.');
             return;
         }
-        if (JE.pluginConfig.JellyseerrShowSearchResults === false) {
+        // When Swarmplay discovery is on, always show results — ignore the
+        // legacy JellyseerrShowSearchResults=false default from ADR-004 unload.
+        if (!swarmDiscovery && JE.pluginConfig.JellyseerrShowSearchResults === false) {
             console.log('🪼 Jellyfin Enhanced: Seerr Search: Search results are disabled in plugin settings.');
             return;
         }

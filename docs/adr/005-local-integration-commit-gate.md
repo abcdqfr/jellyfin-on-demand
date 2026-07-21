@@ -19,15 +19,19 @@ a local Jellyfin host that loads this plugin — not a mock UI.
 1. **`scripts/ci_gate.sh` is required before commit.** The repo `pre-commit`
    hook runs it. No skip flag, no “docs-only” escape hatch in the hook.
 2. The gate must prove **real** local behavior, not mocks of the spine:
-   - offline pure checks (`scripts/offline_check.sh`)
+   - offline pure checks (`scripts/offline_check.sh`), including **client/route
+     integrity** (no stale `/JellyfinEnhanced/` admin API URLs; Swarmplay
+     discovery must not be gated off by legacy `JellyseerrShowSearchResults=false`)
    - plugin build (`JellyfinTarget=jf10`)
    - native library present (`libswarmplay_native.so`)
    - local seeder → native Ensure
    - user-scoped Jellyfin → `POST /Swarmplay/swarm/play-bind` → ready Path →
      Jellyfin’s `ffprobe` reads the growing file (same open path JF Desktop /
      ffmpeg would use for Play)
-3. **It works for real or it does not commit.** CI elsewhere (when added) must
-   call the same script; remote checks are not a substitute for the local gate.
+   - when system JF is up: `live_public_config_smoke.py` (discovery + route rename)
+3. **It works for real or it does not commit.** Every iteration ships a **bumped
+   hotfix tag** after gate green. CI elsewhere must call the same script; remote
+   checks are not a substitute for the local gate.
 4. **strmarr symlink stays** under `third-party/strmarr` for lessons/path
    reference (I10: no code import). **Do not run strmarr services** for
    Swarmplay development or CI. Do not gate on strmarr being up.

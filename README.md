@@ -73,3 +73,11 @@ removed for the same reason.
 ./scripts/package_release.sh 0.1.0
 # tag: v0.1.0 — see docs/releases/0.1.0.md
 ```
+
+## Lab host
+
+```sh
+make help
+make up       # deploy 0.1.0 to system Jellyfin on this machine
+make status
+```

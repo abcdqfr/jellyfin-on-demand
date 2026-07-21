@@ -42,4 +42,9 @@ python3 "$root/scripts/native_ensure_local_seed_smoke.py"
 printf '== JF play-bind integration smoke ==\n'
 python3 "$root/scripts/jf_ensure_local_smoke.py"
 
+# When system JF is up (lab host), also prove public-config / route rename.
+# Unreachable JF → skip inside the script (temp JF smoke above still required).
+printf '== live public-config / route smoke ==\n'
+python3 "$root/scripts/live_public_config_smoke.py"
+
 printf 'CI_GATE PASS\n'

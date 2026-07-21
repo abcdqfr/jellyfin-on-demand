@@ -8,15 +8,15 @@
     <script>
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = ApiClient.getUrl('/JellyfinEnhanced/Configuration/configPage.css');
+        link.href = ApiClient.getUrl('/Swarmplay/Configuration/configPage.css');
         document.head.appendChild(link);
 
         // Local CDN route helper. Every external CDN asset this admin page used to load
         // directly (icons, screenshots, the Material Symbols font) is served from the
-        // plugin's own /JellyfinEnhanced/cdn/ route instead. Base-path-safe via
+        // plugin's own /Swarmplay/cdn/ route instead. Base-path-safe via
         // ApiClient.getUrl so it works behind a reverse-proxy sub-path.
         window.jeCdnUrl = function (subpath) {
-            return ApiClient.getUrl('/JellyfinEnhanced/cdn/' + subpath);
+            return ApiClient.getUrl('/Swarmplay/cdn/' + subpath);
         };
         // Inject the Material Symbols Rounded @font-face pointing at the local gfont route
         // (replaces the former fonts.gstatic.com @font-face).
@@ -71,6 +71,7 @@
                 <button class="jellyfin-tab-button" data-tab="display"><h3><i class="material-icons je-tab-icon" aria-hidden="true">palette</i>Display</h3></button>
                 <button class="jellyfin-tab-button" data-tab="playback"><h3><i class="material-icons je-tab-icon" aria-hidden="true">play_circle</i>Playback</h3></button>
                 <button class="jellyfin-tab-button" data-tab="pages"><h3><i class="material-icons je-tab-icon" aria-hidden="true">view_list</i>Pages</h3></button>
+                <button class="jellyfin-tab-button" data-tab="swarmplay"><h3><i class="material-icons je-tab-icon" aria-hidden="true">hub</i>Swarmplay</h3></button>
                 <button class="jellyfin-tab-button" data-tab="seerr" hidden><h3><img data-je-cdn="selfhst/svg/seerr.svg" alt="" class="je-tab-icon-img">Seerr</h3></button>
                 <button class="jellyfin-tab-button" data-tab="arr" hidden><h3><i class="material-icons je-tab-icon" aria-hidden="true">dns</i>*arr</h3></button>
                 <button class="jellyfin-tab-button" data-tab="elsewhere"><h3><i class="material-icons je-tab-icon" aria-hidden="true">travel_explore</i>Elsewhere</h3></button>
@@ -1168,6 +1169,68 @@
                             <div class="checkboxContainer"><label><input id="calendarForceOnlyRequested" is="emby-checkbox" type="checkbox"/><span>Force Only Requested Items</span></label></div>
                             <div class="je-setting-description" data-desc-for="calendarForceOnlyRequested">
                                 <div class="fieldDescription">When enabled, the calendar always shows only your requested items and the Requests filter is hidden.</div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div id="swarmplay" class="jellyfin-tab-content">
+                    <fieldset>
+                        <legend class="sectionTitle">Swarmplay Discovery</legend>
+                        <div class="configSection">
+                            <div class="je-info-banner">
+                                <i class="material-icons je-info-icon">info</i>
+                                <div><strong>Internal discovery</strong><br/>Per ADR-004, Swarmplay discovers releases internally; Jellyseerr is not required.</div>
+                            </div>
+                            <div class="checkboxContainer je-main-feature">
+                                <label><input id="swarmplayDiscoveryEnabled" is="emby-checkbox" type="checkbox"/><span>Enable Swarmplay discovery</span></label>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="swarmplayDiscoveryEnabled">
+                                <div class="fieldDescription">Show Swarmplay discovery in Jellyfin search and enable its ranked release results.</div>
+                            </div>
+                            <div class="inputContainer je-fieldset-wide">
+                                <label class="inputLabel" for="TorznabNyaaUrl">Nyaa Torznab URL</label>
+                                <input id="TorznabNyaaUrl" is="emby-input" type="text" class="emby-input" autocomplete="off"/>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="TorznabNyaaUrl">
+                                <div class="fieldDescription">Torznab search endpoint for the Nyaa indexer, including any required API key.</div>
+                            </div>
+                            <div class="inputContainer je-fieldset-wide">
+                                <label class="inputLabel" for="TorznabTpbUrl">TPB Torznab URL</label>
+                                <input id="TorznabTpbUrl" is="emby-input" type="text" class="emby-input" autocomplete="off"/>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="TorznabTpbUrl">
+                                <div class="fieldDescription">Torznab search endpoint for the TPB indexer, including any required API key.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="RankMinSeeders">Minimum seeders</label>
+                                <input id="RankMinSeeders" is="emby-input" type="number" min="0" step="1" class="emby-input"/>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="RankMinSeeders">
+                                <div class="fieldDescription">Exclude releases with fewer seeders than this threshold.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="RankPreferMaxResolution">Preferred maximum resolution</label>
+                                <select id="RankPreferMaxResolution" is="emby-select" class="emby-select">
+                                    <option value="2160p">2160p</option><option value="1080p">1080p</option><option value="720p">720p</option>
+                                </select>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="RankPreferMaxResolution">
+                                <div class="fieldDescription">Favor releases at or below this resolution when ranking results.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="WarmTailMib">Warm tail (MiB)</label>
+                                <input id="WarmTailMib" is="emby-input" type="number" min="0" step="1" class="emby-input"/>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="WarmTailMib">
+                                <div class="fieldDescription">Amount of the end of a selected file to warm before playback.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="WarmHeadMib">Warm head (MiB)</label>
+                                <input id="WarmHeadMib" is="emby-input" type="number" min="0" step="1" class="emby-input"/>
+                            </div>
+                            <div class="je-setting-description" data-desc-for="WarmHeadMib">
+                                <div class="fieldDescription">Amount of the beginning of a selected file to warm before playback.</div>
                             </div>
                         </div>
                     </fieldset>
@@ -3197,7 +3260,7 @@
             let lastError = '';
             for (const url of urls) {
                 try {
-                    const validationUrl = ApiClient.getUrl(`/JellyfinEnhanced/jellyseerr/validate`, {
+                    const validationUrl = ApiClient.getUrl(`/Swarmplay/jellyseerr/validate`, {
                         url: url
                     });
 
@@ -3259,7 +3322,7 @@
             statusIndicator.style.color = 'var(--primary-accent-color, #00a4dc)';
 
             try {
-                const validationUrl = ApiClient.getUrl(`/JellyfinEnhanced/tmdb/validate`, { apiKey: apiKey });
+                const validationUrl = ApiClient.getUrl(`/Swarmplay/tmdb/validate`, { apiKey: apiKey });
                 await ApiClient.ajax({ type: 'GET', url: validationUrl });
 
                 statusIndicator.textContent = 'check_circle';
@@ -3728,7 +3791,7 @@
 
             ApiClient.ajax({
                 type: 'GET',
-                url: ApiClient.getUrl('/JellyfinEnhanced/jellyseerr/radarr'),
+                url: ApiClient.getUrl('/Swarmplay/jellyseerr/radarr'),
                 dataType: 'json'
             }).then(function(servers) {
                 resetSelectWithMessage(serverSelect, '-1', 'Select Server...');
@@ -3773,7 +3836,7 @@
 
             ApiClient.ajax({
                 type: 'GET',
-                url: ApiClient.getUrl('/JellyfinEnhanced/jellyseerr/radarr/' + serverId),
+                url: ApiClient.getUrl('/Swarmplay/jellyseerr/radarr/' + serverId),
                 dataType: 'json'
             }).then(function(details) {
                 resetSelectWithMessage(profileSelect, '0', 'Select Profile...');
@@ -4321,6 +4384,13 @@
                 document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
                 document.querySelector('#ElsewhereCustomBrandingText').value = config.ElsewhereCustomBrandingText || '';
                 document.querySelector('#ElsewhereCustomBrandingImageUrl').value = config.ElsewhereCustomBrandingImageUrl || '';
+                document.querySelector('#swarmplayDiscoveryEnabled').checked = config.SwarmplayDiscoveryEnabled !== false;
+                document.querySelector('#TorznabNyaaUrl').value = config.TorznabNyaaUrl || '';
+                document.querySelector('#TorznabTpbUrl').value = config.TorznabTpbUrl || '';
+                document.querySelector('#RankMinSeeders').value = config.RankMinSeeders ?? 3;
+                document.querySelector('#RankPreferMaxResolution').value = config.RankPreferMaxResolution || '1080p';
+                document.querySelector('#WarmTailMib').value = config.WarmTailMib ?? 8;
+                document.querySelector('#WarmHeadMib').value = config.WarmHeadMib ?? 8;
                 document.querySelector('#jellyseerr_TMDB_API_KEY').value = config.TMDB_API_KEY;
 
                 // Set up bidirectional sync between TMDB API key fields
@@ -4678,6 +4748,13 @@
             config.IGNORE_PROVIDERS = document.querySelector('#IGNORE_PROVIDERS').value;
             config.ElsewhereCustomBrandingText = document.querySelector('#ElsewhereCustomBrandingText').value;
             config.ElsewhereCustomBrandingImageUrl = document.querySelector('#ElsewhereCustomBrandingImageUrl').value;
+            config.SwarmplayDiscoveryEnabled = document.querySelector('#swarmplayDiscoveryEnabled').checked;
+            config.TorznabNyaaUrl = document.querySelector('#TorznabNyaaUrl').value.trim();
+            config.TorznabTpbUrl = document.querySelector('#TorznabTpbUrl').value.trim();
+            config.RankMinSeeders = parseInt(document.querySelector('#RankMinSeeders').value, 10) || 0;
+            config.RankPreferMaxResolution = document.querySelector('#RankPreferMaxResolution').value;
+            config.WarmTailMib = parseInt(document.querySelector('#WarmTailMib').value, 10) || 0;
+            config.WarmHeadMib = parseInt(document.querySelector('#WarmHeadMib').value, 10) || 0;
             config.AutoPauseEnabled = document.querySelector('#autoPauseEnabled').checked;
             config.AutoResumeEnabled = document.querySelector('#autoResumeEnabled').checked;
             config.AutoPipEnabled = document.querySelector('#autoPipEnabled').checked;
@@ -5119,7 +5196,7 @@
                             : JSON.parse(config.MaintenanceModeAffectedUsers || '[]');
                         await ApiClient.ajax({
                             type: 'POST',
-                            url: ApiClient.getUrl('/JellyfinEnhanced/MaintenanceMode/Enable'),
+                            url: ApiClient.getUrl('/Swarmplay/MaintenanceMode/Enable'),
                             contentType: 'application/json',
                             data: JSON.stringify({
                                 message: config.MaintenanceModeMessage || '',
@@ -5136,7 +5213,7 @@
                         try {
                             await ApiClient.ajax({
                                 type: 'POST',
-                                url: ApiClient.getUrl('/JellyfinEnhanced/MaintenanceMode/Broadcast'),
+                                url: ApiClient.getUrl('/Swarmplay/MaintenanceMode/Broadcast'),
                                 contentType: 'application/json',
                                 data: JSON.stringify({
                                     header: 'Server Maintenance',
@@ -5150,7 +5227,7 @@
                     } else {
                         await ApiClient.ajax({
                             type: 'POST',
-                            url: ApiClient.getUrl('/JellyfinEnhanced/MaintenanceMode/Disable')
+                            url: ApiClient.getUrl('/Swarmplay/MaintenanceMode/Disable')
                         });
                     }
                 } catch (mmErr) {
@@ -5199,7 +5276,7 @@
                     // Then reset all user settings to match the saved config
                     await ApiClient.ajax({
                         type: 'POST',
-                        url: ApiClient.getUrl('/JellyfinEnhanced/reset-all-users-settings'),
+                        url: ApiClient.getUrl('/Swarmplay/reset-all-users-settings'),
                         dataType: 'json'
                     });
 
@@ -5225,7 +5302,7 @@
         function loadMaintenanceUsers() {
             ApiClient.ajax({
                 type: 'GET',
-                url: ApiClient.getUrl('/JellyfinEnhanced/MaintenanceMode/Users'),
+                url: ApiClient.getUrl('/Swarmplay/MaintenanceMode/Users'),
                 dataType: 'json'
             }).then(function(users) {
                 const inner = document.getElementById('je-mm-users-inner');
@@ -5438,7 +5515,7 @@
                 formData.append('fileName', config.fileName);
 
                 const token = ApiClient.accessToken ? ApiClient.accessToken() : '';
-                const response = await fetch(ApiClient.getUrl('/JellyfinEnhanced/UploadBrandingImage'), {
+                const response = await fetch(ApiClient.getUrl('/Swarmplay/UploadBrandingImage'), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -5475,7 +5552,7 @@
 
             const token = ApiClient.accessToken ? ApiClient.accessToken() : '';
             try {
-                const response = await fetch(ApiClient.getUrl('/JellyfinEnhanced/BrandingImage', { fileName: config.fileName, t: Date.now() }), {
+                const response = await fetch(ApiClient.getUrl('/Swarmplay/BrandingImage', { fileName: config.fileName, t: Date.now() }), {
                     // Jellyfin 12 authenticates from the Authorization header; the
                     // legacy X-MediaBrowser-Token is kept for 10.11 back-compat.
                     headers: { 'Authorization': 'MediaBrowser Token="' + token + '"', 'X-MediaBrowser-Token': token }
@@ -5520,7 +5597,7 @@
             const token = ApiClient.accessToken ? ApiClient.accessToken() : '';
 
             try {
-                const response = await fetch(ApiClient.getUrl('/JellyfinEnhanced/DeleteBrandingImage'), {
+                const response = await fetch(ApiClient.getUrl('/Swarmplay/DeleteBrandingImage'), {
                     method: 'POST',
                     body: formData,
                     // Jellyfin 12 authenticates from the Authorization header; the
@@ -5568,7 +5645,7 @@
 
             try {
                 const [localeCodes, cultures] = await Promise.all([
-                    ApiClient.ajax({ type: 'GET', url: ApiClient.getUrl('/JellyfinEnhanced/locales'), dataType: 'json' }),
+                    ApiClient.ajax({ type: 'GET', url: ApiClient.getUrl('/Swarmplay/locales'), dataType: 'json' }),
                     ApiClient.ajax({ type: 'GET', url: ApiClient.getUrl('/Localization/Cultures'), dataType: 'json' })
                 ]);
 
@@ -7138,7 +7215,7 @@
             var arrCacheKey = type + ':' + _jeNormalizeArrUrl(urlVal);
             try {
                 var endpoint = type === 'sonarr' ? 'sonarr' : 'radarr';
-                var validationUrl = ApiClient.getUrl('/JellyfinEnhanced/arr/validate/' + endpoint, { url: urlVal });
+                var validationUrl = ApiClient.getUrl('/Swarmplay/arr/validate/' + endpoint, { url: urlVal });
                 await ApiClient.ajax({ type: 'GET', url: validationUrl, dataType: 'json', headers: { 'X-Arr-ApiKey': apiKeyVal } });
 
                 indicator.textContent = 'check_circle';
@@ -7496,7 +7573,7 @@
             let lastError = '';
             for (const url of urls) {
                 try {
-                    const triggerUrl = ApiClient.getUrl('/JellyfinEnhanced/jellyseerr/trigger-recently-added-scan', { url: url });
+                    const triggerUrl = ApiClient.getUrl('/Swarmplay/jellyseerr/trigger-recently-added-scan', { url: url });
                     const res = await ApiClient.ajax({ type: 'POST', url: triggerUrl, dataType: 'json', headers: { 'X-Arr-ApiKey': apiKey } });
                     if (res && res.ok) {
                         triggered = true;
@@ -7835,7 +7912,7 @@
             try {
                 btn.textContent = 'Importing...';
                 const response = await ApiClient.fetch({
-                    url: ApiClient.getUrl('JellyfinEnhanced/jellyseerr/import-users'),
+                    url: ApiClient.getUrl('Swarmplay/jellyseerr/import-users'),
                     type: 'POST',
                     dataType: 'json'
                 });
@@ -7910,7 +7987,7 @@
 
         // Permission Audit — admin scans every Jellyfin user for missing Seerr
         // permissions required by the features the admin has currently enabled.
-        // GETs /JellyfinEnhanced/jellyseerr/permission-audit which returns
+        // GETs /Swarmplay/jellyseerr/permission-audit which returns
         // [{ jellyfinUsername, linked, issues:[...] }]. We render a summary
         // line + a table of users with gaps (warnings/unlinked first, then
         // a collapsed "OK" group). Errors surface inline in the result div
@@ -7934,7 +8011,7 @@
                 try {
                     var data = await ApiClient.ajax({
                         type: 'GET',
-                        url: ApiClient.getUrl('/JellyfinEnhanced/jellyseerr/permission-audit'),
+                        url: ApiClient.getUrl('/Swarmplay/jellyseerr/permission-audit'),
                         dataType: 'json'
                     });
                     var withIssues = data.filter(function(u) { return u.linked && u.issues && u.issues.length > 0; });

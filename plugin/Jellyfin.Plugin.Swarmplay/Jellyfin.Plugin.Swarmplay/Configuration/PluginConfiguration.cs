@@ -44,6 +44,7 @@ namespace Jellyfin.Plugin.Swarmplay.Configuration
             ElsewhereCustomBrandingImageUrl = "";
 
             // Swarmplay P2-03
+            SwarmplayDiscoveryEnabled = true;
             TorznabNyaaUrl = "";
             TorznabTpbUrl = "";
             RankMinSeeders = 3;
@@ -139,7 +140,8 @@ namespace Jellyfin.Plugin.Swarmplay.Configuration
 
             // Seerr Search Settings — Swarmplay: leave disabled (ADR-004). Scripts not loaded.
             JellyseerrEnabled = false;
-            JellyseerrShowSearchResults = false;
+            // True: Swarmplay discovery uses this chrome (TMDB). Seerr process still off.
+            JellyseerrShowSearchResults = true;
             JellyseerrShowReportButton = false;
             JellyseerrShowIssueIndicator = false;
             JellyseerrEnable4KRequests = false;
@@ -371,6 +373,7 @@ namespace Jellyfin.Plugin.Swarmplay.Configuration
         public long ClearTranslationCacheTimestamp { get; set; }
 
         // Swarmplay P2-03
+        public bool SwarmplayDiscoveryEnabled { get; set; }
         public string TorznabNyaaUrl { get; set; }
         public string TorznabTpbUrl { get; set; }
         public int RankMinSeeders { get; set; }

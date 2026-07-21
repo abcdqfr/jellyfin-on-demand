@@ -39,7 +39,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfin.Plugin.Swarmplay.Controllers
 {
-    [Route("JellyfinEnhanced")]
+    [Route("Swarmplay")]
     [ApiController]
     public class JellyfinEnhancedController : ControllerBase
     {
@@ -1032,8 +1032,15 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         {
             // report a typed `reason` so the frontend can display
             // a meaningful banner instead of silently hiding discovery sections.
-            // Possible reasons: disabled, no_user, blocked, unlinked, unreachable.
+            // Possible reasons: disabled, no_user, blocked, unlinked, unreachable, swarmplay.
             var config = JellyfinEnhanced.Instance?.Configuration;
+            // Swarmplay discovery (ADR-004): TMDB-backed search chrome without Seerr accounts.
+            if (config != null && config.SwarmplayDiscoveryEnabled && !string.IsNullOrWhiteSpace(config.TMDB_API_KEY)
+                && (!config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey)))
+            {
+                return Ok(new { active = true, userFound = true, reason = "swarmplay" });
+            }
+
             if (config == null || !config.JellyseerrEnabled ||
                 string.IsNullOrEmpty(config.JellyseerrApiKey) ||
                 string.IsNullOrEmpty(config.JellyseerrUrls))
@@ -1204,19 +1211,19 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
 
         [HttpGet("jellyseerr/search")]
         [Authorize]
-        public Task<IActionResult> JellyseerrSearch([FromQuery] string? query, [FromQuery] int page = 1, [FromQuery] string? language = null)
+        public async Task<IActionResult> JellyseerrSearch([FromQuery] string? query, [FromQuery] int page = 1, [FromQuery] string? language = null)
         {
             // previously returned ASP.NET model-binding's RFC9110-link
             // error envelope when `query` was null/empty. Now we return a clean
             // structured BadRequest matching the rest of the API.
             if (string.IsNullOrWhiteSpace(query))
             {
-                return Task.FromResult<IActionResult>(BadRequest(new
+                return BadRequest(new
                 {
                     error = true,
                     code = "missing_query",
                     message = "Search query is required."
-                }));
+                });
             }
             // Clamp pathological inputs. Use UTF-16 surrogate-safe truncation so
             // we don't split a high/low surrogate pair.— important
@@ -1229,10 +1236,109 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
             if (page < 1) page = 1;
 
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            // Prefer TMDB when Swarmplay discovery is on (no Seerr process — ADR-004).
+            if (config != null && config.SwarmplayDiscoveryEnabled && !string.IsNullOrWhiteSpace(config.TMDB_API_KEY)
+                && (!config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey)))
+            {
+                return await SearchTmdbAsJellyseerrAsync(query, page, language, config.TMDB_API_KEY);
+            }
+
             var path = $"/api/v1/search?query={Uri.EscapeDataString(query)}&page={page}";
             if (!string.IsNullOrEmpty(language))
                 path += $"&language={Uri.EscapeDataString(language)}";
-            return ProxyJellyseerrRequest(path, HttpMethod.Get);
+            return await ProxyJellyseerrRequest(path, HttpMethod.Get);
+        }
+
+        /// <summary>
+        /// TMDB multi-search mapped to the Seerr search JSON shape so existing
+        /// jellyseerr poster/rating cards render unchanged.
+        /// </summary>
+        private async Task<IActionResult> SearchTmdbAsJellyseerrAsync(string query, int page, string? language, string apiKey)
+        {
+            var lang = string.IsNullOrWhiteSpace(language) ? "en" : language;
+            var requestUri =
+                $"https://api.themoviedb.org/3/search/multi?api_key={Uri.EscapeDataString(apiKey)}" +
+                $"&query={Uri.EscapeDataString(query)}&page={page}" +
+                $"&language={Uri.EscapeDataString(lang)}&include_adult=false";
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                using var response = await httpClient.GetAsync(requestUri);
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.Warning($"TMDB search failed: {(int)response.StatusCode}");
+                    return StatusCode((int)response.StatusCode, new { error = true, code = "tmdb_error", message = "TMDB search failed." });
+                }
+
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var results = new List<object>();
+                if (root.TryGetProperty("results", out var tmdbResults) && tmdbResults.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in tmdbResults.EnumerateArray())
+                    {
+                        var mediaType = item.TryGetProperty("media_type", out var mt) ? mt.GetString() : null;
+                        if (mediaType != "movie" && mediaType != "tv")
+                        {
+                            continue;
+                        }
+
+                        var id = item.TryGetProperty("id", out var idEl) ? idEl.GetInt32() : 0;
+                        if (id <= 0) continue;
+
+                        string? title = null;
+                        string? name = null;
+                        string? releaseDate = null;
+                        string? firstAirDate = null;
+                        if (mediaType == "movie")
+                        {
+                            title = item.TryGetProperty("title", out var t) ? t.GetString() : null;
+                            releaseDate = item.TryGetProperty("release_date", out var rd) ? rd.GetString() : null;
+                        }
+                        else
+                        {
+                            name = item.TryGetProperty("name", out var n) ? n.GetString() : null;
+                            firstAirDate = item.TryGetProperty("first_air_date", out var fad) ? fad.GetString() : null;
+                        }
+
+                        results.Add(new
+                        {
+                            id,
+                            mediaType,
+                            title = title ?? name,
+                            name = name ?? title,
+                            overview = item.TryGetProperty("overview", out var ov) ? ov.GetString() : null,
+                            posterPath = item.TryGetProperty("poster_path", out var pp) && pp.ValueKind == JsonValueKind.String ? pp.GetString() : null,
+                            backdropPath = item.TryGetProperty("backdrop_path", out var bp) && bp.ValueKind == JsonValueKind.String ? bp.GetString() : null,
+                            voteAverage = item.TryGetProperty("vote_average", out var va) && va.ValueKind == JsonValueKind.Number ? va.GetDouble() : 0d,
+                            releaseDate,
+                            firstAirDate,
+                            // UNKNOWN — requestable in Seerr UI; Swarmplay remaps the button to Play.
+                            mediaInfo = new { status = 1 }
+                        });
+                    }
+                }
+
+                var pageOut = root.TryGetProperty("page", out var pEl) && pEl.TryGetInt32(out var pVal) ? pVal : page;
+                var totalPages = root.TryGetProperty("total_pages", out var tpEl) && tpEl.TryGetInt32(out var tpVal) ? tpVal : 1;
+                var totalResults = root.TryGetProperty("total_results", out var trEl) && trEl.TryGetInt32(out var trVal) ? trVal : results.Count;
+
+                return Ok(new
+                {
+                    page = pageOut,
+                    totalPages,
+                    totalResults,
+                    results
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"TMDB search exception: {ex.Message}");
+                return StatusCode(500, new { error = true, code = "tmdb_unreachable", message = "Failed to reach TMDB." });
+            }
         }
 
         [HttpGet("jellyseerr/sonarr")]
@@ -2780,6 +2886,12 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 config.ClearLocalStorageTimestamp,
                 config.ClearTranslationCacheTimestamp,
 
+                // Swarmplay discovery configuration. Indexer URLs may contain
+                // credentials, so public clients receive availability only.
+                config.SwarmplayDiscoveryEnabled,
+                TorznabNyaaConfigured = !string.IsNullOrWhiteSpace(config.TorznabNyaaUrl),
+                TorznabTpbConfigured = !string.IsNullOrWhiteSpace(config.TorznabTpbUrl),
+
                 // Default User Settings
                 config.AutoPauseEnabled,
                 config.AutoResumeEnabled,
@@ -2843,7 +2955,9 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
 
                 // Seerr Search Settings
                 config.JellyseerrEnabled,
-                config.JellyseerrShowSearchResults,
+                // Swarmplay discovery reuses the Seerr search chrome; never hide it
+                // when discovery is on (saved JellyseerrShowSearchResults=false from ADR-004).
+                JellyseerrShowSearchResults = config.SwarmplayDiscoveryEnabled || config.JellyseerrShowSearchResults,
                 config.JellyseerrShowReportButton,
                 config.JellyseerrShowIssueIndicator,
                 config.JellyseerrEnable4KRequests,
