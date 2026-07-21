@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - name: Offline checks
+        run: ./scripts/offline_check.sh
+      - name: Plugin build (jf10)
+        run: >
+          dotnet build
+          plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj
+          -p:JellyfinTarget=jf10
+
+  # Full spine gate (ADR-005) — use self-hosted runner with Jellyfin + libtorrent.
+  # Until then, local pre-commit runs scripts/ci_gate.sh on every commit.
+  local-integration:
+    if: ${{ vars.SWARMPLAY_FULL_GATE == '1' }}
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: CI gate
+        run: ./scripts/ci_gate.sh

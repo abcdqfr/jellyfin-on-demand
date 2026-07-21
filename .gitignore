@@ -1,0 +1,28 @@
+# Local build / sidecar artifacts
+bin/
+obj/
+*.user
+.vs/
+swarmplayd
+__pycache__/
+.venv/
+*.so
+*.dylib
+
+# Third-party clones (nested git; not vendored into parent)
+third-party/jellyfin-enhanced/
+third-party/vlc-bittorrent/
+third-party/seerr/
+# strmarr: track the symlink at third-party/strmarr (lessons reference).
+# Do not vendor the sister tree; do not run strmarr services for swarmplay.
+
+# Nested plugin git backup (history preserved offline after monorepo flatten)
+.nested-git-backups/
+
+# Local .NET / tool caches
+.tools/
+
+# Native / cmake build trees (rebuild locally; CI checks .so presence on disk)
+torrent/native/build/
+*.o
+*.a

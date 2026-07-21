@@ -1,0 +1,13 @@
+{
+  "query_title": "Atlas Rising",
+  "releases": [
+    {"id":"a2160","title":"Atlas Rising 2024 2160p WEB-DL English","resolution":"2160p","source":"WEB-DL","seeders":200,"size_bytes":18000000000,"indexer":"Nyaa","language":"en"},
+    {"id":"a1080b","title":"Atlas Rising 2024 1080p BluRay English","resolution":"1080p","source":"BluRay","seeders":10,"size_bytes":9000000000,"indexer":"TPB","language":"en"},
+    {"id":"a1080w","title":"Atlas Rising 2024 1080p WEBRip English","resolution":"1080p","source":"WEBRip","seeders":500,"size_bytes":6500000000,"indexer":"Nyaa","language":"en"},
+    {"id":"a720","title":"Atlas Rising 2024 720p WEB-DL English","resolution":"720p","source":"WEB-DL","seeders":1500,"size_bytes":2800000000,"indexer":"TPB","language":"en"},
+    {"id":"aforeign","title":"Atlas Rising 2024 1080p BluRay French","resolution":"1080p","source":"BluRay","seeders":40,"size_bytes":8000000000,"indexer":"Nyaa","language":"fr"},
+    {"id":"acam","title":"Atlas Rising 2024 CAM English","resolution":"480p","source":"CAM","seeders":900,"size_bytes":700000000,"indexer":"TPB","language":"en"},
+    {"id":"asample","title":"Atlas Rising 2024 1080p WEB-DL SAMPLE English","resolution":"1080p","source":"WEB-DL","seeders":1000,"size_bytes":50000000,"indexer":"Nyaa","language":"en"}
+  ],
+  "expected_order":["a2160","a1080w","a720","a1080b","aforeign","asample","acam"]
+}

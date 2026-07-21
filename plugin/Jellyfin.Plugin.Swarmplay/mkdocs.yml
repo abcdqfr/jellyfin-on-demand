@@ -1,0 +1,195 @@
+site_name: Jellyfin Enhanced
+site_url: https://n00bcodr.github.io/Jellyfin-Enhanced/
+repo_name: n00bcodr/Jellyfin-Enhanced
+repo_url: https://github.com/n00bcodr/Jellyfin-Enhanced
+site_description: The essential enhancement suite for Jellyfin, bundling advanced features and customizations into one convenient plugin.
+site_author: n00bcodr
+copyright: Copyright &copy;2026 n00bcodr. Made with 💜 for Jellyfin and the community
+
+theme:
+  name: material
+  logo: images/favicon.ico
+  favicon: images/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - announce.dismiss
+
+extra:
+  404_page: true
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/n00bcodr/Jellyfin-Enhanced
+      name: GitHub Repository
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/EYNFf7y4CG
+      name: Jellyfin Community Discord - Jellyfin Enhanced Channel
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+
+markdown_extensions:
+  - meta
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  # lists
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  # keyboard shortcuts
+  - pymdownx.keys
+  # simple text formatting
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - mdx_truly_sane_lists
+
+
+# main tabs/headers
+nav:
+  # ——————————————
+  # landing page
+  # ——————————————
+  - Home: index.md
+
+
+  # ——————————————
+  # Installation
+  # ——————————————
+  - Installation:
+    - Installation: installation/installation.md
+    - Troubleshooting installation: installation/troubleshooting.md
+
+
+  # ——————————————
+  # Enhanced
+  # ——————————————
+  - Enhanced:
+    # Feature overview
+    - Enhanced Features: enhanced/enhanced-features.md
+
+    # Enhanced Settings
+    - Enhanced Settings: enhanced/enhanced-settings.md
+
+
+  # ——————————————
+  # Elsewhere
+  # ——————————————
+  - Elsewhere:
+    # Features overview
+    - Elsewhere Features: elsewhere/elsewhere-features.md
+
+    # Elsewhere Settings
+    - Elsewhere Settings: elsewhere/elsewhere-settings.md
+
+
+  # ——————————————
+  # Seerr
+  # ——————————————
+  - Seerr:
+    # Features overview
+    - Seerr Features: seerr/seerr-features.md
+
+    # Seerr Settings
+    - Seerr Settings: seerr/seerr-settings.md
+    - Permission Audit: seerr/permission-audit.md
+
+
+  # ——————————————
+  # Spoiler Guard
+  # ——————————————
+  - Spoiler Guard:
+    # Features overview
+    - Spoiler Guard Features: spoiler-guard/spoiler-guard-features.md
+
+    # Spoiler Guard Settings
+    - Spoiler Guard Settings: spoiler-guard/spoiler-guard-settings.md
+
+
+  # ——————————————
+  # *arr
+  # ——————————————
+  - "*arr":
+    # Features overview
+    - "*arr Features": arr/arr-features.md
+
+    # *arr Settings
+    - "*arr Settings": arr/arr-settings.md
+
+    # Troubleshooting + Support
+    - Troubleshooting + Support: arr/troubleshooting-support.md
+
+
+  # ——————————————
+  # Other
+  # ——————————————
+  - Other:
+    # Features overview
+    - Other Features: other/other-features.md
+
+    # Other Settings
+    - Other Settings: other/other-settings.md
+
+
+  # ——————————————
+  # Advanced, misc
+  # ——————————————
+  - Advanced:
+    - CSS Customization: advanced/css-customization.md
+    - API: advanced/api.md
+    - Project Structure: advanced/project-structure.md
+  - FAQ + Support:
+    - FAQ: faq-support/faq.md
+    - Report issues: faq-support/report-issues.md
+    - Feature Requests: faq-support/feature-requests.md
+    - Contributing Translations: faq-support/contributing-translations.md
+    - Support + Community: faq-support/support.md
+  - Related Projects: other-projects/other-projects.md
+  - About: about.md
+
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/extra.js

@@ -1,0 +1,50 @@
+{
+  "schema": "ready-cases/v1",
+  "assumptions": {
+    "warm_band_bytes": 8388608,
+    "head_magic_min_bytes": 262144,
+    "timeout_head_min_bytes": 262144
+  },
+  "cases": [
+    {
+      "name": "warm-complete",
+      "input": {"tail_bytes_have": 8388608, "head_bytes_have": 8388608, "head_magic_ok": false, "warm_deadline_exceeded": false, "file_size": 104857600},
+      "expected": {"ready": true, "mode": "A"}
+    },
+    {
+      "name": "warm-complete-large-file",
+      "input": {"tail_bytes_have": 12582912, "head_bytes_have": 12582912, "head_magic_ok": true, "warm_deadline_exceeded": false, "file_size": 251658240},
+      "expected": {"ready": true, "mode": "A"}
+    },
+    {
+      "name": "head-magic-before-tail",
+      "input": {"tail_bytes_have": 0, "head_bytes_have": 262144, "head_magic_ok": true, "warm_deadline_exceeded": false, "file_size": 104857600},
+      "expected": {"ready": true, "mode": "B"}
+    },
+    {
+      "name": "head-magic-partial-warm",
+      "input": {"tail_bytes_have": 4194304, "head_bytes_have": 524288, "head_magic_ok": true, "warm_deadline_exceeded": false, "file_size": 104857600},
+      "expected": {"ready": true, "mode": "B"}
+    },
+    {
+      "name": "timeout-fail-open",
+      "input": {"tail_bytes_have": 0, "head_bytes_have": 262144, "head_magic_ok": false, "warm_deadline_exceeded": true, "file_size": 104857600},
+      "expected": {"ready": true, "mode": "C"}
+    },
+    {
+      "name": "timeout-insufficient-head",
+      "input": {"tail_bytes_have": 8388608, "head_bytes_have": 262143, "head_magic_ok": false, "warm_deadline_exceeded": true, "file_size": 104857600},
+      "expected": {"ready": false, "mode": "none"}
+    },
+    {
+      "name": "waiting-for-warm",
+      "input": {"tail_bytes_have": 8388607, "head_bytes_have": 8388607, "head_magic_ok": false, "warm_deadline_exceeded": false, "file_size": 104857600},
+      "expected": {"ready": false, "mode": "none"}
+    },
+    {
+      "name": "empty-head",
+      "input": {"tail_bytes_have": 8388608, "head_bytes_have": 0, "head_magic_ok": false, "warm_deadline_exceeded": true, "file_size": 104857600},
+      "expected": {"ready": false, "mode": "none"}
+    }
+  ]
+}

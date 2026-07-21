@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:torznab="http://torznab.com/schemas/2015/feed">
+  <channel>
+    <title>Swarmplay fixture</title>
+    <item>
+      <title>Example.Movie.2025.1080p.BluRay.x264</title>
+      <guid>https://indexer.example/details/101</guid>
+      <link>magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&amp;dn=Example.Movie.2025</link>
+      <torznab:attr name="size" value="2147483648" />
+      <torznab:attr name="seeders" value="42" />
+    </item>
+    <item>
+      <title>Example.Show.S01E01.720p.WEB</title>
+      <guid>https://indexer.example/details/102</guid>
+      <torznab:attr name="size" value="734003200" />
+      <torznab:attr name="seeders" value="7" />
+    </item>
+  </channel>
+</rss>
