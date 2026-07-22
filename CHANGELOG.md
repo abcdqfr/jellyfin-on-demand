@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- **Warm/play snappiness:** dropped leftover piece-count floors that ballooned the pre-Play readahead and post-Play slide window on large `piece_length` torrents (`max(head, 8)` pieces + slide `+48` pieces — same class of bug as the 0.4.1 `+48` regression). Status polling now continues while the JF player is up so `advance_warm` keeps densifying (seeks were racing into frozen sparse holes).
+
 ## 0.5.1 — 2026-07-22 (hotfix / RC)
 
 ### Fixed

@@ -675,8 +675,11 @@ void apply_sequential_phase(lt::torrent_handle const& handle, int first_piece,
      * is large (regression fixed alongside this comment). */
     int const readahead_extra_pieces = piece_length > 0
         ? static_cast<int>((kReadaheadFloorBytes + piece_length - 1) / piece_length)
-        : 48;
-    int const readahead = std::min(piece_count, std::max(head_end + 1, 8) + readahead_extra_pieces);
+        : 1;
+    /* Prefix = actual head pieces only — never force an 8-piece floor (same
+     * class of piece-count balloon as the old "+48" on large piece_length). */
+    int const head_prefix = std::max(0, head_end + 1);
+    int const readahead = std::min(piece_count, head_prefix + readahead_extra_pieces);
     std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
     set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::low_priority);
     set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
@@ -748,7 +751,11 @@ void advance_warm(Entry& entry) {
             }
         }
         if (first_missing >= piece_count) return;
-        int const window_end = std::min(piece_count, first_missing + 48) - 1;
+        int const pl = info->piece_length();
+        int const slide_extra = pl > 0
+            ? static_cast<int>((kReadaheadFloorBytes + pl - 1) / pl)
+            : 1;
+        int const window_end = std::min(piece_count, first_missing + slide_extra) - 1;
         std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
         set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::low_priority);
         set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);

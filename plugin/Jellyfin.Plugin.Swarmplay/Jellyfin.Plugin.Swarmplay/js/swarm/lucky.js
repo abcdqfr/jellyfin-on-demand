@@ -57,6 +57,8 @@
             JE.swarmHistory.recordPlay(ctx || {}, bind, releaseTitle);
         }
         if (typeof JE.toast === 'function') JE.toast('Swarmplay: starting playback…', 3000);
+        const resolvedBtih = bind.Btih || bind.btih;
+        if (resolvedBtih) startWarmProgressPoll(resolvedBtih);
         const attempt = await attemptPlayback(bind, title);
         const ok = !!(attempt && attempt.ok);
         if (ok && attempt.message && typeof JE.toast === 'function') {
@@ -265,42 +267,66 @@
     JE.feelingLucky = feelingLucky;
     const WARM_OVERLAY_ID = 'swarmplay-warm-overlay';
     let warmPollTimer = null;
+    let warmPollBtih = null;
 
     function stopWarmProgressPoll() {
         if (warmPollTimer) {
             clearTimeout(warmPollTimer);
             warmPollTimer = null;
         }
+        warmPollBtih = null;
     }
 
     /** Real percentage (native warm_progress: tail+head[+readahead] pieces on
      * disk / total in that set) — not a guess, and not raw libtorrent
      * torrent progress (that denominator changes size mid-warm and would
      * make the bar visibly jump/regress). Polls independently of whatever
-     * blocking play-bind/ensure/lucky call is in flight. */
+     * blocking play-bind/ensure/lucky call is in flight.
+     *
+     * After the overlay hides, keep polling while the JF player is up so
+     * native advance_warm can slide the deadline window (otherwise seeks
+     * race into sparse holes with a frozen prefix). */
     function startWarmProgressPoll(btih) {
         stopWarmProgressPoll();
         if (!btih) return; // caller doesn't know btih yet (e.g. movie /lucky) — stays indeterminate
+        warmPollBtih = btih;
+        let idleTicks = 0;
         const tick = async () => {
             const el = document.getElementById(WARM_OVERLAY_ID);
-            if (!el) { stopWarmProgressPoll(); return; }
+            const playing = isJellyfinPlayerUi();
+            if (!warmPollBtih) {
+                stopWarmProgressPoll();
+                return;
+            }
+            if (!el && !playing) {
+                idleTicks += 1;
+                // ~30s grace between overlay hide and player mount / after exit
+                if (idleTicks > 40) {
+                    stopWarmProgressPoll();
+                    return;
+                }
+            } else {
+                idleTicks = 0;
+            }
             try {
-                const status = await JE.swarm.status(btih);
-                const pct = Number(status && (status.progress ?? status.Progress));
-                if (Number.isFinite(pct)) {
-                    const peers = Number(status.numPeers ?? status.NumPeers ?? status.peers ?? status.Peers) || 0;
-                    const fill = el.querySelector('.swarmplay-warm-bar-fill');
-                    const sub = el.querySelector('.swarmplay-warm-sub');
-                    if (fill) {
-                        fill.classList.remove('indeterminate');
-                        fill.style.width = `${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%`;
-                    }
-                    if (sub) {
-                        sub.textContent = `Head + tail extents — ${Math.round(Math.max(0, Math.min(1, pct)) * 100)}% · ${peers} peer${peers === 1 ? '' : 's'}`;
+                const status = await JE.swarm.status(warmPollBtih);
+                if (el) {
+                    const pct = Number(status && (status.progress ?? status.Progress));
+                    if (Number.isFinite(pct)) {
+                        const peers = Number(status.numPeers ?? status.NumPeers ?? status.peers ?? status.Peers) || 0;
+                        const fill = el.querySelector('.swarmplay-warm-bar-fill');
+                        const sub = el.querySelector('.swarmplay-warm-sub');
+                        if (fill) {
+                            fill.classList.remove('indeterminate');
+                            fill.style.width = `${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%`;
+                        }
+                        if (sub) {
+                            sub.textContent = `Head + tail extents — ${Math.round(Math.max(0, Math.min(1, pct)) * 100)}% · ${peers} peer${peers === 1 ? '' : 's'}`;
+                        }
                     }
                 }
-            } catch (e) { /* transient — keep polling, overlay just stays at last-known % */ }
-            warmPollTimer = setTimeout(tick, 1000);
+            } catch (e) { /* transient — keep polling */ }
+            warmPollTimer = setTimeout(tick, el ? 1000 : 750);
         };
         tick();
     }
@@ -335,7 +361,7 @@
     }
 
     function hideWarmOverlay() {
-        stopWarmProgressPoll();
+        // Leave status poll running so advance_warm keeps densifying after Play.
         document.getElementById(WARM_OVERLAY_ID)?.remove();
     }
 

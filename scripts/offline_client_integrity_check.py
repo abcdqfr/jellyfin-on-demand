@@ -292,6 +292,10 @@ def main() -> None:
         fail("releases.js release picker must support strm mode distinct from play/cache")
     if "kReadaheadFloorBytes" not in seq_cpp:
         fail("apply_sequential_phase must bound the readahead window in bytes, not raw piece count (regression fix)")
+    if "max(head_end + 1, 8)" in seq_cpp or "max(head_end+1, 8)" in seq_cpp:
+        fail("readahead must not force an 8-piece floor (piece-count balloon on large piece_length)")
+    if "first_missing + 48" in seq_cpp:
+        fail("slide window must be byte-bounded (kReadaheadFloorBytes), not first_missing + 48 pieces")
     if "warm_progress" not in seq_cpp:
         fail("swarm_status progress must reflect warm_progress (tail+head[+readahead] fraction), not raw torrent progress")
     if "startWarmProgressPoll" not in lucky_full or "swarmplay-warm-bar-fill" not in lucky_full:
