@@ -1,11 +1,16 @@
-// Swarmplay search history UI (0.2) — floating control + modal.
+// Swarmplay search history — inline browser-address-bar-style dropdown
+// anchored under the native Jellyfin search field. No floating/omnipresent
+// popup: the dropdown only appears while the search field has focus, exactly
+// like a browser's field history — click a row to reopen it, "−" to remove
+// one entry, "Clear history" to wipe all of it.
 (function (JE) {
     'use strict';
 
     const logPrefix = 'swarmplay:history:';
-    const FLOAT_ID = 'swarmplay-history-float';
-    const BACKDROP_ID = 'swarmplay-history-backdrop';
+    const DROPDOWN_ID = 'swarmplay-history-dropdown';
     const STYLE_ID = 'swarmplay-history-styles';
+    const SEARCH_INPUT_SELECTOR = '#searchPage #searchTextInput';
+    const MAX_ROWS = 8;
 
     function swarmDiscoveryOn() {
         return JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false
@@ -21,62 +26,53 @@
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
-            #${FLOAT_ID} {
-                position: fixed; right: 1.1rem; bottom: 5.5rem; z-index: 99990;
-                background: #1c1c1e; color: #f5f5f7; border: 1px solid rgba(255,255,255,.18);
-                border-radius: 999px; padding: .55rem 1rem; font-size: .9rem; cursor: pointer;
-                box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: .92;
+            #${DROPDOWN_ID} {
+                position: fixed; z-index: 99990; background: #1c1c1e; color: #f5f5f7;
+                border: 1px solid rgba(255,255,255,.16); border-radius: 8px;
+                box-shadow: 0 10px 28px rgba(0,0,0,.4); overflow: hidden;
+                max-height: min(60vh, 420px); overflow-y: auto;
             }
-            #${FLOAT_ID}:hover { opacity: 1; background: #2c2c2e; }
-            .swarmplay-history-backdrop {
-                position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 99998;
-                display: flex; align-items: center; justify-content: center; padding: 1rem;
+            #${DROPDOWN_ID} .row {
+                display: flex; align-items: center; gap: .6rem;
+                padding: .5rem .7rem; cursor: pointer; font-size: .88rem;
+                border-bottom: 1px solid rgba(255,255,255,.06);
             }
-            .swarmplay-history-panel {
-                width: min(640px, 100%); max-height: min(85vh, 720px); overflow: auto;
-                background: #1c1c1e; color: #f5f5f7; border-radius: 10px;
-                box-shadow: 0 12px 40px rgba(0,0,0,.45);
+            #${DROPDOWN_ID} .row:last-of-type { border-bottom: 0; }
+            #${DROPDOWN_ID} .row:hover, #${DROPDOWN_ID} .row.active { background: rgba(255,255,255,.08); }
+            #${DROPDOWN_ID} .row .icon { opacity: .55; flex: 0 0 auto; }
+            #${DROPDOWN_ID} .row .text { flex: 1; min-width: 0; overflow: hidden; }
+            #${DROPDOWN_ID} .row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            #${DROPDOWN_ID} .row .meta { opacity: .6; font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            #${DROPDOWN_ID} .row .remove {
+                flex: 0 0 auto; background: transparent; border: 0; color: inherit; opacity: .55;
+                width: 1.5rem; height: 1.5rem; border-radius: 4px; cursor: pointer; font-size: .95rem;
+                line-height: 1; display: flex; align-items: center; justify-content: center;
             }
-            .swarmplay-history-panel header {
-                padding: 1rem 1.1rem .55rem; position: sticky; top: 0; background: #1c1c1e; z-index: 1;
+            #${DROPDOWN_ID} .row .remove:hover { opacity: 1; background: rgba(255,255,255,.12); }
+            #${DROPDOWN_ID} .footer {
+                display: flex; justify-content: flex-end; padding: .4rem .6rem;
+                border-top: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
             }
-            .swarmplay-history-panel h2 { margin: 0; font-size: 1.15rem; }
-            .swarmplay-history-panel .sub { opacity: .7; margin: .35rem 0 0; font-size: .9rem; }
-            .swarmplay-history-panel .toolbar {
-                display: flex; gap: .5rem; flex-wrap: wrap; padding: .35rem 1.1rem .75rem;
-                position: sticky; top: 4.1rem; background: #1c1c1e; z-index: 1;
-                border-bottom: 1px solid rgba(255,255,255,.08);
+            #${DROPDOWN_ID} .footer button {
+                background: transparent; border: 0; color: #9be7ff; font-size: .8rem;
+                cursor: pointer; padding: .25rem .4rem;
             }
-            .swarmplay-history-panel .toolbar button, .swarmplay-history-row .ops button {
-                background: #2c2c2e; color: #f5f5f7; border: 1px solid rgba(255,255,255,.15);
-                border-radius: 6px; padding: .3rem .55rem; font-size: .8rem; cursor: pointer;
-            }
-            .swarmplay-history-panel .toolbar button:hover,
-            .swarmplay-history-row .ops button:hover { background: #3a3a3c; }
-            .swarmplay-history-panel .close {
-                float: right; background: transparent; border: 0; color: inherit;
-                font-size: 1.4rem; cursor: pointer; line-height: 1;
-            }
-            .swarmplay-history-list { list-style: none; margin: 0; padding: .4rem 0 1rem; }
-            .swarmplay-history-row {
-                margin: 0 .75rem .45rem; padding: .7rem .85rem; border-radius: 8px;
-                background: rgba(255,255,255,.06); display: flex; gap: .75rem; align-items: flex-start;
-            }
-            .swarmplay-history-row .body { flex: 1; min-width: 0; cursor: pointer; }
-            .swarmplay-history-row .body:hover { color: #9be7ff; }
-            .swarmplay-history-row .meta { opacity: .75; font-size: .85rem; margin-top: .25rem; }
-            .swarmplay-history-row .pin-badge {
-                display: inline-block; margin-right: .35rem; padding: .05rem .35rem;
-                border-radius: 4px; background: rgba(250, 204, 21, .2); font-size: .75rem;
-            }
-            .swarmplay-history-row .ops { display: flex; flex-direction: column; gap: .3rem; }
-            .swarmplay-history-empty, .swarmplay-history-loading { padding: 1.25rem; opacity: .8; }
+            #${DROPDOWN_ID} .footer button:hover { text-decoration: underline; }
+            #${DROPDOWN_ID} .empty { padding: .7rem; opacity: .65; font-size: .85rem; }
         `;
         document.head.appendChild(style);
     }
 
-    function closePanel() {
-        document.getElementById(BACKDROP_ID)?.remove();
+    function getSearchInput() {
+        return document.querySelector(SEARCH_INPUT_SELECTOR);
+    }
+
+    function getDropdown() {
+        return document.getElementById(DROPDOWN_ID);
+    }
+
+    function closeDropdown() {
+        document.getElementById(DROPDOWN_ID)?.remove();
     }
 
     function entryTitle(e) {
@@ -105,12 +101,15 @@
     }
 
     async function openEntry(entry) {
-        closePanel();
+        closeDropdown();
         const tmdbId = entryTmdbId(entry);
         const mediaType = entryMediaType(entry);
         const title = entryTitle(entry);
         const year = entry.year || entry.Year || null;
         const query = year ? `${title} ${year}` : entryQuery(entry);
+
+        const input = getSearchInput();
+        if (input) input.value = query;
 
         if (tmdbId && JE.jellyseerrMoreInfo?.open) {
             try {
@@ -139,117 +138,124 @@
         }
     }
 
-    async function renderList(panel) {
-        const host = panel.querySelector('[data-history-list]');
-        if (!host) return;
-        host.innerHTML = '<div class="swarmplay-history-loading">Loading…</div>';
+    function matchesFilter(entry, needle) {
+        if (!needle) return true;
+        const hay = `${entryTitle(entry)} ${entryQuery(entry)}`.toLowerCase();
+        return hay.includes(needle);
+    }
+
+    function positionDropdown(dropdown, input) {
+        const rect = input.getBoundingClientRect();
+        dropdown.style.left = `${Math.round(rect.left)}px`;
+        dropdown.style.top = `${Math.round(rect.bottom + 4)}px`;
+        dropdown.style.width = `${Math.round(rect.width)}px`;
+    }
+
+    async function renderRows(dropdown, input) {
+        const needle = String(input.value || '').trim().toLowerCase();
         const data = await JE.swarm.listHistory();
-        const entries = (data && (data.entries || data.Entries)) || [];
-        if (!entries.length) {
-            host.innerHTML = '<div class="swarmplay-history-empty">No search history yet. Play or pick a release to start.</div>';
+        const all = (data && (data.entries || data.Entries)) || [];
+        const filtered = all.filter((e) => matchesFilter(e, needle)).slice(0, MAX_ROWS);
+
+        dropdown.innerHTML = '';
+        if (!filtered.length) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = needle ? 'No matching history.' : 'No search history yet.';
+            dropdown.appendChild(empty);
+            if (all.length) appendFooter(dropdown, input);
             return;
         }
-        const ul = document.createElement('ul');
-        ul.className = 'swarmplay-history-list';
-        entries.forEach((entry) => {
+
+        filtered.forEach((entry) => {
             const id = entry.id || entry.Id;
-            const pinned = !!(entry.pinned || entry.Pinned);
             const year = entry.year || entry.Year || '';
-            const release = entry.lastReleaseTitle || entry.LastReleaseTitle || '';
-            const li = document.createElement('li');
-            li.className = 'swarmplay-history-row';
-            li.innerHTML = `
-                <div class="body" tabindex="0" role="button">
-                    <div>
-                        ${pinned ? '<span class="pin-badge">Pinned</span>' : ''}
-                        <strong>${esc(entryTitle(entry))}</strong>
-                        ${year ? ` <span class="meta">(${esc(year)})</span>` : ''}
-                    </div>
-                    <div class="meta">${esc(entryMediaType(entry))} · ${esc(formatWhen(entry))}
-                        ${release ? ` · ${esc(release)}` : ''}
-                    </div>
-                </div>
-                <div class="ops">
-                    <button type="button" data-act="pin">${pinned ? 'Unpin' : 'Pin'}</button>
-                    <button type="button" data-act="del">Remove</button>
-                </div>`;
-            li.querySelector('.body').addEventListener('click', () => openEntry(entry));
-            li.querySelector('.body').addEventListener('keydown', (ev) => {
-                if (ev.key === 'Enter' || ev.key === ' ') {
-                    ev.preventDefault();
-                    openEntry(entry);
-                }
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.setAttribute('role', 'option');
+            row.tabIndex = 0;
+            row.innerHTML = `
+                <span class="icon">&#8635;</span>
+                <span class="text">
+                    <div class="title">${esc(entryTitle(entry))}${year ? ` <span style="opacity:.6">(${esc(year)})</span>` : ''}</div>
+                    <div class="meta">${esc(entryMediaType(entry))} &middot; ${esc(formatWhen(entry))}</div>
+                </span>
+                <button type="button" class="remove" title="Remove from history" aria-label="Remove from history">&minus;</button>
+            `;
+            row.addEventListener('mousedown', (ev) => {
+                // mousedown (not click) fires before the input's blur handler closes us.
+                if (ev.target.closest('.remove')) return;
+                ev.preventDefault();
+                openEntry(entry);
             });
-            li.querySelector('[data-act="pin"]').addEventListener('click', async (ev) => {
-                ev.stopPropagation();
-                await JE.swarm.pinHistory(id);
-                await renderList(panel);
-            });
-            li.querySelector('[data-act="del"]').addEventListener('click', async (ev) => {
+            row.querySelector('.remove').addEventListener('mousedown', async (ev) => {
+                ev.preventDefault();
                 ev.stopPropagation();
                 await JE.swarm.deleteHistory(id);
-                await renderList(panel);
+                await renderRows(dropdown, input);
             });
-            ul.appendChild(li);
+            dropdown.appendChild(row);
         });
-        host.innerHTML = '';
-        host.appendChild(ul);
+        appendFooter(dropdown, input);
     }
 
-    async function showPanel() {
-        if (!JE.swarm?.listHistory) {
-            if (typeof JE.toast === 'function') JE.toast('Swarmplay: history API not loaded', 4000);
-            return;
-        }
+    function appendFooter(dropdown, input) {
+        const footer = document.createElement('div');
+        footer.className = 'footer';
+        footer.innerHTML = '<button type="button" data-act="clear-all">Clear history</button>';
+        footer.querySelector('[data-act="clear-all"]').addEventListener('mousedown', async (ev) => {
+            ev.preventDefault();
+            await JE.swarm.clearHistory(true);
+            await renderRows(dropdown, input);
+        });
+        dropdown.appendChild(footer);
+    }
+
+    async function openDropdown(input) {
+        if (!swarmDiscoveryOn() || !JE.swarm?.listHistory) return;
         ensureStyles();
-        closePanel();
-        const backdrop = document.createElement('div');
-        backdrop.id = BACKDROP_ID;
-        backdrop.className = 'swarmplay-history-backdrop';
-        backdrop.innerHTML = `
-            <div class="swarmplay-history-panel" role="dialog" aria-label="Swarmplay history">
-                <header>
-                    <button type="button" class="close" aria-label="Close">&times;</button>
-                    <h2>History</h2>
-                    <p class="sub">Recent Swarmplay searches &amp; plays — pin keepers, clear the rest</p>
-                </header>
-                <div class="toolbar">
-                    <button type="button" data-act="clear">Clear unpinned</button>
-                    <button type="button" data-act="refresh">Refresh</button>
-                </div>
-                <div data-history-list></div>
-            </div>`;
-        document.body.appendChild(backdrop);
-        const panel = backdrop.querySelector('.swarmplay-history-panel');
-        backdrop.querySelector('.close').onclick = closePanel;
-        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePanel(); });
-        panel.querySelector('[data-act="clear"]').onclick = async () => {
-            await JE.swarm.clearHistory(false);
-            await renderList(panel);
-        };
-        panel.querySelector('[data-act="refresh"]').onclick = () => renderList(panel);
-        await renderList(panel);
+        let dropdown = getDropdown();
+        if (!dropdown) {
+            dropdown = document.createElement('div');
+            dropdown.id = DROPDOWN_ID;
+            dropdown.setAttribute('role', 'listbox');
+            document.body.appendChild(dropdown);
+        }
+        positionDropdown(dropdown, input);
+        await renderRows(dropdown, input);
     }
 
-    function mountFloat() {
+    function wireSearchInput(input) {
+        if (!input || input.dataset.swarmplayHistoryWired) return;
+        input.dataset.swarmplayHistoryWired = 'true';
+
+        input.addEventListener('focus', () => openDropdown(input));
+        input.addEventListener('input', () => {
+            if (getDropdown()) openDropdown(input);
+        });
+        input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape') closeDropdown();
+        });
+        window.addEventListener('resize', () => {
+            const dropdown = getDropdown();
+            if (dropdown) positionDropdown(dropdown, input);
+        });
+        document.addEventListener('mousedown', (ev) => {
+            const dropdown = getDropdown();
+            if (!dropdown) return;
+            if (ev.target === input || dropdown.contains(ev.target)) return;
+            closeDropdown();
+        });
+    }
+
+    function tick() {
         if (!swarmDiscoveryOn()) {
-            document.getElementById(FLOAT_ID)?.remove();
+            closeDropdown();
             return;
         }
-        ensureStyles();
-        let btn = document.getElementById(FLOAT_ID);
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.id = FLOAT_ID;
-            btn.type = 'button';
-            btn.textContent = 'History';
-            btn.title = 'Swarmplay search history';
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                showPanel();
-            });
-            document.body.appendChild(btn);
-        }
+        const input = getSearchInput();
+        if (input) wireSearchInput(input);
+        else closeDropdown();
     }
 
     function recordSearch(ctx) {
@@ -289,23 +295,17 @@
     }
 
     JE.swarmHistory = {
-        show: showPanel,
-        mountFloat,
         recordSearch,
         recordPlay,
-        close: closePanel
+        close: closeDropdown
     };
 
-    // Keep the floating control on search/discovery routes.
-    const tick = () => {
-        try { mountFloat(); } catch (e) { /* ignore */ }
-    };
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', tick);
     } else {
         tick();
     }
     setInterval(tick, 2500);
-    document.addEventListener('viewshow', tick, true);
+    document.addEventListener('viewshow', () => { closeDropdown(); tick(); }, true);
     console.log(`${logPrefix} loaded`);
 })(window.JellyfinEnhanced);

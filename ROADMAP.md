@@ -26,8 +26,43 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 | **0.1.x** | Play path: Torznab → libtorrent → extent gate → real JF player | Shipping (hotfixes) |
 | **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Shipping |
 | **0.2.1** | **MKV-aware extent gate** — grow to real Cues/head instead of blind fixed floors ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md)) | Shipping |
+| **0.2.2** | **Virtual-item probe fix + history UX** — real ffprobe on the bound item, inline history dropdown | Shipping |
 | **0.3.0** | **Library promote** — slide streamed keep into normal library / offline archival ([design](docs/design/library-promote-0.3.md)) | Roadmap after 0.2 |
 | later | O7b sidecar, packaging polish | Phase 4 |
+
+### 0.2.2 — Virtual-item probe fix + history UX (0.2.1's exit criteria, actually met)
+
+0.2.1 warmed the right bytes but audio/subs still didn't show up on cold
+play — the real bug was one layer up: `BindVirtualMovieAsync` minted the
+bound `Movie` with `IsVirtualItem = true`, and Jellyfin's `ProbeProvider`
+(`MediaBrowser.Providers.MediaInfo.ProbeProvider.FetchVideoInfo`)
+**unconditionally skips ffprobe for any item flagged virtual** — regardless
+of `MetadataRefreshMode`. `MediaStreams` stayed `[]` forever, so
+PlaybackInfo/ffmpeg fell back to no stream maps (`-sn`, no `-map`) even
+though the file itself had real audio/subtitle tracks warm on disk (verified
+via direct ffprobe against the growing file). Fix: bound items are real
+playable files, not placeholders — `IsVirtualItem = false`, plus an explicit
+`RefreshMetadata(FullRefresh)` right after the extent gate confirms
+head+tail are warm (only when `MediaStreams` is still empty, so replays of
+already-probed items stay cheap). Verified live: a cold play of *This Is
+England* (2006) now reports 1 video + 2 audio (AAC 5.1 / stereo) + 1 PGSSUB
+subtitle stream, up from 0.
+
+Also folded in this pass: the search-history popup was an omnipresent
+floating button + modal, not what was asked for. Replaced with a
+browser-address-bar-style dropdown anchored to the native Jellyfin search
+field — appears on focus/typing, per-entry remove, one "Clear history"
+action, nothing left on screen otherwise.
+
+- [x] `IsVirtualItem = false` on the bound `Movie` (create + update paths)
+- [x] Force `RefreshMetadata(FullRefresh)` post-gate when `MediaStreams` empty
+- [x] Verified live: real audio + subtitle streams populate on cold play
+- [x] History: inline dropdown on `#searchTextInput`, no floating control
+- [x] History: per-entry remove (−) + single "Clear history" action
+
+**Exit:** cold play of a real movie has audio + video + subs + working seek
+on first attempt — verified against a real torrent, not just synthetic
+fixtures.
 
 ### 0.2.1 — MKV-aware extent gate (hotfix, before batch/episode fanout)
 

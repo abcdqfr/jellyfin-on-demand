@@ -15,6 +15,7 @@ using Jellyfin.Plugin.Swarmplay.Swarm.Torznab;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,17 +31,20 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         private readonly ISwarmSession _swarmSession;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILibraryManager _libraryManager;
+        private readonly IDirectoryService _directoryService;
         private readonly SearchHistoryStore _history;
 
         public SwarmController(
             ISwarmSession swarmSession,
             IHttpClientFactory httpClientFactory,
             ILibraryManager libraryManager,
+            IDirectoryService directoryService,
             UserConfigurationManager userConfigurationManager)
         {
             _swarmSession = swarmSession;
             _httpClientFactory = httpClientFactory;
             _libraryManager = libraryManager;
+            _directoryService = directoryService;
             _history = new SearchHistoryStore(userConfigurationManager);
         }
 
@@ -262,7 +266,16 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         /// O6a: mint/update a real Movie Guid whose Path is the growing file so
         /// Desktop PlayNow / PlaybackInfo / ffmpeg transcode work (no DIY player).
         /// </summary>
-        private Task<string> BindVirtualMovieAsync(
+        /// <remarks>
+        /// strmarr lesson relearned the hard way: CreateItem/UpdateItemAsync alone never
+        /// populate MediaStreams for a virtual item — Jellyfin does not ffprobe it on its
+        /// own. Without an explicit probe the item's audio/subtitle tracks stay an empty
+        /// list forever, so PlaybackInfo/ffmpeg fall back to no stream maps and the movie
+        /// plays back silent (and sub-less) even though the extent gate warmed real bytes.
+        /// We force a FullRefresh here — after the gate already confirmed head+tail are
+        /// warm — so ffprobe reads valid data on the very first pass.
+        /// </remarks>
+        private async Task<string> BindVirtualMovieAsync(
             string btih,
             int fileIndex,
             string path,
@@ -282,37 +295,73 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             // Prefer user root so the item is addressable for PlaybackInfo / PlayNow.
             BaseItem parent = _libraryManager.GetUserRootFolder() ?? _libraryManager.RootFolder;
             var existing = _libraryManager.GetItemById(id) as Movie;
+            Movie item;
             if (existing is null)
             {
-                var movie = new Movie
+                item = new Movie
                 {
                     Id = id,
                     Name = name,
                     Path = path,
-                    IsVirtualItem = true,
+                    // NOT a placeholder: this is a real, playable file on disk (the
+                    // growing torrent file). Jellyfin's ProbeProvider.FetchVideoInfo
+                    // hard-skips ffprobe unconditionally when IsVirtualItem is true
+                    // (see MediaBrowser.Providers.MediaInfo.ProbeProvider), which is
+                    // exactly why MediaStreams stayed permanently empty and ffmpeg
+                    // fell back to no stream maps (silent, sub-less playback) even
+                    // once the extent gate warmed real bytes.
+                    IsVirtualItem = false,
                     VideoType = VideoType.VideoFile,
                     ForcedSortName = $"swarmplay-{btih}-{fileIndex}",
                     ParentId = parent.Id
                 };
                 // CreateItem persists; avoid UpdateItemAsync here (can block on library refresh).
-                _libraryManager.CreateItem(movie, parent);
+                _libraryManager.CreateItem(item, parent);
             }
             else
             {
-                existing.Name = name;
-                existing.Path = path;
-                existing.IsVirtualItem = true;
-                existing.VideoType = VideoType.VideoFile;
-                existing.ParentId = parent.Id;
+                item = existing;
+                item.Name = name;
+                item.Path = path;
+                item.IsVirtualItem = false;
+                item.VideoType = VideoType.VideoFile;
+                item.ParentId = parent.Id;
                 // Fire-and-forget metadata edit — path must update for the next PlayNow.
                 _ = _libraryManager.UpdateItemAsync(
-                    existing,
-                    existing.GetParent() ?? parent,
+                    item,
+                    item.GetParent() ?? parent,
                     ItemUpdateType.MetadataEdit,
                     CancellationToken.None);
             }
 
-            return Task.FromResult(id.ToString("D"));
+            // File bytes for head+tail are warm at this point (caller only reaches here
+            // when ready == true) — safe to ffprobe now. Only force it when we don't
+            // already have real stream data, so replays of already-probed items stay cheap.
+            if (item.GetMediaStreams().Count == 0)
+            {
+                try
+                {
+                    await item.RefreshMetadata(
+                        new MetadataRefreshOptions(_directoryService)
+                        {
+                            MetadataRefreshMode = MetadataRefreshMode.FullRefresh,
+                            ImageRefreshMode = MetadataRefreshMode.None,
+                            ReplaceAllMetadata = false,
+                            ForceSave = true,
+                            IsAutomated = true
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    // Non-fatal: playback can still start, but log loudly — this is the
+                    // exact failure mode that silently produced audio/sub-less plays.
+                    Console.Error.WriteLine(
+                        $"[swarmplay] media probe failed for {name} ({path}): {ex.Message}");
+                }
+            }
+
+            return id.ToString("D");
         }
 
         private static Guid SwarmItemId(string btih, int fileIndex)

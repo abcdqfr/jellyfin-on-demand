@@ -109,6 +109,19 @@ def main() -> None:
     ).read_text(encoding="utf-8", errors="replace")
     if "BindVirtualMovieAsync" not in ctrl or "ILibraryManager" not in ctrl:
         fail("SwarmController must bind a real Movie ItemId via ILibraryManager")
+    # 0.2.2 regression guard: Jellyfin's ProbeProvider.FetchVideoInfo hard-skips
+    # ffprobe for any item with IsVirtualItem == true, regardless of refresh mode —
+    # that silently zeroed MediaStreams (no audio/subs) even with warm extents.
+    if "IsVirtualItem = true" in ctrl:
+        fail(
+            "SwarmController must NOT set IsVirtualItem = true on the bound Movie — "
+            "Jellyfin's ProbeProvider skips ffprobe unconditionally for virtual items, "
+            "which zeroes MediaStreams (silent/sub-less playback) even after the file is warm"
+        )
+    if "IsVirtualItem = false" not in ctrl:
+        fail("SwarmController must set IsVirtualItem = false on the bound Movie")
+    if "RefreshMetadata" not in ctrl or "MetadataRefreshMode.FullRefresh" not in ctrl:
+        fail("SwarmController must force RefreshMetadata(FullRefresh) after the extent gate so MediaStreams populate")
     if "filterRelevant" not in (PLUGIN_JS / "swarm/ranker.js").read_text(encoding="utf-8", errors="replace"):
         fail("ranker.js must filterRelevant weak Torznab title matches")
     releases = (PLUGIN_JS / "swarm/releases.js").read_text(encoding="utf-8", errors="replace")
@@ -166,8 +179,15 @@ def main() -> None:
     if lucky_idx < 0 or hist_idx < 0 or hist_idx < lucky_idx:
         fail("plugin.js must load swarm/history.js after swarm/lucky.js")
     history_js = (PLUGIN_JS / "swarm/history.js").read_text(encoding="utf-8", errors="replace")
-    if "swarmplay-history-float" not in history_js or "JE.swarmHistory" not in history_js:
-        fail("history.js must expose floating History control via JE.swarmHistory")
+    if "swarmplay-history-float" in history_js:
+        fail("history.js must not resurrect the omnipresent floating History control")
+    if "searchTextInput" not in history_js or "JE.swarmHistory" not in history_js:
+        fail(
+            "history.js must expose an inline browser-esque dropdown anchored to "
+            "#searchTextInput via JE.swarmHistory"
+        )
+    if "deleteHistory" not in history_js or "clearHistory" not in history_js:
+        fail("history.js dropdown must offer per-entry remove and a clear-history action")
     if "listHistory" not in api_js or "upsertHistory" not in api_js or "clearHistory" not in api_js:
         fail("api.js must expose history CRUD helpers")
     if '"history"' not in ctrl and 'HttpGet("history")' not in ctrl:

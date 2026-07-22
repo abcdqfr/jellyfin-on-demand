@@ -5,6 +5,14 @@
 ### Planned
 - **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
 
+## 0.2.2 — 2026-07-22
+
+### Fixed
+- **Virtual-item ffprobe skip (root cause of silent/sub-less playback):** `BindVirtualMovieAsync` minted the bound `Movie` with `IsVirtualItem = true`. Jellyfin's `ProbeProvider.FetchVideoInfo` unconditionally returns early for any item flagged virtual — no ffprobe, ever, regardless of `MetadataRefreshMode`. `MediaStreams` stayed `[]` permanently, so PlaybackInfo/ffmpeg fell back to no explicit stream maps even after the 0.2.1 extent gate warmed real head/tail bytes. This is why "no improvement" was reported after ADR-007 shipped — the gate was fine, the item metadata was the actual break. Fixed: bound items are real playable files, so `IsVirtualItem = false`; added an explicit post-gate `RefreshMetadata(FullRefresh)` when `MediaStreams` is still empty (skipped on replays that already have stream data). Verified live against a real torrent (*This Is England*, 2006): `MediaStreams` went from `[]` to 1 video + 2 audio (AAC 5.1 / stereo) + 1 PGSSUB subtitle stream.
+
+### Changed
+- **Search history UX:** replaced the omnipresent floating **History** button + modal with a browser-address-bar-style dropdown anchored to the native Jellyfin search field (`#searchTextInput`) — opens on focus/typing, closes on blur/Escape/outside-click, per-entry remove (−) button, single "Clear history" action. Nothing persists on screen when the search field isn't focused.
+
 ## 0.2.1 — 2026-07-22
 
 ### Fixed
