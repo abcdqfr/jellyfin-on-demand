@@ -219,6 +219,10 @@
     }
 
     async function playBindAndStart(release, ctx, filters, fileIndex, season, episode, fileIndexExplicit, batchFiles) {
+        // Leave Discover before warm/play so JF player/details are never buried under it.
+        if (typeof JE.swarmHideDiscover === 'function') {
+            try { JE.swarmHideDiscover(); } catch (_) { /* ignore */ }
+        }
         const title = ctx.title || relTitle(release);
         const btih = release.btih || release.Btih
             || (JE.swarmMagnet && JE.swarmMagnet.parse(release.magnet || release.Magnet));

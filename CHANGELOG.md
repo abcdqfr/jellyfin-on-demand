@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.1 — 2026-07-22 (hotfix / RC)
+
+### Fixed
+- Discover no longer stays stacked over Jellyfin’s player / item-details after Play or Lucky (hide before warm/play; do not restore the previous page on top of video).
+- Playback from Discover tries `playbackManager.play({ items })` and auto-clicks the detail Play button so the extra “press Play in the normal UI” step is avoided when possible.
+- Search landing “Browse Discover” link hidden (was broken); use the sidebar Discover entry instead.
+
 ## 0.5.0 — 2026-07-22
 
 ### Added

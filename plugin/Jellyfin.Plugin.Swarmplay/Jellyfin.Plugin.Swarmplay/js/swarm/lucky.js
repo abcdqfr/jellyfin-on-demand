@@ -31,6 +31,10 @@
         if (ctx && ctx.mediaType === 'tv' && typeof JE.swarmPlayLucky === 'function') {
             return JE.swarmPlayLucky(ctx);
         }
+        // Yield Discover before warm so the JF player is never buried under it.
+        if (typeof JE.swarmHideDiscover === 'function') {
+            try { JE.swarmHideDiscover(); } catch (_) { /* ignore */ }
+        }
         const title = (ctx && (ctx.title || ctx.query)) || 'title';
         showWarmOverlay(`Lucky — warming top match for ${title}…`);
         let bind;
@@ -128,6 +132,12 @@
     async function attemptPlayback(bind, title) {
         document.getElementById('swarmplay-player-overlay')?.remove();
         document.getElementById('swarmplay-player-styles')?.remove();
+        // Discover (and any other Swarmplay custom pane) must leave the stack
+        // before JF's player / item details show — otherwise video renders
+        // "behind" Discover and the user only sees an empty shell.
+        if (typeof JE.swarmHideDiscover === 'function') {
+            try { JE.swarmHideDiscover(); } catch (_) { /* ignore */ }
+        }
 
         if (!bind || !(bind.Ready || bind.ready)) {
             return { ok: false, reason: 'not_ready' };
@@ -159,6 +169,26 @@
                 }
             } catch (e) {
                 console.warn('swarmplay: playbackManager.play(ids) failed', e);
+            }
+            // Some JF web builds want a full ItemDto, not bare ids.
+            try {
+                const userId = ApiClient.getCurrentUserId?.();
+                const item = userId
+                    ? await ApiClient.getItem(userId, itemId)
+                    : null;
+                if (item) {
+                    await pm.play({
+                        items: [item],
+                        startPositionTicks: 0,
+                        fullscreen: true
+                    });
+                    await new Promise((r) => setTimeout(r, 900));
+                    if (isJellyfinPlayerUi()) {
+                        return { ok: true, via: 'playback_manager_items', itemId };
+                    }
+                }
+            } catch (e) {
+                console.warn('swarmplay: playbackManager.play(items) failed', e);
             }
         }
 
@@ -197,9 +227,25 @@
             }
         }
 
-        // 3) Last resort: open the real item details (user hits JF Play — still real player).
+        // 3) Last resort: open the real item details, then click JF's own Play
+        // so the user does not need a second manual click.
         if (window.Emby?.Page?.showItem) {
             window.Emby.Page.showItem(itemId);
+            await new Promise((r) => setTimeout(r, 700));
+            const playBtn = document.querySelector(
+                '.mainDetailButtons .btnPlay:not(.hide), .detailButton-play, button.btnPlay[data-mode="play"], .btnPlay'
+            );
+            if (playBtn && !playBtn.disabled) {
+                try {
+                    playBtn.click();
+                    await new Promise((r) => setTimeout(r, 900));
+                    if (isJellyfinPlayerUi()) {
+                        return { ok: true, via: 'item_details_auto_play', itemId };
+                    }
+                } catch (e) {
+                    console.warn('swarmplay: detail Play click failed', e);
+                }
+            }
             return {
                 ok: false,
                 reason: 'opened_item_details',

@@ -385,7 +385,20 @@
             page.classList.add('hide');
             page.dispatchEvent(new CustomEvent('viewhide', { bubbles: true, detail: { type: 'custom' } }));
         }
-        if (pageState.previousPage && !document.querySelector(`.mainAnimatedPage:not(.hide):not(#${PAGE_ID})`)) {
+        // Never restore the previous JF page on top of the real player / item
+        // details — Discover is a custom stack page and must yield completely.
+        const hash = window.location.hash || '';
+        const takeover = !!(
+            document.querySelector('.videoOsdBottom, #videoOsdPage, video.htmlvideoplayer, .htmlvideoplayer')
+            || hash.startsWith('#/video')
+            || hash.includes('details?id=')
+            || document.querySelector('#itemDetailPage:not(.hide), .itemDetailPage:not(.hide)')
+        );
+        if (
+            pageState.previousPage
+            && !takeover
+            && !document.querySelector(`.mainAnimatedPage:not(.hide):not(#${PAGE_ID})`)
+        ) {
             pageState.previousPage.classList.remove('hide');
             pageState.previousPage.dispatchEvent(new CustomEvent('viewshow', { bubbles: true, detail: { type: 'interior', isRestored: true } }));
         }
@@ -446,21 +459,38 @@
 
     function setupNavigationWatcher() {
         if (!discoveryEnabled()) return;
-        const drawer = document.querySelector('.mainDrawer-scrollContainer') || document.body;
         const obs = new MutationObserver(() => {
             if (!document.querySelector(`.${NAV_CLASS}`)) injectNavigation();
+            if (!pageState.pageVisible) return;
+            const hash = window.location.hash || '';
+            if (
+                document.querySelector('.videoOsdBottom, #videoOsdPage, video.htmlvideoplayer, .htmlvideoplayer')
+                || hash.startsWith('#/video')
+                || hash.includes('details?id=')
+            ) {
+                hidePage();
+            }
         });
-        obs.observe(drawer, { childList: true, subtree: true });
+        obs.observe(document.body, { childList: true, subtree: true });
         // Also hide Discover when other nav is clicked
         document.addEventListener('click', (e) => {
             if (!pageState.pageVisible) return;
             const btn = e.target.closest('.headerTabs button, .navMenuOption, .headerButton');
             if (btn && !btn.classList.contains(NAV_CLASS)) hidePage();
         }, true);
+        window.addEventListener('hashchange', () => {
+            if (!pageState.pageVisible) return;
+            const hash = window.location.hash || '';
+            if (hash.startsWith('#/video') || hash.includes('details?id=')) hidePage();
+        });
     }
 
-    /** Landing-page entry on Jellyfin Search when the query is empty. */
+    /** Landing-page entry on Jellyfin Search when the query is empty.
+     * Disabled in 0.5.1 — link was broken / confusing; sidebar Discover stays. */
     function injectSearchLandingLink() {
+        // Hotfix: do not inject. Strip any leftover link from older builds.
+        document.querySelectorAll('.swarmplay-discover-landing-link').forEach((el) => el.remove());
+        return;
         if (!discoveryEnabled()) return;
         ensureStyles();
         const searchPage = document.querySelector('#searchPage');
@@ -519,7 +549,8 @@
         ensureStyles();
         injectNavigation();
         setupNavigationWatcher();
-        watchSearchLanding();
+        // watchSearchLanding(); — disabled 0.5.1 (broken search→Discover link)
+        injectSearchLandingLink(); // only strips leftover links
         console.log(`${logPrefix} initialized`);
     };
 })(window.JellyfinEnhanced);

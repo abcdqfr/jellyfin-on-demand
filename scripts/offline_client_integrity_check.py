@@ -301,12 +301,23 @@ def main() -> None:
     discover_js = (PLUGIN_JS / "swarm/discover-page.js").read_text(encoding="utf-8", errors="replace")
     if "initializeDiscoverPage" not in discover_js or "je-nav-discover-item" not in discover_js:
         fail("discover-page.js must expose initializeDiscoverPage + sidebar nav (je-nav-discover-item)")
-    if "swarmplay-discover-landing-link" not in discover_js:
-        fail("discover-page.js must inject a Discover link on the search landing page")
+    # 0.5.1: search landing Discover link is intentionally disabled (was broken).
+    if re.search(r"(?m)^\s*watchSearchLanding\(\);", discover_js):
+        fail("discover-page.js must not call watchSearchLanding() — search→Discover link disabled in 0.5.1")
+    if "querySelectorAll('.swarmplay-discover-landing-link')" not in discover_js:
+        fail("discover-page.js must strip leftover .swarmplay-discover-landing-link nodes (search link disabled)")
     if "SECTION_SELECTOR" not in discover_js or ".sections.swarmplay-discover" not in discover_js:
         fail("discover-page.js must query .sections.swarmplay-discover (compound class), not `.${SECTION_CLASS}`")
     if "querySelector(`.${SECTION_CLASS}`)" in discover_js or 'querySelector(`.${SECTION_CLASS}`)' in discover_js:
         fail("discover-page.js must not querySelector(`.${SECTION_CLASS}`) — that yields an empty Discover pane")
+    if "takeover" not in discover_js or "swarmHideDiscover" not in discover_js:
+        fail("discover-page.js must yield for player/details (takeover) and export swarmHideDiscover")
+    lucky_js_disc = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
+    if "swarmHideDiscover" not in lucky_js_disc:
+        fail("lucky.js must hide Discover before attemptPlayback so video is not buried")
+    releases_js_disc = (PLUGIN_JS / "swarm/releases.js").read_text(encoding="utf-8", errors="replace")
+    if "swarmHideDiscover" not in releases_js_disc:
+        fail("releases.js must hide Discover in playBindAndStart before warm/play")
     jellyseerr_api_js = (PLUGIN_JS / "jellyseerr/api.js").read_text(encoding="utf-8", errors="replace")
     if "fetchDiscoverTrending" not in jellyseerr_api_js or "fetchDiscoverMovies" not in jellyseerr_api_js:
         fail("jellyseerr/api.js must expose fetchDiscoverTrending/Movies/Tv for Discover pane")

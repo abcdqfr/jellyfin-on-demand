@@ -34,6 +34,7 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 | **0.4.0** | **Cache-to-library** — Add to Library → download straight into a real JF library ([ADR-009](docs/adr/009-cache-to-library-v0.4.md)) | Shipping |
 | **0.4.1** | **Hotfix:** Add to Library → Stream now writes a real `.strm` pointer; warm-progress bar + blazing-ahead readahead-size regression fix ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)) | Shipping |
 | **0.5.0** | **Discover pane** — Seerr-shaped browse home next to Enhanced/Bookmarks (TMDB-backed; JE jellyseerr chrome rolled in) | Shipping |
+| **0.5.1** | **Hotfix / RC:** Discover yields to player; hide broken search→Discover link | Shipping |
 | later | O7b sidecar, packaging polish | Phase 4 |
 
 ### 0.2.2 — Virtual-item probe fix + history UX (0.2.1's exit criteria, actually met)
@@ -161,12 +162,20 @@ jellyseerr poster cards already rolled into this JE fork (Play / Lucky /
 Library), backed by TMDB when Seerr is off. Attribution for JE chrome + MIT
 seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
 
-- [x] Sidebar Discover pane + search landing link
+- [x] Sidebar Discover pane (search landing link disabled in 0.5.1 — was broken)
 - [x] Default Seerr slider order (trending / popular / genres / upcoming)
 - [x] TMDB discover endpoints when Swarmplay discovery is on
 - [x] Empty-pane + `#/discover` 404 fixes
 
 **Exit:** Open Discover → see sliders → Play/Lucky/Library work like search.
+
+### 0.5.1 — Discover playback yield + hide broken search link (hotfix / RC)
+
+- [x] Hide Discover before warm/play; do not restore previous page over video/details
+- [x] Stronger auto-play (`playbackManager` items + detail Play click)
+- [x] Disable search landing “Browse Discover” link (sidebar remains)
+
+**Exit:** Discover Play/Lucky shows video (not buried); Search page has no Discover link.
 
 ---
 
