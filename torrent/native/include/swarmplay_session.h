@@ -20,7 +20,8 @@ enum {
     SWARM_ERROR_UNAVAILABLE = -1,
     SWARM_ERROR_INVALID_ARGUMENT = -2,
     SWARM_ERROR_METADATA_TIMEOUT = -3,
-    SWARM_ERROR_INVALID_FILE_INDEX = -4
+    SWARM_ERROR_INVALID_FILE_INDEX = -4,
+    SWARM_ERROR_IO = -5
 };
 
 /* source accepts a 40-character v1 infohash, magnet URI, or absolute .torrent path. */

@@ -78,6 +78,35 @@
             actual.every((id, index) => id === expectedOrder[index]);
     }
 
-    JE.swarmRanker = { score, rank, rankSelfTest };
+    /** @returns {{ season:number, episode:number }|null} */
+    function parseEpisode(title) {
+        const m = String(title || '').match(/(?:^|[\s._-])s(\d{1,2})e(\d{1,3})(?:[\s._-]|$)/i);
+        if (!m) return null;
+        return { season: Number(m[1]), episode: Number(m[2]) };
+    }
+
+    /** Scene/fansub group: [Group] prefix or -GROUP suffix. */
+    function parseGroup(title) {
+        const s = String(title || '');
+        const bracket = s.match(/^\[([^\]]{1,40})\]/);
+        if (bracket) return bracket[1].trim();
+        const dash = s.match(/[-_.\s]([A-Za-z0-9]{2,20})$/);
+        return dash ? dash[1] : '';
+    }
+
+    /** Batch/season pack heuristic (vs single episodic release). */
+    function isBatchRelease(title, sizeBytes) {
+        const s = String(title || '');
+        if (parseEpisode(s)) return false;
+        if (/\b(complete|season\s*\d+|s\d{1,2}(?!\s*e\d)|batch|pack)\b/i.test(s)) return true;
+        const size = Number(sizeBytes) || 0;
+        // Large packs without SxxExx are usually batches.
+        return size >= 3e9;
+    }
+
+    JE.swarmRanker = {
+        score, rank, rankSelfTest,
+        parseEpisode, parseGroup, isBatchRelease, titleSimilarity
+    };
     JE.ranker = JE.swarmRanker;
 })(window.JellyfinEnhanced);

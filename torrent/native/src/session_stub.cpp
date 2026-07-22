@@ -29,6 +29,7 @@ constexpr int kOk = 0;
 constexpr int kInvalidArgument = -2;
 constexpr int kMetadataTimeout = -3;
 constexpr int kInvalidFileIndex = -4;
+constexpr int kIo = -5;
 constexpr auto kMetadataTimeoutDuration = std::chrono::seconds(60);
 
 struct Entry {
@@ -187,8 +188,10 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
     std::error_code filesystem_error;
     std::filesystem::create_directories(save_path, filesystem_error);
     if (filesystem_error) {
-        set_ensure_error(out, kInvalidArgument);
-        return kInvalidArgument;
+        // Do not map to invalid_argument — lab footgun was jellyfin unable to
+        // mkdir under /tmp/swarmplay owned by another user.
+        set_ensure_error(out, kIo);
+        return kIo;
     }
 
     auto existing = session.torrents.find(key);

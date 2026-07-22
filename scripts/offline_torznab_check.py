@@ -65,6 +65,12 @@ def main() -> None:
     if 'HttpGet("stream")' not in ctrl:
         fail("SwarmController must expose GET stream (Http MediaSource playback)")
 
+    hdr = (
+        ROOT / "torrent/native/include/swarmplay_session.h"
+    ).read_text(encoding="utf-8")
+    if "SWARM_ERROR_IO" not in hdr:
+        fail("native header must define SWARM_ERROR_IO (mkdir vs bad magnet)")
+
     print(f"torznab items: {count}; magnet-from-guid: ok; size+stream routes: ok")
 
 

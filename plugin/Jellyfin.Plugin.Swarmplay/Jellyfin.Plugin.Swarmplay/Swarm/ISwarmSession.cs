@@ -152,6 +152,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                     "Timed out waiting for torrent metadata from the swarm. Peers may be scarce — try again or pick another release.", n),
                 -4 => ("invalid_file_index",
                     "That file is not in this torrent (bad file index). Pick another file or release.", n),
+                -5 => ("io_error",
+                    "Cannot write the swarm cache directory (permission denied under /tmp/swarmplay). Fix ownership or redeploy.", n),
                 _ when !string.IsNullOrEmpty(legacy) => (legacy, legacy, n),
                 _ => ("error", $"Swarm error{(n is null ? string.Empty : $" ({n})")}.", n)
             };

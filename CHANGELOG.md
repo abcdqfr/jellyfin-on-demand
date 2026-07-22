@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5 — 2026-07-21
+
+### Fixed
+- Odyssey (and other cold Ensures) failed with a fake “invalid torrent identity”: Jellyfin could not `mkdir` under `/tmp/swarmplay` owned by the lab user — deploy now makes the cache sticky/world-writable and native returns `io_error` (-5) for real permission failures
+
+### Added
+- Series release picker filters: Episode vs Batch/season, season/episode numbers, release-group dropdown, text contains (caps list at 40)
+
 ## 0.1.4 — 2026-07-21
 
 ### Fixed

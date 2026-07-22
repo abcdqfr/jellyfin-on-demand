@@ -1508,9 +1508,12 @@
                     }
                     return;
                 }
+                // tmdbId is available for future id-capable indexers; Nyaa/TPB are title-only.
                 await JE.swarmShowReleasePicker({
                     query,
                     title,
+                    year: year || null,
+                    tmdbId: item.id || null,
                     mediaType: item.mediaType,
                     season: item.mediaType === 'tv' ? 1 : null,
                     episode: item.mediaType === 'tv' ? 1 : null

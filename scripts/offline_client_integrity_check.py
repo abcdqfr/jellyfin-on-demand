@@ -106,6 +106,10 @@ def main() -> None:
         fail("releases.js must toast warming after release selection")
     if "player did not start" not in releases:
         fail("releases.js must not claim playing when the player did not start")
+    if "data-f=\"kind\"" not in releases and "data-f='kind'" not in releases:
+        fail("releases.js must offer Episode/Batch kind filter for series")
+    if "data-f=\"group\"" not in releases and "data-f='group'" not in releases:
+        fail("releases.js must offer release-group filter")
 
     print("PASS: offline_client_integrity_check")
 

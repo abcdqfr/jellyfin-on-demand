@@ -226,7 +226,15 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             [FromQuery] bool removeFiles,
             CancellationToken cancellationToken)
         {
-            await _swarmSession.StopAsync(btih, removeFiles, cancellationToken);
+            try
+            {
+                await _swarmSession.StopAsync(btih, removeFiles, cancellationToken);
+            }
+            catch (InvalidOperationException)
+            {
+                // Already stopped / never started — idempotent for clients.
+            }
+
             return NoContent();
         }
 

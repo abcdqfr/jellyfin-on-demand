@@ -40,6 +40,15 @@ echo "deploy: native → $JF_NATIVE_LIB"
 "$SUDO" install -m 0755 "$dist/libswarmplay_native.so" "$JF_NATIVE_LIB"
 "$SUDO" ldconfig
 
+# Growing-file cache: jellyfin must mkdir here. Lab smokes may also write as the
+# interactive user — sticky world-writable avoids "invalid_argument" misreports.
+echo "deploy: swarm cache → /tmp/swarmplay"
+"$SUDO" mkdir -p /tmp/swarmplay
+"$SUDO" chmod 1777 /tmp/swarmplay
+"$SUDO" chown jellyfin:jellyfin /tmp/swarmplay 2>/dev/null || true
+# Reclaim dirs created by lab user smokes so Ensure can write into them.
+"$SUDO" find /tmp/swarmplay -mindepth 1 -maxdepth 1 -type d -exec chown -R jellyfin:jellyfin {} + 2>/dev/null || true
+
 echo "deploy: systemd drop-in $DROPIN"
 "$SUDO" install -d -m 0755 "$DROPIN_DIR"
 "$SUDO" tee "$DROPIN" >/dev/null <<UNIT
