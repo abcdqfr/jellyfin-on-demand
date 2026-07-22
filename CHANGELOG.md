@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### In progress
+- **0.2.1 — MKV-aware extent gate:** grow real Cues/head parse instead of blind fixed floors; ported forensics from strmarr's Tensura cold-gate incident ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md))
+
 ### Planned
 - **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
 

@@ -25,8 +25,29 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 |------|--------|--------|
 | **0.1.x** | Play path: Torznab → libtorrent → extent gate → real JF player | Shipping (hotfixes) |
 | **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Shipping |
+| **0.2.1** | **MKV-aware extent gate** — grow to real Cues/head instead of blind fixed floors ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md)) | In progress |
 | **0.3.0** | **Library promote** — slide streamed keep into normal library / offline archival ([design](docs/design/library-promote-0.3.md)) | Roadmap after 0.2 |
 | later | O7b sidecar, packaging polish | Phase 4 |
+
+### 0.2.1 — MKV-aware extent gate (hotfix, before batch/episode fanout)
+
+Ported forensics from strmarr's Tensura cold-gate incident
+(`../strmarr/docs/issues/tensura-first-play-cold-gate.md`): blind fixed
+head/tail floors cannot know where a given MKV's Cues element actually
+lives, and a naive first-byte-match probe can hit false positives inside
+the EBML header. Audio/subs/seek on a real movie is a harder floor than
+batch fanout for TV episodes — this must land first.
+
+- [ ] Native EBML head parse (Segment → Tracks/Attachments only)
+- [ ] Native growing Cues probe (2 MiB → 16 MiB cap, multi-candidate backward search)
+- [ ] Cue-less bounded fallback (16 MiB tail, never full-file fail-open)
+- [ ] `tail_mib`/`head_mib` become floors under the probe, not fixed sizes
+- [ ] Per-(torrent,file_index) probe cache — no re-parse once warm
+- [ ] Synthetic-MKV fixtures in the gate (near-miss Cues, false-positive header, cue-less)
+
+**Exit:** cold play of a real movie has audio + video + subs + working seek
+on first attempt, verified against a synthetic MKV whose Cues sit outside
+the old fixed floor.
 
 ### 0.2 — Search history (commemorative)
 
