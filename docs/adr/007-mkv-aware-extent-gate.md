@@ -26,7 +26,7 @@ the old code had no bound — doubled the tail window all the way through the
 video with no audio/subs because Jellyfin's ffprobe got a 503 and fell back
 to a `-sn`, no-explicit-map transcode.
 
-Two lessons swarmplay has not yet ported:
+Two lessons jellyfin-on-demand has not yet ported:
 
 1. **Fixed byte floors cannot know where Cues live.** They are not a
    percentage of file size, not always in the last N MiB for a given N —
@@ -42,10 +42,10 @@ Two lessons swarmplay has not yet ported:
    byte-string hit.
 
 This is exactly the kind of forced-march strmarr already paid for
-(`docs/adr/007-experimental-swarmplay.md`, strmarr side: "only lessons
+(`docs/adr/007-experimental-jellyfin-on-demand.md`, strmarr side: "only lessons
 carried forward from strmarr"). `I8`/`I10` in `INVARIANTS.md` forbid
 importing `engine/`/anacrolix code — this ADR ports the **algorithm**, not
-the Go, into swarmplay's own C++ native layer.
+the Go, into jellyfin-on-demand's own C++ native layer.
 
 ## Decision
 
@@ -98,7 +98,7 @@ the Go, into swarmplay's own C++ native layer.
    `warm_phase` reaches sequential with a known cue window (or the
    cue-less fallback), never re-run the parse on subsequent `swarm_ensure`
    calls for the same key — mirrors strmarr's gate-reuse lesson (ADR 009
-   there) and matches swarmplay's existing `Entry` cache keyed by
+   there) and matches jellyfin-on-demand's existing `Entry` cache keyed by
    info-hash + file_index.
 
 5. **No fail-open.** `swarm_ensure` keeps blocking (≤180 s, per 0.1.11)
@@ -133,5 +133,5 @@ the Go, into swarmplay's own C++ native layer.
 - [`../../../strmarr/docs/issues/tensura-first-play-cold-gate.md`](../../../strmarr/docs/issues/tensura-first-play-cold-gate.md) — forensic root cause, exact byte offsets, v0.4.3 fix table
 - `strmarr/engine/subtitles/engine/{grow.go,cue_probe.go,extent_limits.go}` — growing-probe algorithm (lessons only; not imported per `I8`/`I10`)
 - `strmarr/engine/subtitles/engine/mkv/{head.go,cues.go}` — EBML element IDs and parse shape
-- `strmarr/docs/adr/007-experimental-swarmplay.md` — why swarmplay exists as a clean-room reimplementation
+- `strmarr/docs/adr/007-experimental-jellyfin-on-demand.md` — why jellyfin-on-demand exists as a clean-room reimplementation
 - `INVARIANTS.md` I9/O3c — current fixed-floor warm-lite contract this ADR sharpens

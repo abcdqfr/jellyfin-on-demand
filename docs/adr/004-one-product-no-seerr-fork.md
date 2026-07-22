@@ -1,4 +1,4 @@
-# ADR-004 (swarmplay): One product — no Seerr fork
+# ADR-004 (jellyfin-on-demand): One product — no Seerr fork
 
 **Status:** Accepted
 
@@ -7,7 +7,7 @@
 ## Context
 
 JE’s living-room discovery/request UX is a **client of Seerr/Jellyseerr**. That
-raised whether swarmplay must also fork Seerr (second codebase + second
+raised whether jellyfin-on-demand must also fork Seerr (second codebase + second
 deploy) or can absorb those jobs into the JE fork alone.
 
 Old *arr world:
@@ -16,23 +16,23 @@ Old *arr world:
 JF (JE) → Seerr → *arr → download client → library → JF play
 ```
 
-Swarmplay spine:
+Jellyfin on Demand spine:
 
 ```text
-JF (Swarmplay plugin) → Torznab/magnet → libtorrent (O7a) → Path → Play
+JF (JellyfinOnDemand plugin) → Torznab/magnet → libtorrent (O7a) → Path → Play
 ```
 
 ## Decision
 
 1. **One product minimum:** the JE fork
-   ([`plugin/Jellyfin.Plugin.Swarmplay/`](../../plugin/Jellyfin.Plugin.Swarmplay/))
+   ([`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](../../plugin/Jellyfin.Plugin.JellyfinOnDemand/))
    owns browse, pick, warm, and play. C# is the server side; injected JS is the
    pane. That is already “server-side changes.”
 2. **Do not fork Seerr/Jellyseerr** for MVP (or as a required half of the
    product). A Seerr process in the middle reintroduces hop/auth/deploy friction
    and still leaves O6a/O7a in the JF plugin.
 3. **Retarget, don’t proxy:** keep JE discovery/search/modal chrome; replace
-   Seerr API calls with Swarmplay plugin APIs (TMDB/TVDB browse as needed,
+   Seerr API calls with Jellyfin on Demand plugin APIs (TMDB/TVDB browse as needed,
    Torznab rank, magnet, `Ensure`). “Request” becomes Play / feeling-lucky.
 4. **Seerr as prior art only** — local shallow clone at
    [`third-party/seerr/`](../../third-party/seerr/) for reading/unification

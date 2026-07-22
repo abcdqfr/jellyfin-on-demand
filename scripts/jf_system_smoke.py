@@ -36,7 +36,7 @@ def http_json(method: str, url: str, body=None, token: str | None = None, timeou
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "X-Emby-Authorization": 'MediaBrowser Client="swarmplay-smoke", Device="smoke", DeviceId="swarmplay-system-smoke", Version="0.1.0"',
+        "X-Emby-Authorization": 'MediaBrowser Client="jellyfin-on-demand-smoke", Device="smoke", DeviceId="jellyfin-on-demand-system-smoke", Version="0.1.0"',
     }
     if token:
         headers["X-Emby-Token"] = token
@@ -66,7 +66,7 @@ def main() -> None:
         fail(f"auth failed: {st} {body}")
     token = body["AccessToken"]
 
-    cache = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+    cache = Path(os.environ.get("JELLYFIN_ON_DEMAND_CACHE_DIR", "/home/brandon/cache/jellyfin-on-demand"))
     download = cache / INFOHASH
     # leave existing; ensure will reuse
 
@@ -83,14 +83,14 @@ def main() -> None:
 
     st, body = http_json(
         "POST",
-        BASE + "/Swarmplay/swarm/play-bind",
+        BASE + "/JellyfinOnDemand/swarm/play-bind",
         {
             "Magnet": magnet,
             "Btih": INFOHASH,
             "FileIndex": 0,
             "TailMib": 1,
             "HeadMib": 1,
-            "DisplayName": "Swarmplay System Smoke",
+            "DisplayName": "JellyfinOnDemand System Smoke",
         },
         token=token,
         timeout=120,

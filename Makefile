@@ -1,4 +1,4 @@
-# swarmplay — local lab host (this machine).
+# jellyfin-on-demand — local lab host (this machine).
 # Shape borrowed from sister strmarr Makefile (gate → package → deploy → verify),
 # without *arr/docker lab services.
 
@@ -16,19 +16,19 @@ export DOTNET_NOLOGO := 1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE := 1
 export DOTNET_CLI_TELEMETRY_OPTOUT := 1
 
-PLUGIN_PROJ := $(ROOT)/plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj
-NATIVE_SO := $(ROOT)/torrent/native/build/libswarmplay_native.so
-DIST_DIR := $(ROOT)/dist/swarmplay-$(VERSION)
+PLUGIN_PROJ := $(ROOT)/plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj
+NATIVE_SO := $(ROOT)/torrent/native/build/libjellyfin_on_demand_native.so
+DIST_DIR := $(ROOT)/dist/jellyfin-on-demand-$(VERSION)
 
-JF_PLUGIN_DIR ?= /var/lib/jellyfin/plugins/Jellyfin.Plugin.Swarmplay
-JF_NATIVE_LIB ?= /usr/local/lib/libswarmplay_native.so
+JF_PLUGIN_DIR ?= /var/lib/jellyfin/plugins/Jellyfin.Plugin.JellyfinOnDemand
+JF_NATIVE_LIB ?= /usr/local/lib/libjellyfin_on_demand_native.so
 JF_URL ?= http://127.0.0.1:8096
 SUDO ?= sudo
 
 help:
-	@echo "swarmplay local lab targets:"
+	@echo "jellyfin-on-demand local lab targets:"
 	@echo "  make build       — plugin (jf10) + ensure native .so exists"
-	@echo "  make package     — dist/swarmplay-$(VERSION)/ (+ zip)"
+	@echo "  make package     — dist/jellyfin-on-demand-$(VERSION)/ (+ zip)"
 	@echo "  make gate        — scripts/ci_gate.sh (commit gate)"
 	@echo "  make deploy      — install plugin + native into system Jellyfin"
 	@echo "  make start|stop|restart|status"
@@ -79,7 +79,7 @@ status:
 	@ss -ltn | grep -E ':8096\b' || echo "(port 8096 not listening)"
 
 up: deploy start verify
-	@echo "up: Swarmplay $(VERSION) on $(JF_URL) — use Jellyfin Desktop against this host"
+	@echo "up: JellyfinOnDemand $(VERSION) on $(JF_URL) — use Jellyfin Desktop against this host"
 
 verify:
 	@JF_URL=$(JF_URL) $(ROOT)/scripts/deploy_verify.sh

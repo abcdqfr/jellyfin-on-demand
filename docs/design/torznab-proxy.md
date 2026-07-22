@@ -2,8 +2,8 @@
 
 ## Boundary
 
-Swarmplay remains one Jellyfin plugin per ADR-004: injected pane JavaScript
-calls only authenticated Swarmplay plugin endpoints. It never receives, stores,
+Jellyfin on Demand remains one Jellyfin plugin per ADR-004: injected pane JavaScript
+calls only authenticated Jellyfin on Demand plugin endpoints. It never receives, stores,
 logs, or constructs Torznab URLs, API keys, or credentials.
 
 The C# plugin server reads configured indexer endpoints and performs every

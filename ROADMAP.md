@@ -1,4 +1,4 @@
-# swarmplay — roadmap
+# jellyfin-on-demand — roadmap
 
 **Trajectory:** Living-room JF pane (**one product:** JE fork) → TMDB/TVDB →
 ranked Nyaa/TPB → magnet → in-process libtorrent (O7a) → tail→head warm →
@@ -14,8 +14,8 @@ Progress = **unit + integration tests** against [`PRODUCT.md`](PRODUCT.md) MVP.
 **Commit gate:** [`scripts/ci_gate.sh`](scripts/ci_gate.sh) ([ADR-005](docs/adr/005-local-integration-commit-gate.md)).
 
 Working plugin tree:
-[`plugin/Jellyfin.Plugin.Swarmplay/`](plugin/Jellyfin.Plugin.Swarmplay/)
-([abcdqfr/Jellyfin.Plugin.Swarmplay](https://github.com/abcdqfr/Jellyfin.Plugin.Swarmplay),
+[`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/)
+([abcdqfr/Jellyfin.Plugin.JellyfinOnDemand](https://github.com/abcdqfr/Jellyfin.Plugin.JellyfinOnDemand),
 fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced)).
 Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/).
 
@@ -164,7 +164,7 @@ seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
 
 - [x] Sidebar Discover pane (search landing link disabled in 0.5.1 — was broken)
 - [x] Default Seerr slider order (trending / popular / genres / upcoming)
-- [x] TMDB discover endpoints when Swarmplay discovery is on
+- [x] TMDB discover endpoints when Jellyfin on Demand discovery is on
 - [x] Empty-pane + `#/discover` 404 fixes
 
 **Exit:** Open Discover → see sliders → Play/Lucky/Library work like search.
@@ -183,14 +183,14 @@ seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
 
 - [x] Invariants / product / lessons / ADRs
 - [x] Lock O1–O7a MVP; O7b roadmap
-- [x] Fork JE → `plugin/Jellyfin.Plugin.Swarmplay/`
+- [x] Fork JE → `plugin/Jellyfin.Plugin.JellyfinOnDemand/`
 - [x] **ADR-004:** one product; do not fork Seerr
 - [x] Offline: Seerr/*arr scripts unloaded; Swarm stubs; design docs (`docs/design/`)
 - [ ] `git init` this sibling root when you want parent history (optional; plugin is already its own git remote)
-- [ ] Rename C# project / plugin id from `JellyfinEnhanced` → `Swarmplay` (see `docs/design/rename-inventory.md`) — **needs Wi‑Fi build**
+- [ ] Rename C# project / plugin id from `JellyfinEnhanced` → `JellyfinOnDemand` (see `docs/design/rename-inventory.md`) — **needs Wi‑Fi build**
 - [ ] Strip Seerr/*arr C# helpers/tasks (scripts already gated); retarget discovery chrome to Swarm APIs
 
-**Exit:** Plugin identity is Swarmplay; Seerr is not required at runtime; *arr UI gone or inert.
+**Exit:** Plugin identity is Jellyfin on Demand; Seerr is not required at runtime; *arr UI gone or inert.
 
 ---
 
@@ -233,7 +233,7 @@ Prove O6a + O2a + O7a without Torznab ranking.
 
 ## Phase 4 — Roadmap: O7b sidecar (post-MVP)
 
-- Extract session into `swarmplayd`; plugin speaks control plane HTTP.
+- Extract session into `jellyfin-on-demandd`; plugin speaks control plane HTTP.
 - Isolation, shared multi-play bandwidth, seed/eviction supervisor.
 - Re-derive long-lived session / cache / seed policy shapes from LESSONS.
 - Keep O2a growing file unless evidence forces O2b range bridge.

@@ -37,11 +37,11 @@
 
 | Method | Path | Role |
 |--------|------|------|
-| GET | `/Swarmplay/swarm/history` | List (pinned first, then recency) |
-| POST | `/Swarmplay/swarm/history` | Upsert from search / play |
-| POST | `/Swarmplay/swarm/history/{id}/pin` | Toggle pin |
-| DELETE | `/Swarmplay/swarm/history/{id}` | Remove one |
-| DELETE | `/Swarmplay/swarm/history` | Clear unpinned (or all with `?all=1`) |
+| GET | `/JellyfinOnDemand/swarm/history` | List (pinned first, then recency) |
+| POST | `/JellyfinOnDemand/swarm/history` | Upsert from search / play |
+| POST | `/JellyfinOnDemand/swarm/history/{id}/pin` | Toggle pin |
+| DELETE | `/JellyfinOnDemand/swarm/history/{id}` | Remove one |
+| DELETE | `/JellyfinOnDemand/swarm/history` | Clear unpinned (or all with `?all=1`) |
 
 Persist via existing user-settings file helper (same directory as other JE user JSON).
 

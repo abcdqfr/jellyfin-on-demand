@@ -1,4 +1,4 @@
-# Rename inventory: JellyfinEnhanced → Swarmplay
+# Rename inventory: JellyfinEnhanced → Jellyfin on Demand
 
 **Do not run a blind mass-rename on cellular without a build.** This inventory
 is for Wi‑Fi execution (or careful offline edits + build later).
@@ -6,11 +6,11 @@ is for Wi‑Fi execution (or careful offline edits + build later).
 ## High-level targets
 | Current | Target |
 |---------|--------|
-| Assembly / folder `Jellyfin.Plugin.JellyfinEnhanced` | `Jellyfin.Plugin.Swarmplay` |
-| Namespace `Jellyfin.Plugin.JellyfinEnhanced` | `Jellyfin.Plugin.Swarmplay` |
-| Route prefix `/JellyfinEnhanced/` | `/Swarmplay/` (JS `basePath`, controllers) |
+| Assembly / folder `Jellyfin.Plugin.JellyfinEnhanced` | `Jellyfin.Plugin.JellyfinOnDemand` |
+| Namespace `Jellyfin.Plugin.JellyfinEnhanced` | `Jellyfin.Plugin.JellyfinOnDemand` |
+| Route prefix `/JellyfinEnhanced/` | `/JellyfinOnDemand/` (JS `basePath`, controllers) |
 | Global `window.JellyfinEnhanced` / `JE` | Keep `JE` alias **or** `SP` — decide at rename time; `JE` reduces churn |
-| manifest `name` | `Swarmplay` |
+| manifest `name` | `JellyfinOnDemand` |
 | New plugin **guid** | Generate new GUID (do not keep JE’s if publishing side-by-side) |
 
 ## Scale (local count)
@@ -36,7 +36,7 @@ is for Wi‑Fi execution (or careful offline edits + build later).
   collide with the old namespace until rename.
 
 ## Applied
-- P0-09 renamed the plugin source directory and project to `Jellyfin.Plugin.Swarmplay`.
-- C# namespaces and `/JellyfinEnhanced` routes now use `Jellyfin.Plugin.Swarmplay` and `/Swarmplay`.
-- JavaScript route and script base paths now use `/Swarmplay`; `window.JellyfinEnhanced` and `JE` remain aliases (P0-09).
-- `manifest.json` remains `Swarmplay` with the existing GUID pending side-by-side publishing.
+- P0-09 renamed the plugin source directory and project to `Jellyfin.Plugin.JellyfinOnDemand`.
+- C# namespaces and `/JellyfinEnhanced` routes now use `Jellyfin.Plugin.JellyfinOnDemand` and `/JellyfinOnDemand`.
+- JavaScript route and script base paths now use `/JellyfinOnDemand`; `window.JellyfinEnhanced` and `JE` remain aliases (P0-09).
+- `manifest.json` remains `JellyfinOnDemand` with the existing GUID pending side-by-side publishing.

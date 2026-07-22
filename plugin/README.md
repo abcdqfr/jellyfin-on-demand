@@ -1,6 +1,6 @@
-# Swarmplay plugin
+# Jellyfin on Demand plugin
 
-[`Jellyfin.Plugin.Swarmplay/`](Jellyfin.Plugin.Swarmplay/) is the Swarmplay
+[`Jellyfin.Plugin.JellyfinOnDemand/`](Jellyfin.Plugin.JellyfinOnDemand/) is the Jellyfin on Demand
 fork of Jellyfin Enhanced. It owns virtual-item playback through an in-process
 swarm session; Seerr/Jellyseerr is not a runtime dependency.
 

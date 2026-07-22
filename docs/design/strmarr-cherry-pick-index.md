@@ -1,7 +1,7 @@
 # Strmarr Cherry-Pick Index — P4-02
 
 Paths are via the `third-party/strmarr` **symlink** (lessons only). Do **not**
-import Go code (I10). Do **not** run strmarr services for Swarmplay.
+import Go code (I10). Do **not** run strmarr services for JellyfinOnDemand.
 
 | Path | Notes |
 |---|---|

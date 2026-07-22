@@ -23,7 +23,7 @@ class StatusResult(ctypes.Structure):
 
 
 ROOT = Path(__file__).resolve().parents[1]
-library_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "torrent/native/build/libswarmplay_native.so"
+library_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "torrent/native/build/libjellyfin_on_demand_native.so"
 torrent_path = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "third-party/vlc-bittorrent/test/data/sweden.png.torrent"
 source = str(torrent_path.resolve()).encode()
 

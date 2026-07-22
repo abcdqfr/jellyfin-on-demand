@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify system Jellyfin loaded Swarmplay and can resolve native.
+# Verify system Jellyfin loaded JellyfinOnDemand and can resolve native.
 set -euo pipefail
 
 JF_URL="${JF_URL:-http://127.0.0.1:8096}"
@@ -16,15 +16,15 @@ while (( SECONDS < deadline )); do
 done
 curl -sf -m 5 "$JF_URL/System/Info/Public" >/dev/null || die "Jellyfin not responding at $JF_URL"
 
-sudo test -f /var/lib/jellyfin/plugins/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay.dll \
+sudo test -f /var/lib/jellyfin/plugins/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand.dll \
   || die "plugin DLL missing under /var/lib/jellyfin/plugins"
 
 log="$(sudo find /var/log/jellyfin -maxdepth 1 -type f \( -name 'jellyfin*.log' -o -name 'log_*.log' \) -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)"
 [[ -n "$log" ]] || die "no jellyfin log under /var/log/jellyfin"
-ver="${SWARMPLAY_VERSION:-}"
+ver="${JELLYFIN_ON_DEMAND_VERSION:-}"
 if [[ -z "$ver" ]]; then
   # Prefer meta.json next to the deployed DLL when present.
-  meta="/var/lib/jellyfin/plugins/Jellyfin.Plugin.Swarmplay/meta.json"
+  meta="/var/lib/jellyfin/plugins/Jellyfin.Plugin.JellyfinOnDemand/meta.json"
   if sudo test -f "$meta"; then
     ver="$(sudo cat "$meta" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' 2>/dev/null || true)"
   fi
@@ -33,16 +33,16 @@ ver="${ver:-0.1.1.0}"
 # meta may be 0.1.1.0; logs print 0.1.1.0 or 0.1.1
 ver_short="$(printf '%s' "$ver" | sed -E 's/(\.0)+$//')"
 
-if ! sudo grep -qE "Jellyfin Enhanced v${ver}|Jellyfin Enhanced v${ver_short}|Loaded plugin: Jellyfin Enhanced ${ver}|Loaded plugin: Jellyfin Enhanced ${ver_short}|Jellyfin\\.Plugin\\.Swarmplay" "$log"; then
+if ! sudo grep -qE "Jellyfin Enhanced v${ver}|Jellyfin Enhanced v${ver_short}|Loaded plugin: Jellyfin Enhanced ${ver}|Loaded plugin: Jellyfin Enhanced ${ver_short}|Jellyfin\\.Plugin\\.JellyfinOnDemand" "$log"; then
   sudo tail -40 "$log" >&2 || true
   die "plugin not seen in $log"
 fi
 
-if ! ldconfig -p 2>/dev/null | grep -q libswarmplay_native; then
-  test -f /usr/local/lib/libswarmplay_native.so || die "native .so missing"
+if ! ldconfig -p 2>/dev/null | grep -q libjellyfin_on_demand_native; then
+  test -f /usr/local/lib/libjellyfin_on_demand_native.so || die "native .so missing"
 fi
 
-if sudo grep -q 'DllNotFoundException.*swarmplay_native' "$log"; then
+if sudo grep -q 'DllNotFoundException.*jellyfin_on_demand_native' "$log"; then
   die "native DllNotFoundException in logs"
 fi
 
@@ -50,4 +50,4 @@ fi
 REQUIRE_LIVE=1 python3 "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/live_public_config_smoke.py" \
   || die "live_public_config_smoke failed"
 
-echo "verify: ok — Swarmplay ${ver_short} on $JF_URL (Jellyfin Desktop → this host)"
+echo "verify: ok — JellyfinOnDemand ${ver_short} on $JF_URL (Jellyfin Desktop → this host)"

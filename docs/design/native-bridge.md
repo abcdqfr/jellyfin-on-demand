@@ -12,12 +12,12 @@
 4. Piece priority for demanded ranges (their access module); we instead drive
    **tail → head → sequential** then hand JF a **Path** (O2a).
 
-## Swarmplay MVP shape
+## Jellyfin on Demand MVP shape
 
 ```text
-Jellyfin.Plugin.Swarmplay (C#)
+Jellyfin.Plugin.JellyfinOnDemand (C#)
     P/Invoke or native hosting
-        swarmplay_native.so  (C++)
+        jellyfin_on_demand_native.so  (C++)
             Session::get()
             Ensure / Status / Stop
 ```
@@ -26,7 +26,7 @@ Suggested layout (when coding starts — do not compile on cellular):
 
 ```text
 torrent/native/
-  include/swarmplay_session.h
+  include/jellyfin_on_demand_session.h
   src/session.cpp          # mirror vlc-bt singleton
   src/ensure.cpp           # warm order + path
   CMakeLists.txt           # link libtorrent-rasterbar

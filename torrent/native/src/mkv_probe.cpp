@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace swarmplay::mkv {
+namespace jellyfin_on_demand::mkv {
 
 namespace {
 
@@ -323,4 +323,4 @@ CueProbeResult find_cues(const std::uint8_t* tail_buf, std::size_t tail_len,
     return result;
 }
 
-} // namespace swarmplay::mkv
+} // namespace jellyfin_on_demand::mkv

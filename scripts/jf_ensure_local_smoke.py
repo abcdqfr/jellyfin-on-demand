@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""User-scoped Jellyfin + local seeder → POST /Swarmplay/swarm/ensure → ready."""
+"""User-scoped Jellyfin + local seeder → POST /JellyfinOnDemand/swarm/ensure → ready."""
 
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ DATA_FILE = DATA_DIR / "sweden.png"
 NATIVE_DIR = ROOT / "torrent/native/build"
 PLUGIN_DLL = (
     ROOT
-    / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/bin/Debug/net9.0/Jellyfin.Plugin.Swarmplay.dll"
+    / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/bin/Debug/net9.0/Jellyfin.Plugin.JellyfinOnDemand.dll"
 )
-CACHE_ROOT = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+CACHE_ROOT = Path(os.environ.get("JELLYFIN_ON_DEMAND_CACHE_DIR", "/home/brandon/cache/jellyfin-on-demand"))
 JF_ROOT = CACHE_ROOT / ".jf-local-smoke"
 INFOHASH = "fce002e43ed1159f4612982ce8fcdb9d30e48f1e"
 EXPECTED_SIZE = 636
@@ -46,7 +46,7 @@ def http_json(method: str, url: str, body=None, token: str | None = None, timeou
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "X-Emby-Authorization": 'MediaBrowser Client="swarmplay-smoke", Device="smoke", DeviceId="swarmplay-smoke", Version="1.0.0"',
+        "X-Emby-Authorization": 'MediaBrowser Client="jellyfin-on-demand-smoke", Device="smoke", DeviceId="jellyfin-on-demand-smoke", Version="1.0.0"',
     }
     if token:
         headers["X-Emby-Token"] = token
@@ -91,17 +91,17 @@ def wait_ready(timeout: float = 120.0) -> str:
 def ensure_plugin() -> None:
     if not PLUGIN_DLL.is_file():
         fail(f"missing plugin dll: {PLUGIN_DLL}")
-    if not (NATIVE_DIR / "libswarmplay_native.so").is_file():
-        fail("missing libswarmplay_native.so")
-    plug = JF_ROOT / "data/plugins/Jellyfin.Plugin.Swarmplay"
+    if not (NATIVE_DIR / "libjellyfin_on_demand_native.so").is_file():
+        fail("missing libjellyfin_on_demand_native.so")
+    plug = JF_ROOT / "data/plugins/Jellyfin.Plugin.JellyfinOnDemand"
     plug.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(PLUGIN_DLL, plug / "Jellyfin.Plugin.Swarmplay.dll")
+    shutil.copy2(PLUGIN_DLL, plug / "Jellyfin.Plugin.JellyfinOnDemand.dll")
     meta = {
         "guid": "f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b",
         "name": "Jellyfin Enhanced",
-        "description": "Swarmplay",
-        "overview": "Swarmplay",
-        "owner": "swarmplay",
+        "description": "JellyfinOnDemand",
+        "overview": "JellyfinOnDemand",
+        "owner": "jellyfin-on-demand",
         "category": "General",
         "version": "11.12.0.0",
         "targetAbi": "10.11.0.0",
@@ -130,7 +130,7 @@ def ensure_plugin() -> None:
 def start_jellyfin() -> subprocess.Popen:
     env = os.environ.copy()
     env["LD_LIBRARY_PATH"] = f"{NATIVE_DIR}:{env.get('LD_LIBRARY_PATH', '')}"
-    env["SWARMPLAY_CACHE_DIR"] = str(CACHE_ROOT)
+    env["JELLYFIN_ON_DEMAND_CACHE_DIR"] = str(CACHE_ROOT)
     JF_ROOT.mkdir(parents=True, exist_ok=True)
     for sub in ("data", "config", "cache", "logs"):
         (JF_ROOT / sub).mkdir(exist_ok=True)
@@ -224,7 +224,7 @@ def main() -> None:
 
         st, body = http_json(
             "POST",
-            BASE + "/Swarmplay/swarm/play-bind",
+            BASE + "/JellyfinOnDemand/swarm/play-bind",
             {
                 "Magnet": magnet,
                 "Btih": INFOHASH,

@@ -1,4 +1,4 @@
-# swarmplay — product (experimental)
+# jellyfin-on-demand — product (experimental)
 
 ## Mission
 
@@ -9,8 +9,8 @@ delivery contract.
 ## Stack (target)
 
 ```text
-Jellyfin + swarmplay plugin (TMDB/TVDB → title → ranked Torznab/magnet; virtual item)
-        │  (JE fork → Swarmplay plugin; gut Seerr/*arr)
+Jellyfin + jellyfin-on-demand plugin (TMDB/TVDB → title → ranked Torznab/magnet; virtual item)
+        │  (JE fork → JellyfinOnDemand plugin; gut Seerr/*arr)
         ▼
 libtorrent in JF process (O7a; VLC-shaped shared session)
   tail warm → head warm → sequential
@@ -23,7 +23,7 @@ Jellyfin ffmpeg / client
 ```
 
 Roadmap (not MVP): **0.2** search history; **0.3** batch episode fanout; **0.4** library promote / archival;
-later O7b sidecar `swarmplayd` — see [`ROADMAP.md`](ROADMAP.md).
+later O7b sidecar `jellyfin-on-demandd` — see [`ROADMAP.md`](ROADMAP.md).
 
 ## Owns
 
@@ -32,7 +32,7 @@ later O7b sidecar `swarmplayd` — see [`ROADMAP.md`](ROADMAP.md).
   in JF (best first; skim-to-choose; “I’m feeling lucky” = rank #1).
 - libtorrent session **in the JF process** (O7a): warm **tail then head**, then
   sequential; hand JF a growing file path.
-- Companion plugin — JE fork ([`plugin/Jellyfin.Plugin.Swarmplay/`](plugin/Jellyfin.Plugin.Swarmplay/));
+- Companion plugin — JE fork ([`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/));
   gut Seerr/*arr **clients**; **one product** (no Seerr fork — [ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
 
 ## Non-goals

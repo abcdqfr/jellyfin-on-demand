@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- **Product rename:** former name → **Jellyfin on Demand** (identifiers `JellyfinOnDemand` / `jellyfin-on-demand`; API `/JellyfinOnDemand/...`). Toasts no longer include the product name.
+
 ### Fixed
 - **Warm/play snappiness:** dropped leftover piece-count floors that ballooned the pre-Play readahead and post-Play slide window on large `piece_length` torrents (`max(head, 8)` pieces + slide `+48` pieces — same class of bug as the 0.4.1 `+48` regression). Status polling now continues while the JF player is up so `advance_warm` keeps densifying (seeks were racing into frozen sparse holes).
 
@@ -15,19 +18,19 @@
 ## 0.5.0 — 2026-07-22
 
 ### Added
-- **Discover pane:** sidebar entry next to Enhanced Panel / Bookmarks that mirrors Seerr Discover's default slider order — Trending, Popular Movies, Movie Genres, Upcoming Movies, Popular Series, Series Genres, Upcoming Series. Cards reuse the rolled-in jellyseerr poster chrome, so Play / Lucky / Library behave identically to search. TMDB-backed when Seerr is off (`GET /Swarmplay/jellyseerr/discover/{trending,movies,tv}` + genreslider). Search landing page (empty query) also gets a "Browse Discover" link. Genre color tones / slider titles from seerr Discover (MIT — steal-log in [`ATTRIBUTION.md`](ATTRIBUTION.md)).
+- **Discover pane:** sidebar entry next to Enhanced Panel / Bookmarks that mirrors Seerr Discover's default slider order — Trending, Popular Movies, Movie Genres, Upcoming Movies, Popular Series, Series Genres, Upcoming Series. Cards reuse the rolled-in jellyseerr poster chrome, so Play / Lucky / Library behave identically to search. TMDB-backed when Seerr is off (`GET /JellyfinOnDemand/jellyseerr/discover/{trending,movies,tv}` + genreslider). Search landing page (empty query) also gets a "Browse Discover" link. Genre color tones / slider titles from seerr Discover (MIT — steal-log in [`ATTRIBUTION.md`](ATTRIBUTION.md)).
 
 ### Changed
-- **Attribution:** [`ATTRIBUTION.md`](ATTRIBUTION.md) now explicitly documents that upstream Jellyfin Enhanced's Seerr/Jellyseerr *client chrome* is rolled into this Swarmplay fork (GPL-3.0 JE derivative) and retargeted — Seerr/Jellyseerr remains reference-only, not a runtime ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
+- **Attribution:** [`ATTRIBUTION.md`](ATTRIBUTION.md) now explicitly documents that upstream Jellyfin Enhanced's Seerr/Jellyseerr *client chrome* is rolled into this Jellyfin on Demand fork (GPL-3.0 JE derivative) and retargeted — Seerr/Jellyseerr remains reference-only, not a runtime ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
 
 ### Fixed
 - Discover click no longer pushes `#/discover` into Jellyfin's router (404).
-- Discover empty pane: container query used `.sections swarmplay-discover` (descendant) instead of `.sections.swarmplay-discover`.
+- Discover empty pane: container query used `.sections jellyfin-on-demand-discover` (descendant) instead of `.sections.jellyfin-on-demand-discover`.
 
 ## 0.4.1 — 2026-07-22 (hotfix)
 
 ### Fixed
-- **"Add to Library → Stream" now writes a real `.strm` pointer** instead of silently aliasing the plain Play button (no library trace at all, which defeats the point of "Add to Library"). New `POST /Swarmplay/swarm/stream-bind` writes one line — the same authenticated on-demand stream URL already used for direct-play links — into a `.strm` file inside the same auto-resolved library folder `cache-bind` uses, then triggers the same targeted `Folder.ValidateChildren` scan. Play and Lucky are unchanged: still always bind a real growing-file virtual item, never a placeholder ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)).
+- **"Add to Library → Stream" now writes a real `.strm` pointer** instead of silently aliasing the plain Play button (no library trace at all, which defeats the point of "Add to Library"). New `POST /JellyfinOnDemand/swarm/stream-bind` writes one line — the same authenticated on-demand stream URL already used for direct-play links — into a `.strm` file inside the same auto-resolved library folder `cache-bind` uses, then triggers the same targeted `Folder.ValidateChildren` scan. Play and Lucky are unchanged: still always bind a real growing-file virtual item, never a placeholder ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)).
 - **Blazing-ahead readahead-window regression:** the post-tail+head readahead window (added to stop Direct Play racing into sparse holes) was sized in raw piece count (`+48` pieces) — on torrents with a large libtorrent-auto-selected piece length this ballooned into hundreds of MiB to a full gigabyte before Play would unblock, far slower than before that fix landed. Bounded in bytes instead (`kReadaheadFloorBytes`, 24 MiB), independent of piece length.
 - **Warm progress bar (was a dumb spinner):** `swarm_status`'s `progress` field now reports the fraction of tail+head[+readahead] pieces actually on disk (`warm_progress`) instead of raw libtorrent torrent progress, whose denominator silently changes size mid-warm and made any progress UI driven by it jump around or under-report. The client warm overlay (play-bind, cache-neighbor nav, history replay) now polls `/status` and renders a real percentage + peer count wherever the btih is known up front, falling back to an indeterminate sweep only for the one path that resolves btih server-side (`/lucky` for movies).
 
@@ -39,13 +42,13 @@
 - **Blazing-ahead seeks:** gate Play until contiguous readahead window is on disk, then slide piece deadlines from the first missing piece on status polls (Direct Play + Cues into sparse holes).
 - **Batch prev/next:** dropped the floating bar entirely — hijack Jellyfin's own `.btnPreviousTrack`/`.btnNextTrack` OSD buttons (capture-phase click override), so batch navigation lives inside native player chrome and hides/fades with it automatically.
 - **Episode picker:** replaced the plain `<ul>` with a sortable `<table>` (click any column — #, S, E, File, Size — to sort asc/desc).
-- **Lucky on TV:** no longer silently binds S1E1 of the rank-#1 release — `swarmPlayLucky` reuses the same rank-top pick (search results are already RankReleases-ordered) but routes through `playRelease`, so the episode-picker table still opens for multi-file series releases.
+- **Lucky on TV:** no longer silently binds S1E1 of the rank-#1 release — `jellyfinOnDemandPlayLucky` reuses the same rank-top pick (search results are already RankReleases-ordered) but routes through `playRelease`, so the episode-picker table still opens for multi-file series releases.
 - **History "▶ play last" on TV:** also reopens the same episode picker (via `listFiles`, exported `JE.swarmReleases.showEpisodePicker`) instead of silently re-binding whatever file index was played last time.
 
 ### Added
 - **Cache-to-library (0.4):** new "Add to Library" poster button next to Play/Lucky — prompts Stream vs Cache to library, then reuses the ranked release picker + sortable episode picker. Cache to library downloads the chosen file straight into a real, auto-resolved Jellyfin library folder (movies/tvshows matched by MediaType — no hardlink/copy step, no new plugin setting) and triggers one targeted `Folder.ValidateChildren` scan on completion, so it becomes a normal library item with normal watched-tracking ([ADR-009](docs/adr/009-cache-to-library-v0.4.md)).
 - New native ABI: `swarm_cache_ensure`/`swarm_cache_status`, plus an append-only `progress` field on `swarm_status_result`.
-- New endpoints: `POST /Swarmplay/swarm/cache-bind`, `GET /Swarmplay/swarm/cache-status`.
+- New endpoints: `POST /JellyfinOnDemand/swarm/cache-bind`, `GET /JellyfinOnDemand/swarm/cache-status`.
 
 ## 0.3.0 — 2026-07-22
 
@@ -102,7 +105,7 @@
 - O6a virtual **Movie** bind: play-bind creates/updates a real Jellyfin `ItemId` whose `Path` is the growing file, then client **PlayNow** to Jellyfin Desktop (normal OSD + transcoder). No DIY player.
 
 ### Fixed
-- Cold Torznab magnets timed out at metadata (−3): C# now passes sanitized `xt`+`tr=` magnets (drops `dn=`); native bootstraps DHT like vlc-bt, unlocks during metadata wait, persists `SWARMPLAY_CACHE_DIR/metainfo/<btih>.torrent`, and surfaces peers/trackers/`has_metadata` for dead-pin failures
+- Cold Torznab magnets timed out at metadata (−3): C# now passes sanitized `xt`+`tr=` magnets (drops `dn=`); native bootstraps DHT like vlc-bt, unlocks during metadata wait, persists `JELLYFIN_ON_DEMAND_CACHE_DIR/metainfo/<btih>.torrent`, and surfaces peers/trackers/`has_metadata` for dead-pin failures
 
 ## 0.1.7 — 2026-07-21
 
@@ -114,12 +117,12 @@
 ### Fixed
 - `no_playback_manager` on JF 10.11/Desktop: `playbackManager` is not on `window` — play via fullscreen stream `<video>` overlay (PM used only if exposed)
 - Weak Torznab matches for titles like “Straight A's to XXX”: stopword-aware similarity + 0.67 gate (drops “Straight To The A …”)
-- Growing-file cache left tmpfs `/tmp` (filled RAM) — now **`/home/brandon/cache/swarmplay`** on btrfs (same tree as strmarr/arr), overridable via `SWARMPLAY_CACHE_DIR`
+- Growing-file cache left tmpfs `/tmp` (filled RAM) — now **`/home/brandon/cache/jellyfin-on-demand`** on btrfs (same tree as strmarr/arr), overridable via `JELLYFIN_ON_DEMAND_CACHE_DIR`
 
 ## 0.1.5 — 2026-07-21
 
 ### Fixed
-- Odyssey (and other cold Ensures) failed with a fake “invalid torrent identity”: Jellyfin could not `mkdir` under `/tmp/swarmplay` owned by the lab user — deploy now makes the cache sticky/world-writable and native returns `io_error` (-5) for real permission failures
+- Odyssey (and other cold Ensures) failed with a fake “invalid torrent identity”: Jellyfin could not `mkdir` under `/tmp/jellyfin-on-demand` owned by the lab user — deploy now makes the cache sticky/world-writable and native returns `io_error` (-5) for real permission failures
 
 ### Added
 - Series release picker filters: Episode vs Batch/season, season/episode numbers, release-group dropdown, text contains (caps list at 40)
@@ -128,7 +131,7 @@
 
 ### Fixed
 - Torznab picker showed **0B** for every release: Prowlarr size lives in RSS `<size>`, not only `torznab:attr`
-- “Playing” toast with no player: Desktop ignores Path-only fake items — play via `GET /Swarmplay/swarm/stream` Http MediaSource
+- “Playing” toast with no player: Desktop ignores Path-only fake items — play via `GET /JellyfinOnDemand/swarm/stream` Http MediaSource
 
 ### Changed
 - After release select: toast **warming** → play-bind → real `playbackManager.play` attempt; only toast “playing” if a player engages
@@ -148,11 +151,11 @@
 
 ### Fixed
 - Play called fixture Torznab stubs with no magnets → Ensure never started (“still warming up” forever)
-- Torznab URLs mangled on save (`…/swarmplay/http:/127.0.0.1…`); normalize on read/save
+- Torznab URLs mangled on save (`…/jellyfin-on-demand/http:/127.0.0.1…`); normalize on read/save
 - Prowlarr magnets live in `<guid>`, not `<link>` — parser now accepts guid/magneturl
 
 ### Added
-- `POST /Swarmplay/swarm/lucky` — live Torznab → rank #1 → play-bind
+- `POST /JellyfinOnDemand/swarm/lucky` — live Torznab → rank #1 → play-bind
 - Play button drives lucky + best-effort `playbackManager.play` when Path ready
 
 ### Fixed (Ensure)
@@ -162,24 +165,24 @@
 ## 0.1.1 — 2026-07-21
 
 ### Fixed
-- Swarmplay discovery search was dead: ADR-004 left `JellyseerrShowSearchResults=false`, and re-enabling poster chrome still gated on that flag after removing fixtures
-- Admin TMDB Test called `/JellyfinEnhanced/tmdb/validate` (404) after route rename to `/Swarmplay`
+- Jellyfin on Demand discovery search was dead: ADR-004 left `JellyseerrShowSearchResults=false`, and re-enabling poster chrome still gated on that flag after removing fixtures
+- Admin TMDB Test called `/JellyfinEnhanced/tmdb/validate` (404) after route rename to `/JellyfinOnDemand`
 
 ### Changed
 - Commit gate: `offline_client_integrity_check.py` + `live_public_config_smoke.py` (route rename + discovery flags)
 
 ## 0.1.0 — 2026-07-21
 
-First tagged Swarmplay cut for local integration testing (Jellyfin Desktop +
+First tagged Jellyfin on Demand cut for local integration testing (Jellyfin Desktop +
 local JF host). Not a public GitHub release.
 
 ### Added
 - JE-fork plugin surface with Seerr/*arr clients unloaded / tasks quarantined
 - In-process libtorrent Ensure / status / stop (`torrent/native`)
-- `POST /Swarmplay/swarm/play-bind` virtual Path binder (O6a, no STRM)
+- `POST /JellyfinOnDemand/swarm/play-bind` virtual Path binder (O6a, no STRM)
 - Local commit gate `scripts/ci_gate.sh` (ADR-005)
 - Packaging script `scripts/package_release.sh`
 
 ### Notes
-- Runtime is Jellyfin + this plugin + `libswarmplay_native.so` only
+- Runtime is Jellyfin + this plugin + `libjellyfin_on_demand_native.so` only
 - strmarr lab stack is not part of this release; keep symlink for lore only

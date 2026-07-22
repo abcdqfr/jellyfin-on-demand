@@ -42,7 +42,7 @@ def read(
 
 
 def main() -> None:
-    descriptor, path = tempfile.mkstemp(prefix="swarmplay-growing-", suffix=".mkv")
+    descriptor, path = tempfile.mkstemp(prefix="jellyfin-on-demand-growing-", suffix=".mkv")
     os.close(descriptor)
     written_ranges: set[tuple[int, int]] = set()
 

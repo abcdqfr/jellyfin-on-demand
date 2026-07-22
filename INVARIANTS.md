@@ -12,7 +12,7 @@ the [decision log](#decision-log); open rows stay TBD until portrayed in JF.
 | I1 | **btih is identity** | Media play binding is `infohash` (+ `file_index` when multi-file). Not path cosplay, not *arr history rows. |
 | I2 | **Sequential bytes** | After warm-lite, swarm download priority is sequential (play-head forward). Random piece rarefaction is a bug. |
 | I3 | **Jellyfin is the player** | Delivery ends in a growing file path JF can open for ffprobe/ffmpeg. |
-| I4 | **Pane in Jellyfin** | Browse / search / pick / play live in JF. **One product:** JE fork → Swarmplay plugin (O4b). No Seerr fork / no second living-room app (ADR-004). |
+| I4 | **Pane in Jellyfin** | Browse / search / pick / play live in JF. **One product:** JE fork → Jellyfin on Demand plugin (O4b). No Seerr fork / no second living-room app (ADR-004). |
 | I5 | **No STRM** | Do not write `.strm` pointers or maintain a virtual library tree for this product. |
 | I6 | **No strmarr media HTTP** | Do not reintroduce `/v1/stream/slot|btih/...` as the spine. |
 | I7 | **No *arr required** | Sonarr/Radarr/Prowlarr/Seerr are out of MVP. |
@@ -62,7 +62,7 @@ Default floors: start in the ~8+8 MiB class; tune with evidence, not lore.
 JE fork is the product shell. **Do not fork Seerr** — retarget discovery/request
 chrome to Torznab/magnet/`Ensure` inside this plugin ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
 Pristine upstream reference stays in [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/).
-Working tree: [`plugin/Jellyfin.Plugin.Swarmplay/`](plugin/Jellyfin.Plugin.Swarmplay/).
+Working tree: [`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/).
 
 ### O5 — Release discovery — **LOCKED O5a + O5b (Nyaa + TPB)**
 
@@ -106,7 +106,7 @@ process modules + shared `lt::session` singleton — **not** a sidecar for MVP.
 | ID | Choice | Status |
 |----|--------|--------|
 | **O7a** | **In-JF + native libtorrent** (shared session; VLC-shaped) | **Locked (MVP)** |
-| O7b | Sidecar `swarmplayd` | **Roadmap** (post-MVP); re-derive session/seed/cache from LESSONS |
+| O7b | Sidecar `jellyfin-on-demandd` | **Roadmap** (post-MVP); re-derive session/seed/cache from LESSONS |
 | O7c | Exec system tools per play | rejected as lean (not how vlc-bt works) |
 
 ---
@@ -118,7 +118,7 @@ process modules + shared `lt::session` singleton — **not** a sidecar for MVP.
 | O1 engine | **O1a** libtorrent | 2026-07-20 | |
 | O2 JF bytes | **O2a** growing file | 2026-07-20 | O2b only if seek/EOF breaks JF |
 | O3 warm lite | **O3c** tail→head→seq | 2026-07-20 | I9: warm **tail then head** (seek-head thrash) |
-| O4 plugin | **O4b** fork JE → Swarmplay | 2026-07-20 | Gut Seerr/*arr; see ROADMAP |
+| O4 plugin | **O4b** fork JE → Jellyfin on Demand | 2026-07-20 | Gut Seerr/*arr; see ROADMAP |
 | O5 discovery | **O5a + O5b** magnet + Torznab (Nyaa, TPB) | 2026-07-20 | I11 ranked list in JF; best first |
 | O6 library | **O6a** virtual items | 2026-07-20 | Pane-owned; Path = growing file at Play |
 | O7 process | **O7a** in-JF (MVP); O7b roadmap | 2026-07-20 | Follow vlc-bt; see ADR-002 |

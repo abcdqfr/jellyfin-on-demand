@@ -1,14 +1,14 @@
 # Third-party attribution and license compliance
 
 **Purpose:** Track every upstream we keep on disk or may copy patterns/code
-from into swarmplay. When we **steal** (copy or derive) code, follow the
+from into jellyfin-on-demand. When we **steal** (copy or derive) code, follow the
 license obligations below and record the take in the [Steal log](#steal-log).
 
 **Product rule:** Seerr/Jellyseerr is **not** a runtime dependency and is
 **not** forked as a second product ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
 Discovery UX that originally talked to a Seerr process has been **rolled into
-this Swarmplay Jellyfin Enhanced fork** — same plugin, same GPL-3.0 shipping
-surface under `plugin/Jellyfin.Plugin.Swarmplay/`. Seerr remains **reference
+this Jellyfin on Demand Jellyfin Enhanced fork** — same plugin, same GPL-3.0 shipping
+surface under `plugin/Jellyfin.Plugin.JellyfinOnDemand/`. Seerr remains **reference
 only** (local clone + occasional MIT pattern takes).
 
 ---
@@ -17,7 +17,7 @@ only** (local clone + occasional MIT pattern takes).
 
 | Tree | Upstream | License | Role |
 |------|----------|---------|------|
-| [`plugin/Jellyfin.Plugin.Swarmplay/`](plugin/Jellyfin.Plugin.Swarmplay/) | Fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) → [abcdqfr/Jellyfin.Plugin.Swarmplay](https://github.com/abcdqfr/Jellyfin.Plugin.Swarmplay) | **GPL-3.0** | Product plugin (derivative work). Includes JE's former Seerr/Jellyseerr **client chrome** (`js/jellyseerr/*`, proxy controllers) **rolled in** and retargeted to Swarmplay/TMDB — no Seerr process. |
+| [`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/) | Fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) → [abcdqfr/Jellyfin.Plugin.JellyfinOnDemand](https://github.com/abcdqfr/Jellyfin.Plugin.JellyfinOnDemand) | **GPL-3.0** | Product plugin (derivative work). Includes JE's former Seerr/Jellyseerr **client chrome** (`js/jellyseerr/*`, proxy controllers) **rolled in** and retargeted to JellyfinOnDemand/TMDB — no Seerr process. |
 | [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/) | [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) | **GPL-3.0** | Pristine upstream reference |
 | [`third-party/seerr/`](third-party/seerr/) | [seerr-team/seerr](https://github.com/seerr-team/seerr) (MIT; copyright notice: © 2020 sct — Overseerr lineage; Seerr is the Jellyseerr successor tree we clone) | **MIT** | Discovery/request **patterns** for retarget into plugin; not a runtime dep |
 | [`third-party/vlc-bittorrent/`](third-party/vlc-bittorrent/) | [johang/vlc-bittorrent](https://github.com/johang/vlc-bittorrent) | **GPL-3.0-or-later** (Johan Gunnarsson) | libtorrent in-process session lean (O7a) |
@@ -25,7 +25,7 @@ only** (local clone + occasional MIT pattern takes).
 
 License texts on disk:
 
-- JE / fork: `plugin/Jellyfin.Plugin.Swarmplay/LICENSE`
+- JE / fork: `plugin/Jellyfin.Plugin.JellyfinOnDemand/LICENSE`
 - Seerr: `third-party/seerr/LICENSE`
 - vlc-bittorrent: `third-party/vlc-bittorrent/COPYING` (GPL-3) + per-file headers
 - strmarr: `third-party/strmarr/LICENSE` (via symlink)
@@ -38,13 +38,13 @@ Upstream **Jellyfin Enhanced** shipped a Seerr/Jellyseerr *integration*
 (poster search chrome, request buttons, proxy routes under names like
 `jellyseerr/*`). That code is part of the JE GPL-3.0 tree.
 
-**In Swarmplay this chrome is rolled into the product plugin itself**, not
+**In Jellyfin on Demand this chrome is rolled into the product plugin itself**, not
 deleted and not left depending on a Seerr service:
 
-| Layer | What shipped in JE | What Swarmplay does |
+| Layer | What shipped in JE | What Jellyfin on Demand does |
 |-------|--------------------|---------------------|
 | Client | `js/jellyseerr/*` search/modal/card UI | Kept; Play / Lucky / Library replace Request; Discover pane reuses the same cards |
-| Server | Seerr HTTP proxy + settings | Prefer TMDB when `SwarmplayDiscoveryEnabled` (ADR-004); Seerr proxy only if an operator still enables it |
+| Server | Seerr HTTP proxy + settings | Prefer TMDB when `JellyfinOnDemandDiscoveryEnabled` (ADR-004); Seerr proxy only if an operator still enables it |
 | Runtime | Expected a Seerr/Jellyseerr process | **Not required.** Discover + search work with TMDB alone |
 
 Directory / API path names may still say `jellyseerr` for history and
@@ -63,7 +63,7 @@ retain the MIT notice.
 
 ### GPL-3.0 sources (Jellyfin Enhanced, vlc-bittorrent)
 
-- Swarmplay plugin that **is** a JE fork remains **GPL-3.0**. Keep LICENSE;
+- Jellyfin on Demand plugin that **is** a JE fork remains **GPL-3.0**. Keep LICENSE;
   preserve copyright notices in modified files.
 - Copying vlc-bt code into a GPL-3 plugin is license-compatible; keep
   authorship headers and GPL notice on those files.
@@ -84,7 +84,7 @@ retain the MIT notice.
 - Import Go/`internal` from any *arr/STRM sister product (I10) even if MIT
   would allow it legally — **lessons only**.
 - Treat Seerr/Jellyseerr as a required runtime or second fork (ADR-004).
-- Imply that Swarmplay “includes Jellyseerr the product” — it includes JE's
+- Imply that Jellyfin on Demand “includes Jellyseerr the product” — it includes JE's
   **client chrome**, retargeted; it does **not** ship or require the Seerr
   server.
 
@@ -101,7 +101,7 @@ Record every non-trivial copy or close derivative. One row per take.
 
 | Date | From | Into | What | License obligation met how |
 |------|------|------|------|----------------------------|
-| (ongoing) | n00bcodr/Jellyfin-Enhanced (`js/jellyseerr/*`, Seerr proxy controllers) | `plugin/Jellyfin.Plugin.Swarmplay/...` (same paths, Swarmplay-retargeted) | JE Seerr/Jellyseerr **client chrome rolled into** this fork — search posters, cards, modals; Discover pane reuses cards; no Seerr process | GPL-3.0 — plugin LICENSE is JE fork LICENSE; copyright notices preserved in tree |
+| (ongoing) | n00bcodr/Jellyfin-Enhanced (`js/jellyseerr/*`, Seerr proxy controllers) | `plugin/Jellyfin.Plugin.JellyfinOnDemand/...` (same paths, Jellyfin on Demand-retargeted) | JE Seerr/Jellyseerr **client chrome rolled into** this fork — search posters, cards, modals; Discover pane reuses cards; no Seerr process | GPL-3.0 — plugin LICENSE is JE fork LICENSE; copyright notices preserved in tree |
 | 2026-07-22 | seerr-team/seerr (`src/components/Discover/constants.ts` genreColorMap/colorTones; Discover slider titles/order from `index.tsx`) | `plugin/.../js/swarm/discover-page.js` | Discover pane genre-card tones + default slider order (Trending / Popular Movies / Movie Genres / Upcoming Movies / Popular Series / Series Genres / Upcoming Series) | MIT — copyright © 2020 sct / seerr-team retained via this steal-log row + `third-party/seerr/LICENSE`; file header cites source |
 
 When you copy: add a row, keep upstream copyright in the new file header, and

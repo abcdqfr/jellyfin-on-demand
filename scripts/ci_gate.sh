@@ -14,8 +14,8 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export LD_LIBRARY_PATH="$root/torrent/native/build:${LD_LIBRARY_PATH:-}"
 # Growing files on btrfs lab cache — never tmpfs /tmp.
-export SWARMPLAY_CACHE_DIR="${SWARMPLAY_CACHE_DIR:-/home/brandon/cache/swarmplay}"
-mkdir -p "$SWARMPLAY_CACHE_DIR"
+export JELLYFIN_ON_DEMAND_CACHE_DIR="${JELLYFIN_ON_DEMAND_CACHE_DIR:-/home/brandon/cache/jellyfin-on-demand}"
+mkdir -p "$JELLYFIN_ON_DEMAND_CACHE_DIR"
 
 die() { printf 'CI_GATE FAIL: %s\n' "$*" >&2; exit 1; }
 
@@ -30,11 +30,11 @@ printf '== offline checks ==\n'
 "$root/scripts/offline_check.sh"
 
 printf '== plugin build (jf10) ==\n'
-dotnet build "$root/plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj" \
+dotnet build "$root/plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj" \
   -p:JellyfinTarget=jf10 -v q
 
 printf '== native library ==\n'
-so="$root/torrent/native/build/libswarmplay_native.so"
+so="$root/torrent/native/build/libjellyfin_on_demand_native.so"
 if [[ ! -f "$so" ]]; then
   die "missing $so — build torrent/native first"
 fi

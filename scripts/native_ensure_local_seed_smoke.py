@@ -20,9 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "third-party/vlc-bittorrent/test/data"
 TORRENT_PATH = DATA_DIR / "sweden.png.torrent"
 DATA_FILE = DATA_DIR / "sweden.png"
-LIBRARY_PATH = ROOT / "torrent/native/build/libswarmplay_native.so"
+LIBRARY_PATH = ROOT / "torrent/native/build/libjellyfin_on_demand_native.so"
 INFOHASH = "fce002e43ed1159f4612982ce8fcdb9d30e48f1e"
-CACHE_ROOT = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+CACHE_ROOT = Path(os.environ.get("JELLYFIN_ON_DEMAND_CACHE_DIR", "/home/brandon/cache/jellyfin-on-demand"))
 DOWNLOAD_DIR = CACHE_ROOT / INFOHASH
 EXPECTED_SIZE = 636
 

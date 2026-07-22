@@ -1,11 +1,11 @@
-# Seerr → Swarmplay API map (unification reading)
+# Seerr → Jellyfin on Demand API map (unification reading)
 
 **Source:** local `third-party/seerr/` (shallow). **MIT** — log copies in
 [`ATTRIBUTION.md`](../../ATTRIBUTION.md). **Do not** run Seerr (ADR-004).
 
-## Jobs Seerr owns today → where they go in Swarmplay
+## Jobs Seerr owns today → where they go in Jellyfin on Demand
 
-| Seerr concern | Seerr location (approx) | Swarmplay home |
+| Seerr concern | Seerr location (approx) | Jellyfin on Demand home |
 |---------------|-------------------------|----------------|
 | Title search / discover | `server/routes/search.ts`, `discover.ts`; OpenAPI `/search`, `/discover/*` | Plugin C#: TMDB/TVDB (+ optional direct); JS discovery chrome retargeted from `js/jellyseerr/*` |
 | Media details | `movie.ts`, `tv.ts`, `person.ts` | Plugin metadata helpers; virtual item fields |

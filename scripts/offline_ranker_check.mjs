@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const fixture = JSON.parse(readFileSync(`${root}docs/design/fixtures/ranker-cases.json`, 'utf8'));
 const context = { window: { JellyfinEnhanced: {} } };
 vm.runInNewContext(
-  readFileSync(`${root}plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/js/swarm/ranker.js`, 'utf8'),
+  readFileSync(`${root}plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js/swarm/ranker.js`, 'utf8'),
   context,
 );
 

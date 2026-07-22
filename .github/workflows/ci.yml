@@ -21,13 +21,13 @@ jobs:
       - name: Plugin build (jf10)
         run: >
           dotnet build
-          plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj
+          plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj
           -p:JellyfinTarget=jf10
 
   # Full spine gate (ADR-005) — use self-hosted runner with Jellyfin + libtorrent.
   # Until then, local pre-commit runs scripts/ci_gate.sh on every commit.
   local-integration:
-    if: ${{ vars.SWARMPLAY_FULL_GATE == '1' }}
+    if: ${{ vars.JELLYFIN_ON_DEMAND_FULL_GATE == '1' }}
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4

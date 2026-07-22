@@ -7,14 +7,14 @@
 ## Context
 
 Season packs and complete-series torrents put many episode files under one
-infohash. swarmplay already had server-side `FileIndexPicker` (SxxExx / season
+infohash. jellyfin-on-demand already had server-side `FileIndexPicker` (SxxExx / season
 folder ordinals) and native `swarm_list_files`, but the release UI always sent
 `FileIndex: 0` and **omitted Episode for batch kind** — so multi-file TV play
 fell through to “largest video,” not the episode the user wanted.
 
 strmarr solved the mapping side with `batch.Expand` /
 `playresolve.BatchFileIndex` (absolute cour numbers like “3rd Season 49,”
-skip NCOP/NCED, dense-band normalize). swarmplay must not import that Go
+skip NCOP/NCED, dense-band normalize). jellyfin-on-demand must not import that Go
 (`INVARIANTS.md` I8/I10); it ports the **lessons** into C# + a play-time UI.
 
 Library promote / archival was previously commemorated as 0.3; that work
@@ -23,7 +23,7 @@ slides to **0.4** so living-room TV packs are usable first.
 ## Decision
 
 1. **Play-time episode picker (UI):** for TV releases, `releases.js` calls
-   `POST /Swarmplay/swarm/list-files`, and if more than one video file is
+   `POST /JellyfinOnDemand/swarm/list-files`, and if more than one video file is
    present, shows an in-release episode list before `play-bind`. Movies skip
    the picker (largest-video / existing auto-pick).
 2. **Explicit file index:** `SwarmEnsureRequest.FileIndexExplicit` — when

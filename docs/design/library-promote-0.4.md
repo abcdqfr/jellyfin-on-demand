@@ -15,13 +15,13 @@ prompts **Stream** (write a permanent `.strm` pointer, strmarr-style — see
 [ADR-010](../adr/010-strm-add-to-library-v0.4.1.md)) vs **Cache to library**
 (download the whole chosen file straight into a real Jellyfin library
 folder) so normal libraries + normal watched-tracking keep working without
-swarmplay reinventing that logic per item. Neither choice is the plain Play
+jellyfin-on-demand reinventing that logic per item. Neither choice is the plain Play
 button's ephemeral, library-free flow — the whole point of this button is to
 leave something behind.
 
 ## Problem
 
-Today Path points at `SWARMPLAY_CACHE_DIR/...` (ephemeral, evicted when idle).
+Today Path points at `JELLYFIN_ON_DEMAND_CACHE_DIR/...` (ephemeral, evicted when idle).
 Library items expect a stable folder under a configured media root, scanned
 by JF like any other file.
 
@@ -39,7 +39,7 @@ by JF like any other file.
 3. **Destination folder is auto-resolved, never asked per item:** the server
    picks the Jellyfin library whose `CollectionType` matches the title
    (`movie` → a `movies` library, `tv` → a `tvshows` library) via
-   `ILibraryManager.GetVirtualFolders()`. No new Swarmplay setting, no path
+   `ILibraryManager.GetVirtualFolders()`. No new Jellyfin on Demand setting, no path
    typed by hand. If no matching library exists, the bind fails loudly with
    a message telling the operator to add one first.
 4. **v1 scope: exactly one file per action** — the chosen episode or movie
@@ -63,11 +63,11 @@ by JF like any other file.
 `stream-bind` writes one `.strm` file into the same auto-resolved library
 folder `cache-bind` uses, containing the same authenticated on-demand stream
 URL already used for direct-play links (`JE.swarmStreamUrl` →
-`GET Swarmplay/swarm/stream?btih=...&fileIndex=...`, which already does the
+`GET JellyfinOnDemand/swarm/stream?btih=...&fileIndex=...`, which already does the
 full tail/head extent-gate wait on first request). No download, no native
 session touched at bind time — just the pointer, plus the same targeted
 `Folder.ValidateChildren` scan `cache-bind` triggers on completion. This is
-the *only* place in swarmplay that writes a `.strm` — Play and Lucky remain
+the *only* place in jellyfin-on-demand that writes a `.strm` — Play and Lucky remain
 unchanged (real growing-file virtual item, never a placeholder).
 
 ## Explicitly not 0.4

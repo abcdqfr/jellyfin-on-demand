@@ -5,7 +5,7 @@ Scaffold only. **MVP lean (O7a):** follow
 **libtorrent-rasterbar** loaded **in the Jellyfin process**, with a shared
 `lt::session` for process lifetime (vlc-bt’s `Session::get()` pattern).
 
-**Roadmap (O7b, not MVP):** sidecar `swarmplayd`. Cherry-pick strmarr for
+**Roadmap (O7b, not MVP):** sidecar `jellyfin-on-demandd`. Cherry-pick strmarr for
 cache prefs / seeding / long-lived session examples when that work starts.
 
 ## Responsibility
@@ -44,7 +44,7 @@ Unit / integration targets against the product in `PRODUCT.md`:
 torrent/
   native/              # C++ (or similar) libtorrent bridge for JF process
   README.md            # this file
-  # later (O7b): swarmplayd/
+  # later (O7b): jellyfin-on-demandd/
 ```
 
 MVP language: C++ next to libtorrent (vlc-bt shape), exposed to the C# plugin.

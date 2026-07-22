@@ -3,7 +3,7 @@
 ## Boundary
 
 Browse metadata is server-side only. The browser receives normalized title-pane
-data from Swarmplay; it never calls TMDB or TVDB directly.
+data from Jellyfin on Demand; it never calls TMDB or TVDB directly.
 
 Credentials, bearer tokens, and API keys remain in server configuration and
 are never sent to JavaScript, logs, URLs, or Jellyfin client responses.

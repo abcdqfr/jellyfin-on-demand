@@ -3,7 +3,7 @@ bin/
 obj/
 *.user
 .vs/
-swarmplayd
+jellyfin-on-demand-daemon
 __pycache__/
 .venv/
 *.so
@@ -14,7 +14,7 @@ third-party/jellyfin-enhanced/
 third-party/vlc-bittorrent/
 third-party/seerr/
 # strmarr: track the symlink at third-party/strmarr (lessons reference).
-# Do not vendor the sister tree; do not run strmarr services for swarmplay.
+# Do not vendor the sister tree; do not run strmarr services for jellyfin-on-demand.
 
 # Nested plugin git backup (history preserved offline after monorepo flatten)
 .nested-git-backups/

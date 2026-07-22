@@ -1,4 +1,4 @@
-#include "swarmplay_session.h"
+#include "jellyfin_on_demand_session.h"
 #include "mkv_probe.h"
 
 #include <libtorrent/add_torrent_params.hpp>
@@ -153,13 +153,13 @@ private:
             session.pop_alerts(&alerts);
             for (lt::alert* a : alerts) {
                 if (lt::alert_cast<lt::metadata_received_alert>(a) != nullptr) {
-                    std::fprintf(stderr, "[swarmplay] metadata_received: %s\n",
+                    std::fprintf(stderr, "[jellyfin-on-demand] metadata_received: %s\n",
                         a->message().c_str());
                 } else if (lt::alert_cast<lt::metadata_failed_alert>(a) != nullptr) {
-                    std::fprintf(stderr, "[swarmplay] metadata_failed: %s\n",
+                    std::fprintf(stderr, "[jellyfin-on-demand] metadata_failed: %s\n",
                         a->message().c_str());
                 } else if (lt::alert_cast<lt::tracker_error_alert>(a) != nullptr) {
-                    std::fprintf(stderr, "[swarmplay] tracker_error: %s\n",
+                    std::fprintf(stderr, "[jellyfin-on-demand] tracker_error: %s\n",
                         a->message().c_str());
                 }
             }
@@ -189,13 +189,13 @@ std::string hex_encode(lt::sha1_hash const& hash) {
 }
 
 /// Growing files on real disk (lab: btrfs /home/brandon), never tmpfs /tmp.
-/// Override with SWARMPLAY_CACHE_DIR (systemd drop-in sets this).
+/// Override with JELLYFIN_ON_DEMAND_CACHE_DIR (systemd drop-in sets this).
 std::filesystem::path cache_root() {
-    if (char const* env = std::getenv("SWARMPLAY_CACHE_DIR");
+    if (char const* env = std::getenv("JELLYFIN_ON_DEMAND_CACHE_DIR");
         env != nullptr && env[0] != '\0') {
         return std::filesystem::path(env);
     }
-    return std::filesystem::path("/home/brandon/cache/swarmplay");
+    return std::filesystem::path("/home/brandon/cache/jellyfin-on-demand");
 }
 
 std::filesystem::path metainfo_dir() {
@@ -263,7 +263,7 @@ void persist_metainfo_cache(std::string const& key,
     std::error_code filesystem_error;
     std::filesystem::create_directories(metainfo_dir(), filesystem_error);
     if (filesystem_error) {
-        std::fprintf(stderr, "[swarmplay] metainfo cache mkdir failed: %s\n",
+        std::fprintf(stderr, "[jellyfin-on-demand] metainfo cache mkdir failed: %s\n",
             filesystem_error.message().c_str());
         return;
     }
@@ -276,13 +276,13 @@ void persist_metainfo_cache(std::string const& key,
         {
             std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
             if (!out) {
-                std::fprintf(stderr, "[swarmplay] metainfo cache open failed: %s\n",
+                std::fprintf(stderr, "[jellyfin-on-demand] metainfo cache open failed: %s\n",
                     tmp.c_str());
                 return;
             }
             lt::bencode(std::ostream_iterator<char>(out), entry);
             if (!out) {
-                std::fprintf(stderr, "[swarmplay] metainfo cache write failed: %s\n",
+                std::fprintf(stderr, "[jellyfin-on-demand] metainfo cache write failed: %s\n",
                     tmp.c_str());
                 out.close();
                 std::filesystem::remove(tmp, filesystem_error);
@@ -291,14 +291,14 @@ void persist_metainfo_cache(std::string const& key,
         }
         std::filesystem::rename(tmp, path, filesystem_error);
         if (filesystem_error) {
-            std::fprintf(stderr, "[swarmplay] metainfo cache rename failed: %s\n",
+            std::fprintf(stderr, "[jellyfin-on-demand] metainfo cache rename failed: %s\n",
                 filesystem_error.message().c_str());
             std::filesystem::remove(tmp, filesystem_error);
             return;
         }
-        std::fprintf(stderr, "[swarmplay] metainfo cached: %s\n", path.c_str());
+        std::fprintf(stderr, "[jellyfin-on-demand] metainfo cached: %s\n", path.c_str());
     } catch (std::exception const& ex) {
-        std::fprintf(stderr, "[swarmplay] metainfo cache exception: %s\n", ex.what());
+        std::fprintf(stderr, "[jellyfin-on-demand] metainfo cache exception: %s\n", ex.what());
         std::filesystem::remove(tmp, filesystem_error);
     } catch (...) {
         std::filesystem::remove(tmp, filesystem_error);
@@ -534,7 +534,7 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
         std::int64_t const file_length =
             info.files().file_size(lt::file_index_t(file_index));
         if (file_length <= 0 || !is_mkv_path(file_path)) {
-            std::fprintf(stderr, "[swarmplay] mkv probe skipped (non-mkv file)\n");
+            std::fprintf(stderr, "[jellyfin-on-demand] mkv probe skipped (non-mkv file)\n");
             return;
         }
 
@@ -543,24 +543,24 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
         /* Head: 1 MiB doubling until parse_head succeeds or file end. */
         entry.probe_state = MkvProbeState::kHeadGrowing;
         std::int64_t head_limit = std::min<std::int64_t>(kMiB, file_length);
-        swarmplay::mkv::HeadProbeResult head_result;
+        jellyfin_on_demand::mkv::HeadProbeResult head_result;
         for (;;) {
             entry.head_probe_mib = static_cast<int>((head_limit + kMiB - 1) / kMiB);
             if (!warm_piece_range(lock, handle, info, file_index, head_limit,
                                   /*from_tail=*/false, probe_deadline)) {
-                std::fprintf(stderr, "[swarmplay] mkv head probe timed out; using fixed floor\n");
+                std::fprintf(stderr, "[jellyfin-on-demand] mkv head probe timed out; using fixed floor\n");
                 return;
             }
             std::vector<std::uint8_t> buf;
             if (!read_file_span(file_path, 0, head_limit, buf)) {
-                std::fprintf(stderr, "[swarmplay] mkv head probe read failed; using fixed floor\n");
+                std::fprintf(stderr, "[jellyfin-on-demand] mkv head probe read failed; using fixed floor\n");
                 return;
             }
-            head_result = swarmplay::mkv::parse_head(buf.data(), buf.size());
+            head_result = jellyfin_on_demand::mkv::parse_head(buf.data(), buf.size());
             if (head_result.ok) break;
             if (head_limit >= file_length) {
                 std::fprintf(stderr,
-                    "[swarmplay] mkv head probe exhausted file (%lld bytes); using fixed floor\n",
+                    "[jellyfin-on-demand] mkv head probe exhausted file (%lld bytes); using fixed floor\n",
                     static_cast<long long>(file_length));
                 return;
             }
@@ -571,7 +571,7 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
         entry.head_required_bytes = std::max<std::int64_t>(head_result.bytes_consumed, kWarmFloorBytes);
         out_head_mib = static_cast<int>((entry.head_required_bytes + kMiB - 1) / kMiB);
         std::fprintf(stderr,
-            "[swarmplay] mkv head parse OK bytes=%lld tracks=%d segment_offset=%lld head_mib=%d (tracks+attachments)\n",
+            "[jellyfin-on-demand] mkv head parse OK bytes=%lld tracks=%d segment_offset=%lld head_mib=%d (tracks+attachments)\n",
             static_cast<long long>(head_result.bytes_consumed), head_result.num_tracks_found,
             static_cast<long long>(segment_offset), out_head_mib);
 
@@ -584,27 +584,27 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
             entry.cue_probe_mib = static_cast<int>((tail_limit + kMiB - 1) / kMiB);
             if (!warm_piece_range(lock, handle, info, file_index, tail_limit,
                                   /*from_tail=*/true, probe_deadline)) {
-                std::fprintf(stderr, "[swarmplay] mkv cue probe timed out; cue-less fallback\n");
+                std::fprintf(stderr, "[jellyfin-on-demand] mkv cue probe timed out; cue-less fallback\n");
                 break;
             }
             std::int64_t const start = file_length - tail_limit;
             std::vector<std::uint8_t> buf;
             if (!read_file_span(file_path, start, tail_limit, buf)) {
-                std::fprintf(stderr, "[swarmplay] mkv cue probe read failed; cue-less fallback\n");
+                std::fprintf(stderr, "[jellyfin-on-demand] mkv cue probe read failed; cue-less fallback\n");
                 break;
             }
-            auto const cues = swarmplay::mkv::find_cues(buf.data(), buf.size(), start, segment_offset);
+            auto const cues = jellyfin_on_demand::mkv::find_cues(buf.data(), buf.size(), start, segment_offset);
             if (cues.found) {
                 cue_found = true;
                 entry.tail_required_bytes = tail_limit;
                 std::fprintf(stderr,
-                    "[swarmplay] mkv cues found window_mib=%d points=%zu\n",
+                    "[jellyfin-on-demand] mkv cues found window_mib=%d points=%zu\n",
                     entry.cue_probe_mib, cues.points.size());
                 break;
             }
             if (tail_limit >= tail_cap) {
                 std::fprintf(stderr,
-                    "[swarmplay] mkv cues not found within %lld MiB cap; cue-less tail fallback\n",
+                    "[jellyfin-on-demand] mkv cues not found within %lld MiB cap; cue-less tail fallback\n",
                     static_cast<long long>(tail_cap / kMiB));
                 break;
             }
@@ -619,10 +619,10 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
         out_tail_mib = static_cast<int>((entry.tail_required_bytes + kMiB - 1) / kMiB);
         entry.probe_state = MkvProbeState::kDone;
     } catch (std::exception const& ex) {
-        std::fprintf(stderr, "[swarmplay] mkv probe exception: %s; using fixed floor\n", ex.what());
+        std::fprintf(stderr, "[jellyfin-on-demand] mkv probe exception: %s; using fixed floor\n", ex.what());
         entry.probe_state = MkvProbeState::kSkipped;
     } catch (...) {
-        std::fprintf(stderr, "[swarmplay] mkv probe unknown exception; using fixed floor\n");
+        std::fprintf(stderr, "[jellyfin-on-demand] mkv probe unknown exception; using fixed floor\n");
         entry.probe_state = MkvProbeState::kSkipped;
     }
 
@@ -646,7 +646,7 @@ void apply_tail_phase(lt::torrent_handle const& handle, lt::torrent_info const& 
     set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
     handle.prioritize_pieces(priorities);
     handle.unset_flags(lt::torrent_flags::sequential_download);
-    std::fprintf(stderr, "[swarmplay] warm phase=tail pieces=%d..%d (file_index=%d)\n",
+    std::fprintf(stderr, "[jellyfin-on-demand] warm phase=tail pieces=%d..%d (file_index=%d)\n",
         tail_start, piece_count - 1, file_index);
 }
 
@@ -658,7 +658,7 @@ void apply_head_phase(lt::torrent_handle const& handle, int first_piece,
     set_piece_range_priority(priorities, first_piece, 0, head_end, lt::top_priority);
     handle.prioritize_pieces(priorities);
     handle.unset_flags(lt::torrent_flags::sequential_download);
-    std::fprintf(stderr, "[swarmplay] warm phase=head pieces=0..%d\n", head_end);
+    std::fprintf(stderr, "[jellyfin-on-demand] warm phase=head pieces=0..%d\n", head_end);
 }
 
 void apply_sequential_phase(lt::torrent_handle const& handle, int first_piece,
@@ -694,7 +694,7 @@ void apply_sequential_phase(lt::torrent_handle const& handle, int first_piece,
     entry.readahead_ready = false;
     force_piece_deadlines(handle, entry.readahead_pieces);
     std::fprintf(stderr,
-        "[swarmplay] warm phase=sequential (tail+head ready) readahead_pieces=%d\n",
+        "[jellyfin-on-demand] warm phase=sequential (tail+head ready) readahead_pieces=%d\n",
         readahead);
 }
 
@@ -774,7 +774,7 @@ void advance_warm(Entry& entry) {
         entry.warm_phase = 1;
         apply_head_phase(entry.handle, first_piece, piece_count, tail_start, head_end);
         force_piece_deadlines(entry.handle, entry.head_pieces);
-        std::fprintf(stderr, "[swarmplay] warm phase=head forced (%zu pieces)\n",
+        std::fprintf(stderr, "[jellyfin-on-demand] warm phase=head forced (%zu pieces)\n",
             entry.head_pieces.size());
     }
     if (entry.warm_phase == 1) {
@@ -795,7 +795,7 @@ bool warm_complete(Entry& entry) {
     if (!entry.readahead_ready) {
         if (!pieces_complete(entry.handle, entry.readahead_pieces)) return false;
         entry.readahead_ready = true;
-        std::fprintf(stderr, "[swarmplay] warm readahead ready (%zu pieces)\n",
+        std::fprintf(stderr, "[jellyfin-on-demand] warm readahead ready (%zu pieces)\n",
             entry.readahead_pieces.size());
     }
     return true;
@@ -949,7 +949,7 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
             out->path = stored.path.c_str();
             out->ready = 1;
             out->err = kOk;
-            std::fprintf(stderr, "[swarmplay] extent gate OK (tail+head warm)\n");
+            std::fprintf(stderr, "[jellyfin-on-demand] extent gate OK (tail+head warm)\n");
             return kOk;
         }
         lock.unlock();
@@ -964,7 +964,7 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
     out->err = kOk;
     if (!out->ready) {
         std::fprintf(stderr,
-            "[swarmplay] extent gate NOT ready (phase=%d tail=%zu head=%zu)\n",
+            "[jellyfin-on-demand] extent gate NOT ready (phase=%d tail=%zu head=%zu)\n",
             stored.warm_phase, stored.tail_pieces.size(), stored.head_pieces.size());
     }
     return kOk;
@@ -1178,7 +1178,7 @@ int swarm_cache_ensure(const char* btih_or_magnet, int file_index,
     out->ready = complete ? 1 : 0;
     out->err = kOk;
     std::fprintf(stderr,
-        "[swarmplay] cache-to-library started file_index=%d dest=%s pieces=%d complete=%d\n",
+        "[jellyfin-on-demand] cache-to-library started file_index=%d dest=%s pieces=%d complete=%d\n",
         file_index, dest_dir, piece_count, complete ? 1 : 0);
     return kOk;
 }

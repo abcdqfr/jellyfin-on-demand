@@ -44,15 +44,15 @@ Scar tissue from the strmarr / *arr / Jellyfin walk. **Do not port code** from
 11. **“Never got strm” often means “wrong place / wrong observer.”** Check the
     actual write path and whether the library scanner sees it — then ask whether
     that path should exist at all.
-11b. **Cache / seed knobs (strmarr lore, re-derive in Swarmplay):** hold after
+11b. **Cache / seed knobs (strmarr lore, re-derive in Jellyfin on Demand):** hold after
     play, idle TTL, seed-after-play minutes, seed-held-cache, upload enabled,
     min seeders to grab, retain mode / max cache size. Defaults worth stealing
     as *numbers* (e.g. seed-after-play ~60m, min seeders ~3) — not Go code.
-    (Former sister-repo settings field names; re-derive in Swarmplay config — see `docs/design/seed-idle-policy.md`.)
+    (Former sister-repo settings field names; re-derive in Jellyfin on Demand config — see `docs/design/seed-idle-policy.md`.)
 
 ## Process
 
 12. **Spinoff when identity diverges.** When the product is no longer “*arr →
     STRM → HTTP,” a new tree (and later a new repo) is healthier than bending
     strmarr conventions. This tree already moved from
-    `strmarr/experimental/swarmplay/` to a **sibling** `swarmplay/` root.
+    `strmarr/experimental/jellyfin-on-demand/` to a **sibling** `jellyfin-on-demand/` root.

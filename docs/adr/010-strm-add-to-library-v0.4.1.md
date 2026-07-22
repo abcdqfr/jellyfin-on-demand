@@ -14,7 +14,7 @@ bare alias for the plain **Play** button — same ranked/episode picker, same
 to leave something behind in the library. Clarified directly (chat,
 2026-07-22): **Stream** should behave like `strmarr`/`*arr` STRM setups — a
 small permanent pointer file lives in the normal Jellyfin library folder, and
-Jellyfin (or ffprobe on next scan) pulls bytes through swarmplay's existing
+Jellyfin (or ffprobe on next scan) pulls bytes through jellyfin-on-demand's existing
 on-demand stream endpoint only when something actually opens the item.
 **Cache to library** is unchanged: a full, traditional download of the real
 file to disk.
@@ -34,7 +34,7 @@ correct for their own job.
 ## Decision
 
 1. **"Stream" writes a `.strm` file**, not a play-bind. New endpoint `POST
-   Swarmplay/swarm/stream-bind`: resolves the destination library folder the
+   JellyfinOnDemand/swarm/stream-bind`: resolves the destination library folder the
    same way `cache-bind` does (`ResolveLibraryVirtualFolder` by MediaType —
    movies vs tvshows, `Season NN` subfolder for TV), builds a clean filename
    from the title (`{Title}.strm` or `{Title} - SxxExx.strm`), and writes one
@@ -48,7 +48,7 @@ correct for their own job.
    deployment; a dedicated service-account API key is a clean follow-up if
    multi-user ever matters).
 3. **Playback is on-demand and unchanged.** The `.strm` target is
-   `GET Swarmplay/swarm/stream?btih=...&fileIndex=...` — an endpoint that
+   `GET JellyfinOnDemand/swarm/stream?btih=...&fileIndex=...` — an endpoint that
    already existed and already calls `EnsureAsync` (full tail/head warm) on
    *first request*, then range-streams the growing file. Nothing new had to
    be built for the read side; only the write side (the pointer itself) was
@@ -71,7 +71,7 @@ correct for their own job.
   `stream-bind`) — reused rather than adding a parallel DTO, matching how
   `play-bind`/`cache-bind` already share `SwarmEnsureRequest`.
 - A user later clicking normal JF "Play" on a `.strm`-backed library item
-  drives `ffprobe`/playback straight at swarmplay's stream endpoint, which
+  drives `ffprobe`/playback straight at jellyfin-on-demand's stream endpoint, which
   will do a full extent-gate wait on first touch — same cold-start cost as
   any first play, just triggered by JF's scanner/player instead of our own
   UI.

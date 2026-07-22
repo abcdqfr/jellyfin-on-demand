@@ -3,7 +3,7 @@
 O7b promotes the in-process swarm session operations to a local HTTP service:
 
 ```text
-Jellyfin plugin ── HTTP ──> swarmplayd ──> libtorrent session
+Jellyfin plugin ── HTTP ──> jellyfin-on-demandd ──> libtorrent session
                     Ensure / Status / Stop
 ```
 

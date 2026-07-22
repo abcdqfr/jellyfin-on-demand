@@ -38,9 +38,9 @@ Prefer parallel `Task` calls when jobs don’t share write targets.
 | P0-03 | D | Swarm stubs + SwarmController | `Swarm/`, `Controllers/SwarmController.cs`, `js/swarm/` | — |
 | P0-04 | D | Design pack + fixtures + magnet UX | `docs/design/` | — |
 | P0-05 | D | **C# Seerr/*arr dead-code quarantine** — `#if false` or stub scheduled-task registrations so Seerr tasks never run; do not delete wholesale yet | `Plugin.cs` or wherever tasks register; `ScheduledTasks/*Seerr*` | Plugin entry + 1 task file |
-| P0-06 | D | **Config page Seerr/Arr panels** — hide or mark “disabled in Swarmplay” in config HTML (no Seerr enable UX) | config HTML under plugin | config page path via grep once |
+| P0-06 | D | **Config page Seerr/Arr panels** — hide or mark “disabled in Jellyfin on Demand” in config HTML (no Seerr enable UX) | config HTML under plugin | config page path via grep once |
 | P0-07 | D | **ATTRIBUTION steal-log hygiene** — add row template examples; note GPL/MIT when retargeting | `ATTRIBUTION.md` only | — |
-| P0-08 | D | **SWARMPLAY.md + plugin README** sync to this map | fork `SWARMPLAY.md`, `plugin/README.md` | this file |
+| P0-08 | D | **JELLYFIN_ON_DEMAND.md + plugin README** sync to this map | fork `JELLYFIN_ON_DEMAND.md`, `plugin/README.md` | this file |
 | P0-09 | D | Full assembly/namespace rename | see `docs/design/rename-inventory.md` | — |
 | P0-10 | D | `git init` sibling root / push | — | — |
 
@@ -82,7 +82,7 @@ Prefer parallel `Task` calls when jobs don’t share write targets.
 
 | ID | Status | Deliverable | Write scope |
 |----|--------|-------------|-------------|
-| P3-01 | D | **Seed/idle policy draft** from LESSONS §11b → Swarmplay config shape | `docs/design/seed-idle-policy.md` |
+| P3-01 | D | **Seed/idle policy draft** from LESSONS §11b → Jellyfin on Demand config shape | `docs/design/seed-idle-policy.md` |
 | P3-02 | D | **Multi-file picker UX note** | `docs/design/file-index-picker.md` |
 | P3-03 | D | **Client matrix template** (Fire TV / web / etc.) empty checklist | `docs/design/client-matrix.md` |
 | P3-04 | D | **Torznab secret proxy rules** (bind, allowlist, never browser) | `docs/design/torznab-proxy.md` |
@@ -96,7 +96,7 @@ Prefer parallel `Task` calls when jobs don’t share write targets.
 |----|--------|-------------|-------------|
 | P4-01 | D | **Sidecar API sketch** = Promote in-proc Ensure to HTTP (already in plugin README) + auth/bind notes | `docs/design/o7b-sidecar.md` |
 | P4-02 | D | **Sister-product lore index** — external path names only; tree not vendored | `docs/design/strmarr-cherry-pick-index.md` |
-| P4-03 | W | Implement swarmplayd | — |
+| P4-03 | W | Implement jellyfin-on-demandd | — |
 
 ---
 

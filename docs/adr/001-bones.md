@@ -1,4 +1,4 @@
-# ADR-001 (swarmplay): Bones architecture
+# ADR-001 (jellyfin-on-demand): Bones architecture
 
 **Status:** Accepted — options locked per 2026-07-20 operator picks (O6/O7 in ADR-002)
 
@@ -10,8 +10,8 @@ strmarr proved *arr → STRM → anacrolix HTTP → Jellyfin. The desired produc
 the opposite spine: **Jellyfin pane + btih swarm + sequential bytes**, without
 STRM, strmarr media HTTP, anacrolix, or *arr.
 
-This tree started as `strmarr/experimental/swarmplay/` and now lives as a
-**sibling directory** (`swarmplay/` next to `strmarr/`).
+This tree started as `strmarr/experimental/jellyfin-on-demand/` and now lives as a
+**sibling directory** (`jellyfin-on-demand/` next to `strmarr/`).
 
 ## Decision
 
@@ -24,7 +24,7 @@ This tree started as `strmarr/experimental/swarmplay/` and now lives as a
    | O1 | libtorrent-rasterbar (O1a) |
    | O2 | growing file path (O2a) |
    | O3 | head+tail warm lite, order **tail → head → sequential** (O3c + I9) |
-   | O4 | fork JE → Swarmplay (O4b) — see [ADR-003](003-fork-je.md) |
+   | O4 | fork JE → Jellyfin on Demand (O4b) — see [ADR-003](003-fork-je.md) |
    | O5 | paste magnet **and** Torznab; first indexers **Nyaa + TPB**; ranked list in JF so best match is first (I11) |
    | O6 | virtual items (O6a) — see [ADR-002](002-o6-o7.md) |
    | O7 | in-JF libtorrent for MVP (O7a, follow vlc-bt); sidecar O7b on roadmap — see [ADR-002](002-o6-o7.md) |

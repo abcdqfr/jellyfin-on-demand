@@ -1,5 +1,5 @@
-#ifndef SWARMPLAY_MKV_PROBE_H
-#define SWARMPLAY_MKV_PROBE_H
+#ifndef JELLYFIN_ON_DEMAND_MKV_PROBE_H
+#define JELLYFIN_ON_DEMAND_MKV_PROBE_H
 
 // Minimal EBML/Matroska structural probe (ADR-007).
 //
@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace swarmplay::mkv {
+namespace jellyfin_on_demand::mkv {
 
 // EBML/Matroska element IDs needed for the head + Cues probe. IDs are kept as
 // their raw multi-byte form (including the EBML length-descriptor bits) --
@@ -105,6 +105,6 @@ CueProbeResult find_cues(const std::uint8_t* tail_buf, std::size_t tail_len,
                           std::int64_t tail_start_in_file,
                           std::int64_t segment_offset);
 
-} // namespace swarmplay::mkv
+} // namespace jellyfin_on_demand::mkv
 
-#endif // SWARMPLAY_MKV_PROBE_H
+#endif // JELLYFIN_ON_DEMAND_MKV_PROBE_H

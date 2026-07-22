@@ -1,10 +1,10 @@
-# swarmplay
+# jellyfin-on-demand
 
 Living-room Jellyfin pane → magnet/Torznab → in-process libtorrent →
 tail→head warm → growing file on a **virtual item** → Play.
 
 No *arr. No Seerr/Jellyseerr **runtime**. No Go/anacrolix engine.
-(JE's former Seerr *client chrome* is rolled into this Swarmplay plugin and
+(JE's former Seerr *client chrome* is rolled into this Jellyfin on Demand plugin and
 retargeted — see [`ATTRIBUTION.md`](ATTRIBUTION.md).)
 
 **Status:** active product tree. Local integration is the commit gate
@@ -26,8 +26,8 @@ retargeted — see [`ATTRIBUTION.md`](ATTRIBUTION.md).)
 ## Layout
 
 ```text
-swarmplay/
-  plugin/Jellyfin.Plugin.Swarmplay/   JE fork (product plugin)
+jellyfin-on-demand/
+  plugin/Jellyfin.Plugin.JellyfinOnDemand/   JE fork (product plugin)
   torrent/native/                     libtorrent Ensure ABI
   scripts/                            offline checks + ci_gate + smokes
   docs/                               ADRs + design
@@ -54,14 +54,14 @@ export PATH="$PWD/.tools/dotnet:$PATH"
 export DOTNET_ROOT="$PWD/.tools/dotnet"
 export DOTNET_CLI_HOME="$PWD/.tools/dotnet-cli-home"
 export NUGET_PACKAGES="$PWD/.tools/nuget"
-dotnet build plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj -p:JellyfinTarget=jf10
+dotnet build plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj -p:JellyfinTarget=jf10
 ```
 
 ## Sister tree (strmarr)
 
 - Symlink: `third-party/strmarr` → `../../strmarr` for lessons and path reference.
-- **Do not** start strmarr docker/`make`/HTTP services for Swarmplay work.
-- Runtime: Jellyfin + Swarmplay plugin + libtorrent. Client: **Jellyfin Desktop**.
+- **Do not** start strmarr docker/`make`/HTTP services for Jellyfin on Demand work.
+- Runtime: Jellyfin + Jellyfin on Demand plugin + libtorrent. Client: **Jellyfin Desktop**.
 
 ## Remotes
 

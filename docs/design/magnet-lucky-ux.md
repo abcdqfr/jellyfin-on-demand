@@ -1,7 +1,7 @@
 # Magnet paste + “I’m feeling lucky” (MVP UX)
 
 **Scope:** one Jellyfin living-room path: paste a magnet or select the top-ranked
-release, then bind and play a Swarmplay **virtual item** (O6a). No `.strm`,
+release, then bind and play a Jellyfin on Demand **virtual item** (O6a). No `.strm`,
 library scan, *arr flow, or HTTP media server.
 
 ## Entry
@@ -32,7 +32,7 @@ library scan, *arr flow, or HTTP media server.
 - Cancel calls `JE.swarm.stop(btih)` and returns to the virtual item detail. The
   default stop behavior leaves seeding to the idle policy.
 - `swarm_ensure_unavailable` or `swarm_status_unavailable` is an offline/stub
-  state: say “Swarmplay is not available on this server yet,” offer Retry and
+  state: say “Jellyfin on Demand is not available on this server yet,” offer Retry and
   Back, and never claim playback started.
 - Other errors retain the selected virtual item and offer Retry; changing magnet
   creates/selects the identity for its new BTIH.

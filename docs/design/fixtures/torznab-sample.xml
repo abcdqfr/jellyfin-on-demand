@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:torznab="http://torznab.com/schemas/2015/feed">
   <channel>
-    <title>Swarmplay fixture</title>
+    <title>JellyfinOnDemand fixture</title>
     <item>
       <title>Example.Movie.2025.1080p.BluRay.x264</title>
       <guid>https://indexer.example/details/101</guid>

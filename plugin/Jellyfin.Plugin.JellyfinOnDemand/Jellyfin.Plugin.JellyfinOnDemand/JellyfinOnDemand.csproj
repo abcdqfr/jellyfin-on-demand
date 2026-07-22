@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- Build target selector (the default is the JellyfinTarget value set just below).
+             The same source produces two artifacts — one per runtime, never one DLL for both:
+               -p:JellyfinTarget=jf12  -> Jellyfin 12, .NET 10
+               -p:JellyfinTarget=jf10  -> Jellyfin 10.11, .NET 9
+             The request-time injection (ScriptInjectionStartupFilter /
+             BrandingAssetStartupFilter) uses only standard ASP.NET, so it works on
+             both runtimes. -->
+        <JellyfinTarget Condition="'$(JellyfinTarget)' == ''">jf12</JellyfinTarget>
+
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyVersion>0.5.1.0</AssemblyVersion>
+        <FileVersion>0.5.1.0</FileVersion>
+        <RootNamespace>Jellyfin.Plugin.JellyfinOnDemand</RootNamespace>
+        <AssemblyName>Jellyfin.Plugin.JellyfinOnDemand</AssemblyName>
+    </PropertyGroup>
+
+    <!-- Jellyfin 12 / .NET 10. The Jellyfin.Controller/Model 12.0.0-rc1 NuGet packages
+         bring the rest (incl. EF Core) transitively. Bump to 12.0.0 once it ships. -->
+    <PropertyGroup Condition="'$(JellyfinTarget)' == 'jf12'">
+        <TargetFramework>net10.0</TargetFramework>
+        <JellyfinVersion>12.0.0-rc1</JellyfinVersion>
+    </PropertyGroup>
+
+    <!-- Jellyfin 10.11 / .NET 9. Pinned to 10.11.0 (as upstream does) so the artifact
+         loads across the whole 10.11.x line — a newer host satisfies the lower ref. -->
+    <PropertyGroup Condition="'$(JellyfinTarget)' == 'jf10'">
+        <TargetFramework>net9.0</TargetFramework>
+        <JellyfinVersion>10.11.0</JellyfinVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Jellyfin.Controller" Version="$(JellyfinVersion)" />
+      <PackageReference Include="Jellyfin.Model" Version="$(JellyfinVersion)" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+      <!--
+        Spoiler Blur uses SkiaSharp for the Gaussian blur. Jellyfin ships SkiaSharp.dll in /usr/lib/jellyfin/bin/ as its own thumbnail engine, so we compile against the package but exclude the runtime asset (Private=false + ExcludeAssets=runtime). The host's already-loaded copy wins. This keeps the plugin DLL deployment a single file with no native deps.
+      -->
+      <PackageReference Include="SkiaSharp" Version="3.116.1" PrivateAssets="all">
+        <ExcludeAssets>runtime</ExcludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+
+
+  <ItemGroup>
+    <None Remove="PluginPages\CalendarPage.html"/>
+    <EmbeddedResource Include="PluginPages\CalendarPage.html"/>
+    <None Remove="PluginPages\DownloadsPage.html"/>
+    <EmbeddedResource Include="PluginPages\DownloadsPage.html"/>
+    <None Remove="PluginPages\BookmarksPage.html"/>
+    <EmbeddedResource Include="PluginPages\BookmarksPage.html"/>
+    <None Remove="PluginPages\DiscoverPage.html"/>
+    <EmbeddedResource Include="PluginPages\DiscoverPage.html"/>
+    <None Remove="PluginPages\HiddenContentPage.html"/>
+    <EmbeddedResource Include="PluginPages\HiddenContentPage.html"/>
+    <None Remove="Configuration\configPage.html"/>
+    <EmbeddedResource Include="Configuration\configPage.html"/>
+    <None Remove="Configuration\configPage.css"/>
+    <EmbeddedResource Include="Configuration\configPage.css"/>
+    <None Remove="plugin.js"/>
+    <EmbeddedResource Include="js\**" />
+  </ItemGroup>
+
+</Project>

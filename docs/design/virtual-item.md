@@ -2,7 +2,7 @@
 
 ## Decision
 
-The Swarmplay plugin owns the Jellyfin item used for playback. It is virtual:
+The Jellyfin on Demand plugin owns the Jellyfin item used for playback. It is virtual:
 it represents a selected `btih` and file index, rather than a filesystem
 library entity.
 

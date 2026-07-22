@@ -26,8 +26,8 @@ def http_json(method: str, url: str, body=None, token: str | None = None, timeou
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-Emby-Authorization": (
-            'MediaBrowser Client="swarmplay-history-smoke", Device="smoke", '
-            'DeviceId="swarmplay-history-smoke", Version="0.2.0"'
+            'MediaBrowser Client="jellyfin-on-demand-history-smoke", Device="smoke", '
+            'DeviceId="jellyfin-on-demand-history-smoke", Version="0.2.0"'
         ),
     }
     if token:
@@ -56,10 +56,10 @@ def main() -> None:
         fail(f"auth failed: {st} {body}")
     token = body["AccessToken"]
 
-    marker = f"swarmplay-history-smoke-{uuid.uuid4().hex[:12]}"
+    marker = f"jellyfin-on-demand-history-smoke-{uuid.uuid4().hex[:12]}"
     st, upserted = http_json(
         "POST",
-        BASE + "/Swarmplay/swarm/history",
+        BASE + "/JellyfinOnDemand/swarm/history",
         {
             "Query": marker,
             "MediaType": "movie",
@@ -75,7 +75,7 @@ def main() -> None:
     if not entry_id:
         fail(f"POST history missing id: {upserted}")
 
-    st, listed = http_json("GET", BASE + "/Swarmplay/swarm/history", token=token)
+    st, listed = http_json("GET", BASE + "/JellyfinOnDemand/swarm/history", token=token)
     if st != 200 or not isinstance(listed, dict):
         fail(f"GET history failed: {st} {listed}")
     entries = listed.get("entries") or listed.get("Entries") or []
@@ -91,11 +91,11 @@ def main() -> None:
     if not found:
         fail(f"GET history missing upserted entry {entry_id}: {entries[:5]}")
 
-    st, _ = http_json("DELETE", BASE + f"/Swarmplay/swarm/history/{entry_id}", token=token)
+    st, _ = http_json("DELETE", BASE + f"/JellyfinOnDemand/swarm/history/{entry_id}", token=token)
     if st not in (200, 204):
         fail(f"DELETE history failed: {st}")
 
-    st, listed2 = http_json("GET", BASE + "/Swarmplay/swarm/history", token=token)
+    st, listed2 = http_json("GET", BASE + "/JellyfinOnDemand/swarm/history", token=token)
     if st != 200 or not isinstance(listed2, dict):
         fail(f"GET history after delete failed: {st} {listed2}")
     entries2 = listed2.get("entries") or listed2.get("Entries") or []

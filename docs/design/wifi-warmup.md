@@ -15,8 +15,8 @@ Jellyfin playback validation still require a networked test session.
    - `pkg-config`
 2. Verify the project path, then restore it once:
    ```sh
-   ls plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj
-   dotnet restore plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarmplay.csproj
+   ls plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj
+   dotnet restore plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.csproj
    ```
    Follow with the applicable `dotnet build` and unit-test commands while the
    restored cache is warm.

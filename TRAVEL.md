@@ -24,7 +24,7 @@ Until Wi‑Fi / testing budget is restored:
 
 | Path | What’s there |
 |------|----------------|
-| `plugin/Jellyfin.Plugin.Swarmplay/` | Working JE fork (~170M); Seerr/*arr scripts **not loaded** |
+| `plugin/Jellyfin.Plugin.JellyfinOnDemand/` | Working JE fork (~170M); Seerr/*arr scripts **not loaded** |
 | `third-party/jellyfin-enhanced/` | Pristine JE reference (~170M) |
 | `third-party/seerr/` | Shallow Seerr source (~18M) — patterns only; ADR-004 |
 | `third-party/vlc-bittorrent/` | libtorrent glue prior art (~2M) |
@@ -61,7 +61,7 @@ Attribution / steal log: [`ATTRIBUTION.md`](ATTRIBUTION.md).
 - [x] Disable Seerr/*arr script load in `js/plugin.js`
 - [x] Force Seerr discovery defaults off in `PluginConfiguration`
 - [x] Stub `js/swarm/api.js` + `Swarm/ISwarmSession.cs`
-- [x] manifest display name → Swarmplay
+- [x] manifest display name → Jellyfin on Demand
 - [ ] Full namespace/assembly rename (~124 files) — **wait for Wi‑Fi build**
 - [x] Stub `SwarmController` (local StubSwarmSession; DI later)
 - [ ] Retarget one discovery UI file to call `JE.swarm` (optional travel stretch)

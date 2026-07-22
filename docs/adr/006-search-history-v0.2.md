@@ -24,7 +24,7 @@ vs seed). That waits for **0.3**.
 3. Each entry records at least: query text, media type, TMDB id (if any),
    timestamps (searched / last played), optional last btih + release title,
    optional pin flag. Cap list size (e.g. 100) with LRU eviction of unpinned.
-4. UI lives in the Swarmplay discovery chrome (history rail / page) — no Seerr.
+4. UI lives in the Jellyfin on Demand discovery chrome (history rail / page) — no Seerr.
 5. **0.3 = Library slide** (streamed → library Path for offline/archive) is
    roadmap-only until 0.2 ships; see
    [`docs/design/library-promote-0.3.md`](../design/library-promote-0.3.md).

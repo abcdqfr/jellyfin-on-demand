@@ -1,4 +1,4 @@
-# Swarmplay native bridge
+# Jellyfin on Demand native bridge
 This directory contains offline C ABI stubs.
 They expose ensure, status, and stop entry points.
 All stub functions return `SWARM_ERROR_UNAVAILABLE`.

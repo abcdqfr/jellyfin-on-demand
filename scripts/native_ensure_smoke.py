@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Minimal ABI smoke test for libswarmplay_native.so."""
+"""Minimal ABI smoke test for libjellyfin_on_demand_native.so."""
 
 import ctypes
 import sys
@@ -15,7 +15,7 @@ class EnsureResult(ctypes.Structure):
 
 
 library_path = Path(
-    sys.argv[1] if len(sys.argv) > 1 else "torrent/native/build/libswarmplay_native.so"
+    sys.argv[1] if len(sys.argv) > 1 else "torrent/native/build/libjellyfin_on_demand_native.so"
 )
 library = ctypes.CDLL(str(library_path))
 ensure = library.swarm_ensure

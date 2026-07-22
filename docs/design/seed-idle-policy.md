@@ -1,6 +1,6 @@
 # Seed and idle policy
 
-Swarmplay keeps completed or recently played content available long enough to
+Jellyfin on Demand keeps completed or recently played content available long enough to
 support healthy sharing, then releases it according to an explicit retention
 policy.
 

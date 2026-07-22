@@ -6,8 +6,8 @@
 
 ## Context
 
-swarmplay's swarm-served playback path (`ensure` → growing file in
-`SWARMPLAY_CACHE_DIR` → virtual `Movie` item) is deliberately ephemeral: it
+jellyfin-on-demand's swarm-served playback path (`ensure` → growing file in
+`JELLYFIN_ON_DEMAND_CACHE_DIR` → virtual `Movie` item) is deliberately ephemeral: it
 optimizes for "start watching now," not "keep this." Users who want a title
 to live permanently in their normal Jellyfin library (offline playback, real
 watched-tracking, survives torrent idling out) had no path except manually
@@ -35,7 +35,7 @@ from). Rather than guess and risk a rebuild, these were asked directly
    `SwarmController.ResolveLibraryVirtualFolder` picks the Jellyfin library
    whose `CollectionType` is `movies` (movie) or `tvshows` (TV) via
    `ILibraryManager.GetVirtualFolders()`. Deterministic first-match (Name
-   ascending) if more than one library shares that type. No new Swarmplay
+   ascending) if more than one library shares that type. No new Jellyfin on Demand
    plugin setting.
 4. **v1 caches exactly one file** (the chosen episode/movie), matching the
    existing per-file play model — never a whole batch in one action.

@@ -2,8 +2,8 @@
 """Fail the gate on client/route footguns that already burned us in lab.
 
 Catches:
-- Admin config still calling /JellyfinEnhanced/* after the Swarmplay rename
-- Search init gated on JellyseerrShowSearchResults when Swarmplay discovery is the product path
+- Admin config still calling /JellyfinEnhanced/* after the JellyfinOnDemand rename
+- Search init gated on JellyseerrShowSearchResults when JellyfinOnDemand discovery is the product path
 - Missing jellyseerr chrome scripts in plugin.js load list
 - JS syntax errors in every file plugin.js loads
 """
@@ -16,11 +16,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_JS = ROOT / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/js"
+PLUGIN_JS = ROOT / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js"
 PLUGIN_MAIN = PLUGIN_JS / "plugin.js"
 CONFIG_PAGE = (
     ROOT
-    / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Configuration/configPage.html"
+    / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Configuration/configPage.html"
 )
 
 
@@ -44,12 +44,12 @@ def main() -> None:
     if bad_api:
         fail(
             "configPage.html still calls ApiClient.getUrl('/JellyfinEnhanced/...') "
-            f"({len(bad_api)} hit(s)) — use /Swarmplay/ (TMDB validate 404 class of bug)"
+            f"({len(bad_api)} hit(s)) — use /JellyfinOnDemand/ (TMDB validate 404 class of bug)"
         )
     if "/JellyfinEnhanced/tmdb/validate" in cfg:
         fail("configPage.html still references /JellyfinEnhanced/tmdb/validate")
-    if "/Swarmplay/tmdb/validate" not in cfg:
-        fail("configPage.html missing /Swarmplay/tmdb/validate")
+    if "/JellyfinOnDemand/tmdb/validate" not in cfg:
+        fail("configPage.html missing /JellyfinOnDemand/tmdb/validate")
 
     main_js = PLUGIN_MAIN.read_text(encoding="utf-8", errors="replace")
     required_scripts = [
@@ -60,23 +60,23 @@ def main() -> None:
     ]
     for rel in required_scripts:
         if rel not in main_js:
-            fail(f"plugin.js must load {rel} for Swarmplay discovery chrome")
+            fail(f"plugin.js must load {rel} for JellyfinOnDemand discovery chrome")
 
     # The gate that wiped search after ADR-004: requiring ShowSearchResults when
-    # only SwarmplayDiscoveryEnabled is set.
+    # only JellyfinOnDemandDiscoveryEnabled is set.
     if re.search(
-        r"SwarmplayDiscoveryEnabled[\s\S]{0,200}?JellyseerrShowSearchResults\s*!==\s*false",
+        r"JellyfinOnDemandDiscoveryEnabled[\s\S]{0,200}?JellyseerrShowSearchResults\s*!==\s*false",
         main_js,
     ) and "swarmDiscovery" not in main_js:
-        fail("plugin.js appears to gate Swarmplay discovery on JellyseerrShowSearchResults")
+        fail("plugin.js appears to gate JellyfinOnDemand discovery on JellyseerrShowSearchResults")
 
     jelly = (PLUGIN_JS / "jellyseerr/jellyseerr.js").read_text(encoding="utf-8", errors="replace")
     if "swarmDiscovery" not in jelly:
-        fail("jellyseerr.js must honor SwarmplayDiscoveryEnabled (swarmDiscovery)")
+        fail("jellyseerr.js must honor JellyfinOnDemandDiscoveryEnabled (swarmDiscovery)")
     if "!swarmDiscovery && JE.pluginConfig.JellyseerrShowSearchResults === false" not in jelly:
         fail(
             "jellyseerr.js must gate JellyseerrShowSearchResults behind !swarmDiscovery "
-            "(otherwise Swarmplay search is dead when ADR-004 left ShowSearchResults=false)"
+            "(otherwise JellyfinOnDemand search is dead when ADR-004 left ShowSearchResults=false)"
         )
 
     # Syntax-check every script referenced in the component list.
@@ -105,7 +105,7 @@ def main() -> None:
         fail("lucky.js must try playbackManager.play({ ids }) for real ItemId")
     ctrl = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Controllers/SwarmController.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Controllers/SwarmController.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if "BindVirtualMovieAsync" not in ctrl or "ILibraryManager" not in ctrl:
         fail("SwarmController must bind a real Movie ItemId via ILibraryManager")
@@ -143,7 +143,7 @@ def main() -> None:
 
     swarm_cs = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/ISwarmSession.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Swarm/ISwarmSession.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if "class MagnetSanitizer" not in swarm_cs:
         fail("ISwarmSession.cs must define MagnetSanitizer")
@@ -162,7 +162,7 @@ def main() -> None:
 
     native_cs = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/NativeSwarmSession.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Swarm/NativeSwarmSession.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if "MagnetSanitizer.BuildAsciiMagnet" not in native_cs:
         fail("NativeSwarmSession.PreferAsciiSource must prefer sanitized magnet over bare btih")
@@ -179,7 +179,7 @@ def main() -> None:
     if lucky_idx < 0 or hist_idx < 0 or hist_idx < lucky_idx:
         fail("plugin.js must load swarm/history.js after swarm/lucky.js")
     history_js = (PLUGIN_JS / "swarm/history.js").read_text(encoding="utf-8", errors="replace")
-    if "swarmplay-history-float" in history_js:
+    if "jellyfin-on-demand-history-float" in history_js:
         fail("history.js must not resurrect the omnipresent floating History control")
     if "searchTextInput" not in history_js or "JE.swarmHistory" not in history_js:
         fail(
@@ -206,7 +206,7 @@ def main() -> None:
         fail("SwarmController must expose POST /history/{id}/pin")
     store_cs = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/SearchHistoryStore.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Swarm/SearchHistoryStore.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if "swarm-history.json" not in store_cs or "MaxUnpinned" not in store_cs:
         fail("SearchHistoryStore must persist swarm-history.json with unpinned cap")
@@ -222,10 +222,10 @@ def main() -> None:
         fail("SwarmController must expose POST /list-files")
     if "showEpisodePicker" not in releases or "FileIndexExplicit" not in releases:
         fail("releases.js must offer episode-in-batch picker with FileIndexExplicit")
-    if "swarmplay-ep-table" not in releases or "data-sort" not in releases:
+    if "jellyfin-on-demand-ep-table" not in releases or "data-sort" not in releases:
         fail("releases.js episode picker must be a sortable table (data-sort columns)")
-    if "swarmPlayLucky" not in releases:
-        fail("releases.js must expose swarmPlayLucky (rank-top + episode picker, no silent TV pick)")
+    if "jellyfinOnDemandPlayLucky" not in releases:
+        fail("releases.js must expose jellyfinOnDemandPlayLucky (rank-top + episode picker, no silent TV pick)")
     if "swarmShowWarmOverlay" not in releases:
         fail("releases.js must use warm overlay during play-bind")
     lucky_full = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
@@ -242,7 +242,7 @@ def main() -> None:
         fail("warm_complete must gate Play on contiguous readahead_ready (anti blaze-ahead)")
     session_cs = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/ISwarmSession.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Swarm/ISwarmSession.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if "FileIndexExplicit" not in session_cs:
         fail("SwarmEnsureRequest must carry FileIndexExplicit")
@@ -259,10 +259,10 @@ def main() -> None:
     if "swarm_cache_ensure" not in seq_cpp or "swarm_cache_status" not in seq_cpp:
         fail("native must expose swarm_cache_ensure/swarm_cache_status (0.4 whole-file download)")
     native_header = (
-        ROOT / "torrent/native/include/swarmplay_session.h"
+        ROOT / "torrent/native/include/jellyfin_on_demand_session.h"
     ).read_text(encoding="utf-8", errors="replace")
     if "swarm_cache_ensure" not in native_header or "float progress" not in native_header:
-        fail("swarmplay_session.h must declare swarm_cache_ensure + progress ABI field (0.4)")
+        fail("jellyfin_on_demand_session.h must declare swarm_cache_ensure + progress ABI field (0.4)")
     if 'HttpPost("cache-bind")' not in ctrl or 'HttpGet("cache-status")' not in ctrl:
         fail("SwarmController must expose POST cache-bind + GET cache-status (0.4)")
     if "ResolveLibraryVirtualFolder" not in ctrl or "ValidateChildren" not in ctrl:
@@ -271,10 +271,10 @@ def main() -> None:
         fail("api.js must expose cacheBind/cacheStatus (0.4)")
     if "swarmAddToLibrary" not in releases or "cacheBindAndStart" not in releases:
         fail("releases.js must expose swarmAddToLibrary + cacheBindAndStart (0.4)")
-    if "jellyseerr-button-swarmplay-library" not in (PLUGIN_JS / "jellyseerr/ui.js").read_text(
+    if "jellyseerr-button-jellyfin-on-demand-library" not in (PLUGIN_JS / "jellyseerr/ui.js").read_text(
         encoding="utf-8", errors="replace"
     ):
-        fail("ui.js missing Add to Library button (jellyseerr-button-swarmplay-library)")
+        fail("ui.js missing Add to Library button (jellyseerr-button-jellyfin-on-demand-library)")
 
     # 0.4.1 hotfix: "Stream" = real .strm library pointer (strmarr-style), not the
     # plain Play button's ephemeral flow — and readahead/progress regression fixes.
@@ -298,7 +298,7 @@ def main() -> None:
         fail("slide window must be byte-bounded (kReadaheadFloorBytes), not first_missing + 48 pieces")
     if "warm_progress" not in seq_cpp:
         fail("swarm_status progress must reflect warm_progress (tail+head[+readahead] fraction), not raw torrent progress")
-    if "startWarmProgressPoll" not in lucky_full or "swarmplay-warm-bar-fill" not in lucky_full:
+    if "startWarmProgressPoll" not in lucky_full or "jellyfin-on-demand-warm-bar-fill" not in lucky_full:
         fail("lucky.js warm overlay must render/poll a real progress bar, not just a spinner")
 
     # Discover pane (Seerr-shaped home next to Enhanced/Bookmarks)
@@ -308,10 +308,10 @@ def main() -> None:
     # 0.5.1: search landing Discover link is intentionally disabled (was broken).
     if re.search(r"(?m)^\s*watchSearchLanding\(\);", discover_js):
         fail("discover-page.js must not call watchSearchLanding() — search→Discover link disabled in 0.5.1")
-    if "querySelectorAll('.swarmplay-discover-landing-link')" not in discover_js:
-        fail("discover-page.js must strip leftover .swarmplay-discover-landing-link nodes (search link disabled)")
-    if "SECTION_SELECTOR" not in discover_js or ".sections.swarmplay-discover" not in discover_js:
-        fail("discover-page.js must query .sections.swarmplay-discover (compound class), not `.${SECTION_CLASS}`")
+    if "querySelectorAll('.jellyfin-on-demand-discover-landing-link')" not in discover_js:
+        fail("discover-page.js must strip leftover .jellyfin-on-demand-discover-landing-link nodes (search link disabled)")
+    if "SECTION_SELECTOR" not in discover_js or ".sections.jellyfin-on-demand-discover" not in discover_js:
+        fail("discover-page.js must query .sections.jellyfin-on-demand-discover (compound class), not `.${SECTION_CLASS}`")
     if "querySelector(`.${SECTION_CLASS}`)" in discover_js or 'querySelector(`.${SECTION_CLASS}`)' in discover_js:
         fail("discover-page.js must not querySelector(`.${SECTION_CLASS}`) — that yields an empty Discover pane")
     if "takeover" not in discover_js or "swarmHideDiscover" not in discover_js:
@@ -327,32 +327,32 @@ def main() -> None:
         fail("jellyseerr/api.js must expose fetchDiscoverTrending/Movies/Tv for Discover pane")
     enhanced_ctrl = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Controllers/JellyfinEnhancedController.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Controllers/JellyfinEnhancedController.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if 'HttpGet("jellyseerr/discover/trending")' not in enhanced_ctrl or 'HttpGet("jellyseerr/discover/movies")' not in enhanced_ctrl:
         fail("JellyfinEnhancedController must expose discover/trending + discover/movies (TMDB-backed)")
-    if "IsSwarmplayTmdbMode" not in enhanced_ctrl or "FetchTmdbAsJellyseerrAsync" not in enhanced_ctrl:
-        fail("Controller must route Swarmplay discover through TMDB (IsSwarmplayTmdbMode)")
+    if "IsJellyfinOnDemandTmdbMode" not in enhanced_ctrl or "FetchTmdbAsJellyseerrAsync" not in enhanced_ctrl:
+        fail("Controller must route JellyfinOnDemand discover through TMDB (IsJellyfinOnDemandTmdbMode)")
     if "swarm/discover-page.js" not in (PLUGIN_JS / "plugin.js").read_text(encoding="utf-8", errors="replace"):
         fail("plugin.js must load swarm/discover-page.js")
     if "initializeDiscoverPage" not in (PLUGIN_JS / "plugin.js").read_text(encoding="utf-8", errors="replace"):
-        fail("plugin.js must call initializeDiscoverPage when SwarmplayDiscoveryEnabled")
+        fail("plugin.js must call initializeDiscoverPage when JellyfinOnDemandDiscoveryEnabled")
     discover_html = (
         ROOT
-        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/PluginPages/DiscoverPage.html"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/PluginPages/DiscoverPage.html"
     )
     if not discover_html.is_file():
         fail("PluginPages/DiscoverPage.html missing")
     enhanced_cs = (
-        ROOT / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/JellyfinEnhanced.cs"
+        ROOT / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinEnhanced.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if 'Name = "discoverPage"' not in enhanced_cs:
         fail("JellyfinEnhanced.GetViews must register discoverPage")
 
     ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
     lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
-    if "jellyseerr-button-swarmplay-lucky" not in ui_js:
-        fail("ui.js missing Lucky button (jellyseerr-button-swarmplay-lucky)")
+    if "jellyseerr-button-jellyfin-on-demand-lucky" not in ui_js:
+        fail("ui.js missing Lucky button (jellyseerr-button-jellyfin-on-demand-lucky)")
     if "playFeelingLucky" not in lucky_js or "JE.playFeelingLucky" not in lucky_js:
         fail("lucky.js must export playFeelingLucky")
     if "api.lucky" not in api_js:

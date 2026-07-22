@@ -22,7 +22,7 @@ def ready_mode(head_bytes_have: int, tail_bytes_have: int, head_magic_ok: bool) 
 
 
 def main() -> None:
-    descriptor, path = tempfile.mkstemp(prefix="swarmplay-play-", suffix=".mkv")
+    descriptor, path = tempfile.mkstemp(prefix="jellyfin-on-demand-play-", suffix=".mkv")
     os.close(descriptor)
 
     try:
