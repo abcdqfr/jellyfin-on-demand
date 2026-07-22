@@ -17,6 +17,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public string Btih { get; set; } = string.Empty;
         public string? Magnet { get; set; }
         public int FileIndex { get; set; }
+        /// <summary>When true, play-bind keeps FileIndex as sent (episode picker / explicit pick).</summary>
+        public bool FileIndexExplicit { get; set; }
         /// <summary>When set with Episode, auto-pick file_index (strmarr batch intelligence).</summary>
         public int? Season { get; set; }
         public int? Episode { get; set; }
@@ -27,6 +29,14 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public int TailMib { get; set; } = 8;
         public int HeadMib { get; set; } = 8;
         public string WarmOrder { get; set; } = "tail_then_head";
+
+        /// <summary>
+        /// "Stream" side of Add to Library only (stream-bind): the fully-formed,
+        /// already-authenticated URL to write into the .strm pointer (client builds
+        /// it — same helper used for direct-play links — so the server never has to
+        /// mint or extract a user access token).
+        /// </summary>
+        public string? StreamUrl { get; set; }
     }
 
     public sealed class SwarmEnsureResult
@@ -172,6 +182,23 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         }
     }
 
+    /// <summary>
+    /// 0.4 cache-to-library: whole-file download bound straight into a real,
+    /// already-scanned Jellyfin library (no virtual item, no ephemeral cache).
+    /// </summary>
+    public sealed class SwarmCacheBindResult
+    {
+        public string Btih { get; set; } = string.Empty;
+        public int FileIndex { get; set; }
+        public string? MediaType { get; set; }
+        public string? Path { get; set; }
+        public bool Ready { get; set; }
+        public string? Phase { get; set; }
+        public string? Error { get; set; }
+        public string? Message { get; set; }
+        public int? ErrorCode { get; set; }
+    }
+
     public sealed class SwarmTorrentFile
     {
         public int Index { get; set; }
@@ -204,6 +231,13 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         Task<SwarmStatusResult> StatusAsync(string btih, CancellationToken cancellationToken);
         Task StopAsync(string btih, bool removeFiles, CancellationToken cancellationToken);
         Task<IReadOnlyList<SwarmTorrentFile>> ListFilesAsync(string btihOrMagnet, CancellationToken cancellationToken);
+
+        /// <summary>0.4 cache-to-library: whole-file download straight into destDir.</summary>
+        Task<SwarmEnsureResult> CacheEnsureAsync(
+            string btihOrMagnet, int fileIndex, string destDir, CancellationToken cancellationToken);
+
+        Task<SwarmStatusResult> CacheStatusAsync(
+            string btihOrMagnet, int fileIndex, CancellationToken cancellationToken);
     }
 
     public sealed class StubSwarmSession : ISwarmSession
@@ -238,6 +272,33 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
 
         public Task<IReadOnlyList<SwarmTorrentFile>> ListFilesAsync(string btihOrMagnet, CancellationToken cancellationToken)
             => Task.FromResult<IReadOnlyList<SwarmTorrentFile>>(System.Array.Empty<SwarmTorrentFile>());
+
+        public Task<SwarmEnsureResult> CacheEnsureAsync(
+            string btihOrMagnet, int fileIndex, string destDir, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new SwarmEnsureResult
+            {
+                Path = null,
+                Ready = false,
+                Phase = "unavailable",
+                Error = "native_unavailable",
+                Message = "BitTorrent engine is not loaded on this Jellyfin host.",
+                ErrorCode = -1
+            });
+        }
+
+        public Task<SwarmStatusResult> CacheStatusAsync(
+            string btihOrMagnet, int fileIndex, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new SwarmStatusResult
+            {
+                Ready = false,
+                Phase = "unavailable",
+                Error = "native_unavailable",
+                Message = "BitTorrent engine is not loaded on this Jellyfin host.",
+                ErrorCode = -1
+            });
+        }
     }
 
     /// <summary>
@@ -326,7 +387,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
     }
 
     /// <summary>
-    /// strmarr-inspired file pick: SxxExx / Season folders, else largest video (skip samples).
+    /// strmarr-inspired file pick: SxxExx / absolute season nums / Season folders,
+    /// else largest video (skip samples + NCOP/NCED extras).
     /// </summary>
     public static class FileIndexPicker
     {
@@ -334,10 +396,35 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             @"(?:^|[\s._-])s(\d{1,2})e(\d{1,3})(?:[\s._-]|$)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        // strmarr: Show - 09 / Show - 09v2 (1080p)
+        private static readonly Regex ShowDashEp = new(
+            @"^(.+?)\s*-\s*(\d{1,3})(?:v\d+)?(?:\s|\(|\[|\.|$)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        // strmarr: "3rd Season 49" absolute-style
+        private static readonly Regex SeasonEpNum = new(
+            @"(?:\d{1,2}(?:st|nd|rd|th)\s+Season)\s+(\d{1,3})(?:v\d+)?(?:\s|\[|\.mkv|\.mp4|$)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex AbsEpisode = new(
+            @"(?:^|[\s._-])(\d{1,3})(?:v\d+)?(?:\s*[-–—]|\s*\(|\s*\[|\.mkv|\.mp4|$)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static readonly string[] VideoExt =
         {
             ".mkv", ".mp4", ".avi", ".m4v", ".ts", ".m2ts", ".webm"
         };
+
+        private sealed class ParsedEp
+        {
+            public int Index;
+            public string Path = string.Empty;
+            public long Size;
+            public int Season = 1;
+            public int Episode;
+            public double Confidence;
+            public bool SeasonKnown;
+        }
 
         public static int Pick(
             IReadOnlyList<SwarmTorrentFile> files,
@@ -348,27 +435,30 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             if (files == null || files.Count == 0) return 0;
 
             var videos = files
-                .Where(f => IsVideo(f.Path) && !IsJunk(f.Path))
+                .Where(f => IsVideo(f.Path) && !IsJunk(f.Path) && !IsSupplementary(f.Path))
                 .ToList();
+            if (videos.Count == 0)
+            {
+                videos = files.Where(f => IsVideo(f.Path) && !IsJunk(f.Path)).ToList();
+            }
+
             if (videos.Count == 0) videos = files.ToList();
             if (videos.Count == 1) return videos[0].Index;
 
             var isMovie = string.Equals(mediaType, "movie", StringComparison.OrdinalIgnoreCase);
             if (!isMovie && season is > 0 && episode is > 0)
             {
-                foreach (var f in videos)
+                var parsed = videos.Select(ParseOne).ToList();
+                NormalizeAbsoluteSeasonEpisodes(parsed);
+
+                foreach (var ep in parsed)
                 {
-                    var m = SxxExx.Match(System.IO.Path.GetFileName(f.Path) ?? f.Path);
-                    if (!m.Success) continue;
-                    if (int.TryParse(m.Groups[1].Value, out var s)
-                        && int.TryParse(m.Groups[2].Value, out var e)
-                        && s == season && e == episode)
+                    if (ep.Episode > 0 && ep.Season == season && ep.Episode == episode)
                     {
-                        return f.Index;
+                        return ep.Index;
                     }
                 }
 
-                // Season folder + ordinal episode name fallback: prefer path containing Sxx
                 var seasonHint = $"S{season.Value:00}";
                 var seasonFiles = videos
                     .Where(f => f.Path.Contains(seasonHint, StringComparison.OrdinalIgnoreCase)
@@ -382,8 +472,119 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                 }
             }
 
-            // Movie / unknown: largest non-junk video (strmarr “recommended”).
             return videos.OrderByDescending(f => f.Size).First().Index;
+        }
+
+        /// <summary>Parse S/E for UI episode lists (same rules as Pick).</summary>
+        public static (int? Season, int? Episode, double Confidence) TryParseEpisode(string path)
+        {
+            var parsed = ParseOne(new SwarmTorrentFile { Path = path ?? string.Empty });
+            if (parsed.Episode <= 0) return (null, null, 0);
+            return (parsed.Season, parsed.Episode, parsed.Confidence);
+        }
+
+        private static ParsedEp ParseOne(SwarmTorrentFile f)
+        {
+            var path = (f.Path ?? string.Empty).Replace('\\', '/');
+            var name = System.IO.Path.GetFileName(path) ?? path;
+            var stem = System.IO.Path.GetFileNameWithoutExtension(name) ?? name;
+            var parsed = new ParsedEp
+            {
+                Index = f.Index,
+                Path = path,
+                Size = f.Size,
+                Season = 1,
+                SeasonKnown = false
+            };
+
+            var seasonFromPath = SeasonFromPath(path);
+            if (seasonFromPath > 0)
+            {
+                parsed.Season = seasonFromPath;
+                parsed.SeasonKnown = true;
+            }
+
+            var mSeasonEp = SeasonEpNum.Match(stem);
+            if (mSeasonEp.Success
+                && int.TryParse(mSeasonEp.Groups[1].Value, out var se)
+                && se > 0)
+            {
+                parsed.Episode = se;
+                parsed.Confidence = 0.95;
+                return parsed;
+            }
+
+            var mSxE = SxxExx.Match(name);
+            if (mSxE.Success
+                && int.TryParse(mSxE.Groups[1].Value, out var s)
+                && int.TryParse(mSxE.Groups[2].Value, out var e))
+            {
+                parsed.Season = s;
+                parsed.Episode = e;
+                parsed.SeasonKnown = true;
+                parsed.Confidence = 1.0;
+                return parsed;
+            }
+
+            var mDash = ShowDashEp.Match(stem);
+            if (mDash.Success
+                && int.TryParse(mDash.Groups[2].Value, out var de)
+                && de > 0)
+            {
+                parsed.Episode = de;
+                parsed.Confidence = 0.85;
+                return parsed;
+            }
+
+            var mAbs = AbsEpisode.Match(stem);
+            if (mAbs.Success
+                && int.TryParse(mAbs.Groups[1].Value, out var ae)
+                && ae > 0 && ae < 1000)
+            {
+                parsed.Episode = ae;
+                parsed.Confidence = 0.75;
+                return parsed;
+            }
+
+            return parsed;
+        }
+
+        // strmarr normalizeAbsoluteSeasonEpisodes: "3rd Season 49..72" → relative E01..
+        private static void NormalizeAbsoluteSeasonEpisodes(List<ParsedEp> parsed)
+        {
+            var bySeason = parsed
+                .Where(ep => ep.Episode > 0 && ep.Confidence >= 0.75)
+                .GroupBy(ep => ep.Season > 0 ? ep.Season : 1);
+
+            foreach (var group in bySeason)
+            {
+                var idxs = group.ToList();
+                if (idxs.Count < 2) continue;
+                var minEp = idxs.Min(ep => ep.Episode);
+                var maxEp = idxs.Max(ep => ep.Episode);
+                if (minEp <= 12) continue;
+                var span = maxEp - minEp + 1;
+                if (idxs.Count * 2 < span) continue;
+                var offset = minEp - 1;
+                foreach (var ep in idxs)
+                {
+                    if (ep.Episode > offset)
+                    {
+                        ep.Episode -= offset;
+                    }
+                }
+            }
+        }
+
+        private static int SeasonFromPath(string path)
+        {
+            var ord = Regex.Match(path, @"(?i)(\d{1,2})(?:st|nd|rd|th)\s+Season");
+            if (ord.Success && int.TryParse(ord.Groups[1].Value, out var s1) && s1 > 0) return s1;
+            var folder = Regex.Match(path, @"(?i)(?:^|[/\\])Season\s*(\d{1,2})(?:[/\\]|$)");
+            if (folder.Success && int.TryParse(folder.Groups[1].Value, out var s2) && s2 > 0) return s2;
+            var shortS = Regex.Match(path, @"(?i)(?:^|[/\\])S(\d{1,2})(?:[/\\]|$)");
+            if (shortS.Success && int.TryParse(shortS.Groups[1].Value, out var s3) && s3 > 0) return s3;
+            return 0;
         }
 
         private static bool IsVideo(string path)
@@ -399,5 +600,25 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                 || name.EndsWith(".nfo", StringComparison.OrdinalIgnoreCase)
                 || name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
         }
+
+        private static bool IsSupplementary(string path)
+        {
+            var u = (path ?? string.Empty).ToUpperInvariant();
+            if (u.Contains("/NC/", StringComparison.Ordinal)
+                || u.Contains("/EXTRAS/", StringComparison.Ordinal)
+                || u.Contains("/BONUS/", StringComparison.Ordinal)
+                || u.Contains("/SP/", StringComparison.Ordinal)
+                || u.Contains("/PV/", StringComparison.Ordinal)
+                || u.Contains("/MENU/", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            return u.Contains("NCOP", StringComparison.Ordinal)
+                || u.Contains("NCED", StringComparison.Ordinal)
+                || u.Contains("NCOV", StringComparison.Ordinal)
+                || u.Contains("CREDITLESS", StringComparison.Ordinal);
+        }
     }
+
 }

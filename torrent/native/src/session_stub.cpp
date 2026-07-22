@@ -76,6 +76,8 @@ struct Entry {
     int head_mib_hint = 32;
     int tail_mib_hint = 8;
     int warm_phase = 0; /* 0=tail, 1=head, 2=done */
+    std::vector<lt::piece_index_t> readahead_pieces;
+    bool readahead_ready = false; /* initial contiguous window before Play */
 
     /* ADR-007 probe result/cache -- computed once, then reused as the
      * effective tail_mib_hint/head_mib_hint floors above. */
@@ -86,6 +88,11 @@ struct Entry {
     std::int64_t tail_required_bytes = 0;
     bool cue_found = false;
     bool cue_less_fallback = false;
+
+    /* 0.4 cache-to-library: whole-file download, no warm dance. Populated
+     * only by swarm_cache_ensure()'s own keyed entries (never shared with a
+     * stream-mode entry for the same torrent). */
+    std::vector<lt::piece_index_t> cache_pieces;
 };
 
 lt::settings_pack make_session_settings() {
@@ -335,6 +342,13 @@ constexpr std::int64_t kMiB = 1024 * 1024;
 /* strmarr DefaultExtentHeadFloor / minWarmupBytes — 32MiB/5% starved cold packs. */
 constexpr std::int64_t kWarmFloorBytes = 8 * kMiB;
 constexpr auto kWarmBlockTimeout = std::chrono::seconds(180);
+/* Hotfix (regression): the post-tail+head readahead window used to be sized
+ * in *pieces* ("+48"), which silently ballooned into hundreds of MiB on
+ * torrents with a large piece_length (auto-selected by libtorrent for big
+ * files) -- Play stayed blocked far longer than the pre-blazing-ahead-fix
+ * baseline. Bound it in bytes instead so it stays a small, predictable
+ * streaming buffer regardless of piece_length. */
+constexpr std::int64_t kReadaheadFloorBytes = 24 * kMiB;
 
 std::int64_t warm_band_bytes(std::int64_t file_length, int mib_hint) {
     std::int64_t floor_bytes = kWarmFloorBytes;
@@ -557,7 +571,7 @@ void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle 
         entry.head_required_bytes = std::max<std::int64_t>(head_result.bytes_consumed, kWarmFloorBytes);
         out_head_mib = static_cast<int>((entry.head_required_bytes + kMiB - 1) / kMiB);
         std::fprintf(stderr,
-            "[swarmplay] mkv head parse OK bytes=%lld tracks=%d segment_offset=%lld head_mib=%d\n",
+            "[swarmplay] mkv head parse OK bytes=%lld tracks=%d segment_offset=%lld head_mib=%d (tracks+attachments)\n",
             static_cast<long long>(head_result.bytes_consumed), head_result.num_tracks_found,
             static_cast<long long>(segment_offset), out_head_mib);
 
@@ -648,14 +662,37 @@ void apply_head_phase(lt::torrent_handle const& handle, int first_piece,
 }
 
 void apply_sequential_phase(lt::torrent_handle const& handle, int first_piece,
-                            int piece_count, int tail_start, int head_end) {
+                            int piece_count, int tail_start, int head_end,
+                            int piece_length, Entry& entry) {
+    /* After head+tail warm, Cues make the file seekable into holes. Prefer a
+     * deadline-backed readahead window from the file start (strmarr-style
+     * streaming urgency) instead of marking the whole file equal-priority —
+     * that let Direct Play skip through sparse middle clusters ("blazing ahead").
+     * Gate Play on this window completing (warm_complete), then slide it.
+     *
+     * Bounded in *bytes* (kReadaheadFloorBytes), not a fixed piece count --
+     * a fixed "+48 pieces" balloons into hundreds of MiB when piece_length
+     * is large (regression fixed alongside this comment). */
+    int const readahead_extra_pieces = piece_length > 0
+        ? static_cast<int>((kReadaheadFloorBytes + piece_length - 1) / piece_length)
+        : 48;
+    int const readahead = std::min(piece_count, std::max(head_end + 1, 8) + readahead_extra_pieces);
     std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
-    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::default_priority);
+    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::low_priority);
     set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
-    set_piece_range_priority(priorities, first_piece, 0, head_end, lt::download_priority_t(6));
+    set_piece_range_priority(priorities, first_piece, 0, readahead - 1, lt::top_priority);
     handle.prioritize_pieces(priorities);
     handle.set_flags(lt::torrent_flags::sequential_download);
-    std::fprintf(stderr, "[swarmplay] warm phase=sequential (tail+head ready)\n");
+    entry.readahead_pieces.clear();
+    entry.readahead_pieces.reserve(static_cast<std::size_t>(readahead));
+    for (int p = 0; p < readahead; ++p) {
+        entry.readahead_pieces.push_back(lt::piece_index_t(first_piece + p));
+    }
+    entry.readahead_ready = false;
+    force_piece_deadlines(handle, entry.readahead_pieces);
+    std::fprintf(stderr,
+        "[swarmplay] warm phase=sequential (tail+head ready) readahead_pieces=%d\n",
+        readahead);
 }
 
 void begin_warm(lt::torrent_handle const& handle, lt::torrent_info const& info,
@@ -670,6 +707,8 @@ void begin_warm(lt::torrent_handle const& handle, lt::torrent_info const& info,
     entry.file_index = file_index;
     entry.head_mib_hint = head_mib > 0 ? head_mib : 8;
     entry.warm_phase = 0;
+    entry.readahead_pieces.clear();
+    entry.readahead_ready = false;
     entry.warm_pieces.clear();
     entry.warm_pieces.insert(entry.warm_pieces.end(),
         entry.tail_pieces.begin(), entry.tail_pieces.end());
@@ -684,6 +723,7 @@ void advance_warm(Entry& entry) {
     if (!info) return;
     if (entry.tail_pieces.empty() && entry.head_pieces.empty()) {
         entry.warm_phase = 2;
+        entry.readahead_ready = true;
         return;
     }
 
@@ -696,6 +736,32 @@ void advance_warm(Entry& entry) {
     compute_warm_bands(*info, entry.file_index, entry.tail_mib_hint, entry.head_mib_hint,
         first_piece, piece_count, tail_start, head_end, ignored_tail, ignored_head);
 
+    if (entry.warm_phase >= 2) {
+        /* Slide deadline window from the first missing piece so Direct Play
+         * keeps a dense prefix ahead of the decoder instead of racing into holes. */
+        if (piece_count <= 0) return;
+        int first_missing = piece_count;
+        for (int p = 0; p < piece_count; ++p) {
+            if (!entry.handle.have_piece(lt::piece_index_t(first_piece + p))) {
+                first_missing = p;
+                break;
+            }
+        }
+        if (first_missing >= piece_count) return;
+        int const window_end = std::min(piece_count, first_missing + 48) - 1;
+        std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+        set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::low_priority);
+        set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
+        set_piece_range_priority(priorities, first_piece, first_missing, window_end, lt::top_priority);
+        entry.handle.prioritize_pieces(priorities);
+        std::vector<lt::piece_index_t> window;
+        window.reserve(static_cast<std::size_t>(window_end - first_missing + 1));
+        for (int p = first_missing; p <= window_end; ++p) {
+            window.push_back(lt::piece_index_t(first_piece + p));
+        }
+        force_piece_deadlines(entry.handle, window);
+        return;
+    }
     if (entry.warm_phase == 0) {
         if (!pieces_complete(entry.handle, entry.tail_pieces)) return;
         entry.warm_phase = 1;
@@ -707,15 +773,25 @@ void advance_warm(Entry& entry) {
     if (entry.warm_phase == 1) {
         if (!pieces_complete(entry.handle, entry.head_pieces)) return;
         entry.warm_phase = 2;
-        apply_sequential_phase(entry.handle, first_piece, piece_count, tail_start, head_end);
+        apply_sequential_phase(entry.handle, first_piece, piece_count, tail_start, head_end,
+            info->piece_length(), entry);
     }
 }
 
 bool warm_complete(Entry& entry) {
     advance_warm(entry);
-    return entry.warm_phase >= 2
-        && pieces_complete(entry.handle, entry.tail_pieces)
-        && pieces_complete(entry.handle, entry.head_pieces);
+    if (entry.warm_phase < 2
+        || !pieces_complete(entry.handle, entry.tail_pieces)
+        || !pieces_complete(entry.handle, entry.head_pieces)) {
+        return false;
+    }
+    if (!entry.readahead_ready) {
+        if (!pieces_complete(entry.handle, entry.readahead_pieces)) return false;
+        entry.readahead_ready = true;
+        std::fprintf(stderr, "[swarmplay] warm readahead ready (%zu pieces)\n",
+            entry.readahead_pieces.size());
+    }
+    return true;
 }
 
 void set_ensure_error(swarm_ensure_result* out, int error) {
@@ -734,6 +810,42 @@ void clear_status(swarm_status_result* out) {
     out->num_peers = 0;
     out->num_seeds = 0;
     out->dht_nodes = 0;
+    out->progress = 0.0f;
+}
+
+/* Map key for a cache-to-library entry -- distinct from the plain stream
+ * key so a concurrent swarm_ensure() stream of the same torrent is never
+ * touched (separate torrent_handle, separate save_path). */
+std::string cache_map_key(std::string const& key, int file_index) {
+    return key + "-cache-" + std::to_string(file_index);
+}
+
+float cache_progress(Entry const& entry) {
+    if (entry.cache_pieces.empty()) return 0.0f;
+    std::size_t have = 0;
+    for (auto piece : entry.cache_pieces) {
+        if (entry.handle.have_piece(piece)) ++have;
+    }
+    return static_cast<float>(have) / static_cast<float>(entry.cache_pieces.size());
+}
+
+/* How close is warm_complete() to flipping true -- NOT the same as raw
+ * libtorrent torrent_status::progress, which is bytes-done / bytes-wanted
+ * and gets a much bigger denominator once the sequential phase widens
+ * "wanted" to the whole file (low_priority still counts). A UI progress bar
+ * driven by that raw value visibly regresses/jumps around; this tracks the
+ * actual gate instead: tail+head (+readahead once phase>=2). */
+float warm_progress(Entry const& entry) {
+    std::vector<lt::piece_index_t> relevant = entry.warm_pieces; // tail ∪ head
+    if (entry.warm_phase >= 2) {
+        relevant.insert(relevant.end(), entry.readahead_pieces.begin(), entry.readahead_pieces.end());
+    }
+    if (relevant.empty()) return 1.0f;
+    std::size_t have = 0;
+    for (auto piece : relevant) {
+        if (entry.handle.have_piece(piece)) ++have;
+    }
+    return static_cast<float>(have) / static_cast<float>(relevant.size());
 }
 
 int session_dht_nodes(Session& session) {
@@ -876,6 +988,7 @@ int swarm_status(const char* btih, swarm_status_result* out) {
     out->num_peers = st.num_peers;
     out->num_seeds = st.num_seeds;
     out->ready = warm_complete(entry->second) ? 1 : 0;
+    out->progress = out->ready ? 1.0f : warm_progress(entry->second);
     out->err = kOk;
     return kOk;
 }
@@ -961,5 +1074,135 @@ int swarm_list_files(const char* source, char* json_out, int json_cap) {
     std::string const json = oss.str();
     if (static_cast<int>(json.size()) + 1 > json_cap) return kInvalidArgument;
     std::snprintf(json_out, static_cast<size_t>(json_cap), "%s", json.c_str());
+    return kOk;
+}
+
+/* --- 0.4 cache-to-library --------------------------------------------
+ * Whole-file, normal-priority download of exactly one file straight into
+ * an operator/library-resolved dest_dir -- no extent-gate/warm dance (that
+ * machinery exists to make Direct Play of a *growing* file safe; here we
+ * withhold "ready" until the file is completely on disk, so there is
+ * nothing to warm). Tracked under its own map key so a concurrent
+ * swarm_ensure() stream of the same torrent is untouched. */
+int swarm_cache_ensure(const char* btih_or_magnet, int file_index,
+                       const char* dest_dir, swarm_ensure_result* out) {
+    if (out == nullptr || file_index < 0 || dest_dir == nullptr || dest_dir[0] == '\0') {
+        set_ensure_error(out, kInvalidArgument);
+        return kInvalidArgument;
+    }
+
+    lt::add_torrent_params params;
+    std::string key;
+    if (!parse_source(btih_or_magnet, params, key)) {
+        set_ensure_error(out, kInvalidArgument);
+        return kInvalidArgument;
+    }
+    std::string const cache_key = cache_map_key(key, file_index);
+
+    Session& session = Session::get();
+    std::unique_lock<std::mutex> lock(session.mutex);
+    std::filesystem::path const save_path(dest_dir);
+
+    int io_error = 0;
+    lt::torrent_handle handle =
+        add_or_get_locked(session, cache_key, std::move(params), save_path, &io_error);
+    if (io_error != 0) {
+        set_ensure_error(out, io_error);
+        return io_error;
+    }
+    if (!handle.is_valid()) {
+        set_ensure_error(out, kInvalidArgument);
+        return kInvalidArgument;
+    }
+
+    lock.unlock();
+    if (!wait_for_metadata(handle)) {
+        set_ensure_error(out, kMetadataTimeout);
+        return kMetadataTimeout;
+    }
+    lock.lock();
+
+    auto const info = handle.torrent_file();
+    if (!info || file_index >= info->files().num_files()) {
+        set_ensure_error(out, kInvalidFileIndex);
+        return kInvalidFileIndex;
+    }
+    persist_metainfo_cache(cache_key, info);
+
+    int first_piece = 0;
+    int piece_count = 0;
+    int tail_start = 0;
+    int head_end = -1;
+    std::vector<lt::piece_index_t> ignored_a;
+    std::vector<lt::piece_index_t> ignored_b;
+    compute_warm_bands(*info, file_index, 1, 1,
+        first_piece, piece_count, tail_start, head_end, ignored_a, ignored_b);
+
+    std::string const file_path =
+        info->files().file_path(lt::file_index_t(file_index), save_path.string());
+
+    auto existing = session.torrents.find(cache_key);
+    if (existing == session.torrents.end()) {
+        Entry entry;
+        entry.handle = handle;
+        entry.path = file_path;
+        entry.file_index = file_index;
+        entry.cache_pieces.reserve(static_cast<std::size_t>(piece_count));
+        for (int p = 0; p < piece_count; ++p) {
+            entry.cache_pieces.push_back(lt::piece_index_t(first_piece + p));
+        }
+        session.torrents[cache_key] = std::move(entry);
+    } else {
+        existing->second.handle = handle;
+        existing->second.path = file_path;
+    }
+
+    /* Target file at normal priority, every other file off -- v0.4 caches
+     * exactly one chosen episode/movie file, never a whole batch. */
+    int const total_pieces = info->num_pieces();
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+    set_piece_range_priority(priorities, 0, 0, total_pieces - 1, lt::dont_download);
+    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::default_priority);
+    handle.prioritize_pieces(priorities);
+
+    auto& stored = session.torrents[cache_key];
+    bool const complete = pieces_complete(stored.handle, stored.cache_pieces);
+    out->path = stored.path.c_str();
+    out->ready = complete ? 1 : 0;
+    out->err = kOk;
+    std::fprintf(stderr,
+        "[swarmplay] cache-to-library started file_index=%d dest=%s pieces=%d complete=%d\n",
+        file_index, dest_dir, piece_count, complete ? 1 : 0);
+    return kOk;
+}
+
+int swarm_cache_status(const char* btih_or_magnet, int file_index, swarm_status_result* out) {
+    if (out == nullptr) return kInvalidArgument;
+    clear_status(out);
+
+    lt::add_torrent_params params;
+    std::string key;
+    if (!parse_source(btih_or_magnet, params, key)) {
+        return kInvalidArgument;
+    }
+    std::string const cache_key = cache_map_key(key, file_index);
+
+    Session& session = Session::get();
+    std::lock_guard<std::mutex> lock(session.mutex);
+    out->dht_nodes = session_dht_nodes(session);
+
+    auto const entry = session.torrents.find(cache_key);
+    if (entry == session.torrents.end()) {
+        out->err = kInvalidArgument;
+        return kInvalidArgument;
+    }
+
+    lt::torrent_status const st = entry->second.handle.status();
+    out->has_metadata = entry->second.handle.torrent_file() ? 1 : 0;
+    out->num_peers = st.num_peers;
+    out->num_seeds = st.num_seeds;
+    out->ready = pieces_complete(entry->second.handle, entry->second.cache_pieces) ? 1 : 0;
+    out->progress = out->ready ? 1.0f : cache_progress(entry->second);
+    out->err = kOk;
     return kOk;
 }

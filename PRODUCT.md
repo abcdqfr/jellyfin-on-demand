@@ -22,7 +22,7 @@ growing file path on virtual item (O6a + O2a)
 Jellyfin ffmpeg / client
 ```
 
-Roadmap (not MVP): **0.2** search history; **0.3** library promote / archival;
+Roadmap (not MVP): **0.2** search history; **0.3** batch episode fanout; **0.4** library promote / archival;
 later O7b sidecar `swarmplayd` — see [`ROADMAP.md`](ROADMAP.md).
 
 ## Owns
@@ -37,7 +37,11 @@ later O7b sidecar `swarmplayd` — see [`ROADMAP.md`](ROADMAP.md).
 
 ## Non-goals
 
-- `.strm` files or a JF library-scanner tree (virtual items are O6a, not STRM).
+- `.strm` files or a JF library-scanner tree as the **core Play/Lucky path**
+  (virtual items are O6a, not STRM). The one narrow, opt-in exception is
+  **Add to Library → Stream** (0.4.1), which writes a real `.strm` pointer by
+  explicit request — see [ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md).
+  Play and Lucky are untouched by that ADR.
 - Sister-product-style HTTP `/v1/stream/...` media server.
 - In-process anacrolix (or any Go torrent stack) as product identity.
 - Sonarr, Radarr, Prowlarr, Seerr **as a required service**, or fake qBittorrent.

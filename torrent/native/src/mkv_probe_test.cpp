@@ -23,6 +23,7 @@ using swarmplay::mkv::CueProbeResult;
 using swarmplay::mkv::HeadProbeResult;
 using swarmplay::mkv::find_cues;
 using swarmplay::mkv::kElementAttachments;
+using swarmplay::mkv::kElementCluster;
 using swarmplay::mkv::kElementCueClusterPosition;
 using swarmplay::mkv::kElementCuePoint;
 using swarmplay::mkv::kElementCues;
@@ -311,11 +312,70 @@ void test_no_cues_at_all_reports_not_found() {
     CHECK(!find_cues(plain.data(), 0, 0, 0).found);
 }
 
+
+// strmarr headAttachmentsReady: Tracks then a truncated Attachments must NOT
+// clear the gate -- grow until font FileData is fully present.
+void test_truncated_attachments_after_tracks_is_retryable() {
+    Builder b;
+    {
+        std::size_t const p = b.begin_master(kElementEbmlHeader, 1);
+        b.put_bytes({0x01});
+        b.end_master(p, 1);
+    }
+    std::size_t const segment_pos = b.begin_master(kElementSegment, 8);
+    std::size_t const tracks_pos = b.begin_master(kElementTracks, 2);
+    put_minimal_track_entry(b);
+    b.end_master(tracks_pos, 2);
+    // Attachments header claiming 64 bytes of content, but only supply 4.
+    b.put_id(kElementAttachments);
+    b.put_size(64, 1);
+    b.put_bytes({0xDE, 0xAD, 0xBE, 0xEF});
+    // Leave Segment open/truncated on purpose (no end_master) -- mirrors a
+    // short read window mid-Attachments.
+    (void)segment_pos;
+
+    HeadProbeResult const result = parse_head(b.buf.data(), b.buf.size());
+    CHECK(!result.ok);
+}
+
+// Full Attachments after Tracks: bytes_consumed must extend through fonts,
+// not stop at Tracks (strmarr BytesRead / extentHeadRequired).
+void test_attachments_extend_bytes_consumed() {
+    Builder b;
+    {
+        std::size_t const p = b.begin_master(kElementEbmlHeader, 1);
+        b.put_bytes({0x01});
+        b.end_master(p, 1);
+    }
+    std::size_t const segment_pos = b.begin_master(kElementSegment, 8);
+    std::size_t const tracks_pos = b.begin_master(kElementTracks, 2);
+    put_minimal_track_entry(b);
+    b.end_master(tracks_pos, 2);
+    std::size_t const tracks_end = b.buf.size();
+    std::size_t const att_pos = b.begin_master(kElementAttachments, 2);
+    b.put_bytes({0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88}); // stand-in FileData
+    b.end_master(att_pos, 2);
+    std::size_t const att_end = b.buf.size();
+    // Cluster marks end of head region.
+    std::size_t const cluster_pos = b.begin_master(kElementCluster, 1);
+    b.put_bytes({0x00});
+    b.end_master(cluster_pos, 1);
+    b.end_master(segment_pos, 8);
+
+    HeadProbeResult const result = parse_head(b.buf.data(), b.buf.size());
+    CHECK(result.ok);
+    CHECK(result.num_tracks_found == 1);
+    CHECK(result.bytes_consumed == static_cast<std::int64_t>(att_end));
+    CHECK(result.bytes_consumed > static_cast<std::int64_t>(tracks_end));
+}
+
 } // namespace
 
 int main() {
     test_valid_head_parses();
     test_truncated_head_is_retryable_not_crash();
+    test_truncated_attachments_after_tracks_is_retryable();
+    test_attachments_extend_bytes_consumed();
     test_cues_past_naive_first_guess_window();
     test_false_positive_cues_id_is_skipped();
     test_no_cues_at_all_reports_not_found();

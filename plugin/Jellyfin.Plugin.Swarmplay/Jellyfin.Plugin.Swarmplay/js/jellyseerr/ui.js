@@ -394,6 +394,8 @@
             .jellyseerr-swarm-actions { display: flex; flex-wrap: wrap; gap: 0.4em; justify-content: center; width: 100%; }
             .jellyseerr-request-button.jellyseerr-button-swarmplay-lucky { background-color: #0f766e !important; color: #fff !important; }
             .jellyseerr-request-button.jellyseerr-button-swarmplay-lucky:hover:not(:disabled) { background-color: #0d9488 !important; transform: translateY(-2px); }
+            .jellyseerr-request-button.jellyseerr-button-swarmplay-library { background-color: #4338ca !important; color: #fff !important; }
+            .jellyseerr-request-button.jellyseerr-button-swarmplay-library:hover:not(:disabled) { background-color: #4f46e5 !important; transform: translateY(-2px); }
             .jellyseerr-request-button.jellyseerr-button-request { background-color: #5a3fb8 !important; color: #fff !important; }
             .jellyseerr-request-button.jellyseerr-button-request:hover:not(:disabled) { background-color: #6b4bb5 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(90, 63, 184, 0.4); }
             .jellyseerr-request-button.jellyseerr-button-pending { background-color: #b45309 !important; color: #fff !important; }
@@ -1557,6 +1559,33 @@
                     await JE.playFeelingLucky(playCtx);
                 } finally {
                     lucky.disabled = false;
+                }
+            };
+
+            let library = actions.querySelector('.jellyseerr-button-swarmplay-library');
+            if (!library) {
+                library = document.createElement('button');
+                library.type = 'button';
+                library.className = 'jellyseerr-request-button jellyseerr-button-swarmplay-library';
+                actions.appendChild(library);
+            }
+            library.innerHTML = `<span>Library</span>`;
+            library.disabled = false;
+            library.title = 'Stream now, or download straight into your Jellyfin library';
+            library.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof JE.swarmAddToLibrary !== 'function') {
+                    if (typeof JE.toast === 'function') {
+                        JE.toast('Swarmplay: add-to-library not loaded', 4000);
+                    }
+                    return;
+                }
+                library.disabled = true;
+                try {
+                    await JE.swarmAddToLibrary(playCtx);
+                } finally {
+                    library.disabled = false;
                 }
             };
             return;

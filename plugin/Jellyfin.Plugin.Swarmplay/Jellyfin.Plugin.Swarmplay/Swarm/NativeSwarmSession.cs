@@ -32,6 +32,7 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             public int NumPeers;
             public int NumSeeds;
             public int DhtNodes;
+            public float Progress;
         }
 
         [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -57,6 +58,19 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             [MarshalAs(UnmanagedType.LPStr)] string source,
             byte[] jsonOut,
             int jsonCap);
+
+        [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern int swarm_cache_ensure(
+            [MarshalAs(UnmanagedType.LPStr)] string btihOrMagnet,
+            int fileIndex,
+            [MarshalAs(UnmanagedType.LPStr)] string destDir,
+            out SwarmEnsureResultNative result);
+
+        [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern int swarm_cache_status(
+            [MarshalAs(UnmanagedType.LPStr)] string btihOrMagnet,
+            int fileIndex,
+            out SwarmStatusResultNative result);
 
         internal static ISwarmSession CreateOrStub()
         {
@@ -120,6 +134,73 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                     NumPeers = nativeResult.NumPeers,
                     NumSeeds = nativeResult.NumSeeds,
                     DhtNodes = nativeResult.DhtNodes,
+                    Progress = nativeResult.Progress,
+                    Error = errorCode == 0 ? null : $"native_error_{errorCode}",
+                    ErrorCode = errorCode == 0 ? null : errorCode
+                };
+                if (result.Error != null)
+                {
+                    var (code, message, n) = SwarmErrorText.Describe(result.ErrorCode, result.Error);
+                    result.Error = code;
+                    result.Message = message;
+                    result.ErrorCode = n;
+                }
+
+                return result;
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// 0.4 cache-to-library: whole-file download straight into <paramref name="destDir"/>
+        /// (no extent-gate/warm dance — this is archival, not playback). Returns immediately;
+        /// poll <see cref="CacheStatusAsync"/> for progress/completion.
+        /// </summary>
+        public Task<SwarmEnsureResult> CacheEnsureAsync(
+            string btihOrMagnet,
+            int fileIndex,
+            string destDir,
+            CancellationToken cancellationToken)
+        {
+            return Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var source = PreferAsciiSource(new SwarmEnsureRequest { Btih = btihOrMagnet, Magnet = btihOrMagnet });
+                var resultCode = swarm_cache_ensure(source, fileIndex, destDir, out var nativeResult);
+                var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var result = new SwarmEnsureResult
+                {
+                    Path = nativeResult.Path == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(nativeResult.Path),
+                    Ready = nativeResult.Ready != 0,
+                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "caching") : "error",
+                    Error = errorCode == 0 ? null : $"native_error_{errorCode}",
+                    ErrorCode = errorCode == 0 ? null : errorCode
+                };
+                SwarmErrorText.Apply(result);
+                return result;
+            }, cancellationToken);
+        }
+
+        public Task<SwarmStatusResult> CacheStatusAsync(
+            string btihOrMagnet,
+            int fileIndex,
+            CancellationToken cancellationToken)
+        {
+            return Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var source = PreferAsciiSource(new SwarmEnsureRequest { Btih = btihOrMagnet, Magnet = btihOrMagnet });
+                var resultCode = swarm_cache_status(source, fileIndex, out var nativeResult);
+                var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var result = new SwarmStatusResult
+                {
+                    Ready = nativeResult.Ready != 0,
+                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "caching") : "error",
+                    HasMetadata = nativeResult.HasMetadata != 0,
+                    Peers = nativeResult.NumPeers,
+                    NumPeers = nativeResult.NumPeers,
+                    NumSeeds = nativeResult.NumSeeds,
+                    DhtNodes = nativeResult.DhtNodes,
+                    Progress = nativeResult.Progress,
                     Error = errorCode == 0 ? null : $"native_error_{errorCode}",
                     ErrorCode = errorCode == 0 ? null : errorCode
                 };

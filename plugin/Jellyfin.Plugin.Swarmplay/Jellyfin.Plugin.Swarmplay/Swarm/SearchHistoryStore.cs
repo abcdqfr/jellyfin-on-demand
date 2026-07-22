@@ -20,6 +20,7 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public string SearchedAt { get; set; } = string.Empty;
         public string? LastPlayedAt { get; set; }
         public string? LastBtih { get; set; }
+        public int? LastFileIndex { get; set; }
         public string? LastReleaseTitle { get; set; }
         public bool Pinned { get; set; }
     }
@@ -222,6 +223,11 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                     dest.LastBtih = src.LastBtih.Trim().ToLowerInvariant();
                 }
 
+                if (src.LastFileIndex is >= 0)
+                {
+                    dest.LastFileIndex = src.LastFileIndex;
+                }
+
                 if (!string.IsNullOrWhiteSpace(src.LastReleaseTitle))
                 {
                     dest.LastReleaseTitle = src.LastReleaseTitle.Trim();
@@ -300,6 +306,7 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             SearchedAt = e.SearchedAt,
             LastPlayedAt = e.LastPlayedAt,
             LastBtih = e.LastBtih,
+            LastFileIndex = e.LastFileIndex,
             LastReleaseTitle = e.LastReleaseTitle,
             Pinned = e.Pinned
         };

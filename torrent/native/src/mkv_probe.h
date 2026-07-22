@@ -47,23 +47,23 @@ constexpr std::uint32_t kElementCueClusterPosition = 0xF1;
 constexpr int kTrackTypeVideo = 1;
 constexpr int kTrackTypeSubtitle = 0x11;
 
-// Result of walking the MKV head (EBML header + Segment -> Tracks) from
-// offset 0 of a buffer.
+// Result of walking the MKV head (EBML header + Segment -> Tracks and
+// Attachments) from offset 0 of a buffer.
 struct HeadProbeResult {
     bool ok = false;
-    std::int64_t bytes_consumed = 0;
+    std::int64_t bytes_consumed = 0; // Through Tracks + Attachments (strmarr BytesRead).
     std::int64_t segment_offset = 0;
     int num_tracks_found = 0;
 };
 
-// Walks top-level elements from offset 0 of `data` looking for
-// Segment -> Tracks with at least one valid TrackEntry (a TrackEntry that
-// carries both a TrackNumber and a TrackType child). Only descends into
-// Tracks/Attachments; every other element (SeekHead, Info, Cluster, Cues,
-// ...) is skipped by its declared EBML size, never parsed.
+// Walks top-level elements from offset 0 of `data` looking for Segment ->
+// Tracks (at least one valid TrackEntry) and, when present, a complete
+// Attachments element (font FileData must be in-buffer -- strmarr
+// headAttachmentsReady). Skips SeekHead/Info/etc by declared size; stops at
+// Cluster (end of head region). Does not clear ok at Tracks alone.
 //
-// `ok == false` means "retryable": the buffer ended before Tracks could be
-// confirmed (either mid-header or mid-element). The caller should grow the
+// `ok == false` means "retryable": the buffer ended before Tracks+Attachments
+// (or Cluster-after-Tracks) could be confirmed. The caller should grow the
 // buffer (double it, per ADR-007) and retry -- this function never throws
 // and never reads past `len`.
 HeadProbeResult parse_head(const std::uint8_t* data, std::size_t len);

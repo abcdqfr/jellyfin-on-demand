@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -64,6 +65,51 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             CancellationToken cancellationToken)
         {
             return _swarmSession.StatusAsync(btih, cancellationToken);
+        }
+
+        /// <summary>
+        /// List torrent files (metadata fetch) for in-release episode pick — 0.3 batch fanout.
+        /// </summary>
+        [HttpPost("list-files")]
+        [Authorize]
+        public async Task<IActionResult> ListFiles(
+            [FromBody] SwarmEnsureRequest request,
+            CancellationToken cancellationToken)
+        {
+            request ??= new SwarmEnsureRequest();
+            var btih = string.IsNullOrWhiteSpace(request.Btih)
+                ? MagnetSanitizer.ExtractBtih(request.Magnet)
+                : request.Btih.Trim().ToLowerInvariant();
+            request.Btih = btih;
+            var asciiMagnet = MagnetSanitizer.BuildAsciiMagnet(request.Magnet, btih);
+            if (!string.IsNullOrEmpty(asciiMagnet))
+            {
+                request.Magnet = asciiMagnet;
+            }
+
+            var source = !string.IsNullOrEmpty(request.Magnet)
+                ? request.Magnet
+                : (btih ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                return BadRequest(new { error = "missing_source", message = "Magnet or btih required." });
+            }
+
+            var files = await _swarmSession.ListFilesAsync(source, cancellationToken).ConfigureAwait(false);
+            var rows = files.Select(f =>
+            {
+                var (season, episode, confidence) = FileIndexPicker.TryParseEpisode(f.Path);
+                return new
+                {
+                    index = f.Index,
+                    size = f.Size,
+                    path = f.Path,
+                    season,
+                    episode,
+                    confidence
+                };
+            }).ToList();
+            return Ok(new { btih, files = rows });
         }
 
         /// <summary>
@@ -161,21 +207,7 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
 
             // Resolve metadata + file list, then strmarr-style file_index pick.
-            // Prefer sanitized magnet (trackers) over bare btih.
-            var source = !string.IsNullOrEmpty(request.Magnet)
-                ? request.Magnet
-                : (btih ?? string.Empty);
-            if (!string.IsNullOrEmpty(source)
-                && (request.Season is > 0 || request.Episode is > 0
-                    || string.Equals(request.MediaType, "movie", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(request.MediaType, "tv", StringComparison.OrdinalIgnoreCase)))
-            {
-                var files = await _swarmSession.ListFilesAsync(source, cancellationToken).ConfigureAwait(false);
-                if (files.Count > 0)
-                {
-                    request.FileIndex = FileIndexPicker.Pick(files, request.Season, request.Episode, request.MediaType);
-                }
-            }
+            await ResolveFileIndexAsync(request, cancellationToken).ConfigureAwait(false);
 
             var ensure = await _swarmSession.EnsureAsync(request, cancellationToken).ConfigureAwait(false);
             var ready = ensure.Ready;
@@ -260,6 +292,323 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             };
             SwarmErrorText.Apply(bind);
             return Ok(bind);
+        }
+
+        /// <summary>
+        /// Shared strmarr-style file_index pick (ensure/play-bind/cache-bind all need it):
+        /// prefer sanitized magnet (trackers) over bare btih; FileIndexExplicit (episode
+        /// picker) keeps the client-chosen index unless it is out of range.
+        /// </summary>
+        private async Task ResolveFileIndexAsync(SwarmEnsureRequest request, CancellationToken cancellationToken)
+        {
+            var source = !string.IsNullOrEmpty(request.Magnet)
+                ? request.Magnet
+                : (request.Btih ?? string.Empty);
+            if (string.IsNullOrEmpty(source)
+                || !(request.FileIndexExplicit
+                    || request.Season is > 0 || request.Episode is > 0
+                    || string.Equals(request.MediaType, "movie", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(request.MediaType, "tv", StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            var files = await _swarmSession.ListFilesAsync(source, cancellationToken).ConfigureAwait(false);
+            if (files.Count == 0)
+            {
+                return;
+            }
+
+            if (request.FileIndexExplicit)
+            {
+                var maxIdx = files.Max(f => f.Index);
+                if (request.FileIndex < 0 || request.FileIndex > maxIdx)
+                {
+                    request.FileIndex = FileIndexPicker.Pick(files, request.Season, request.Episode, request.MediaType);
+                }
+            }
+            else
+            {
+                request.FileIndex = FileIndexPicker.Pick(files, request.Season, request.Episode, request.MediaType);
+            }
+        }
+
+        /// <summary>
+        /// 0.4 cache-to-library: whole-file download straight into a real, already-scanned
+        /// Jellyfin library folder (movies/tvshows resolved automatically by MediaType — no
+        /// virtual item, no ephemeral swarm cache, no hardlink/copy step). Returns
+        /// immediately; poll <c>GET cache-status</c> for progress/completion.
+        /// </summary>
+        [HttpPost("cache-bind")]
+        [Authorize]
+        public async Task<ActionResult<SwarmCacheBindResult>> CacheBind(
+            [FromBody] SwarmEnsureRequest request,
+            CancellationToken cancellationToken)
+        {
+            request ??= new SwarmEnsureRequest();
+            var btih = string.IsNullOrWhiteSpace(request.Btih)
+                ? MagnetSanitizer.ExtractBtih(request.Magnet)
+                : request.Btih.Trim().ToLowerInvariant();
+            request.Btih = btih;
+            var asciiMagnet = MagnetSanitizer.BuildAsciiMagnet(request.Magnet, btih);
+            if (!string.IsNullOrEmpty(asciiMagnet))
+            {
+                request.Magnet = asciiMagnet;
+            }
+
+            await ResolveFileIndexAsync(request, cancellationToken).ConfigureAwait(false);
+
+            var libraryFolder = ResolveLibraryVirtualFolder(request.MediaType);
+            if (libraryFolder == null || libraryFolder.Locations.Length == 0)
+            {
+                var wantMovies = IsMovieType(request.MediaType);
+                return Ok(new SwarmCacheBindResult
+                {
+                    Btih = btih ?? string.Empty,
+                    FileIndex = request.FileIndex,
+                    MediaType = request.MediaType,
+                    Ready = false,
+                    Phase = "error",
+                    Error = "no_library",
+                    Message = $"No Jellyfin {(wantMovies ? "Movies" : "TV Shows")} library found — "
+                        + "add one in the Jellyfin Dashboard (Libraries) first, then retry."
+                });
+            }
+
+            var isTv = !IsMovieType(request.MediaType);
+            var titleFolder = SanitizeFolderName(request.DisplayName);
+            var destDir = isTv && request.Season is > 0
+                ? Path.Combine(libraryFolder.Locations[0], titleFolder, $"Season {request.Season:00}")
+                : Path.Combine(libraryFolder.Locations[0], titleFolder);
+
+            var source = !string.IsNullOrEmpty(request.Magnet) ? request.Magnet : (btih ?? string.Empty);
+            var ensure = await _swarmSession.CacheEnsureAsync(source, request.FileIndex, destDir, cancellationToken)
+                .ConfigureAwait(false);
+
+            var result = new SwarmCacheBindResult
+            {
+                Btih = btih ?? string.Empty,
+                FileIndex = request.FileIndex,
+                MediaType = request.MediaType,
+                Path = ensure.Path,
+                Ready = ensure.Ready,
+                Phase = ensure.Phase,
+                Error = ensure.Error,
+                Message = ensure.Message,
+                ErrorCode = ensure.ErrorCode
+            };
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Poll progress for a cache-bind. On the first poll where the native side reports
+        /// the whole target file complete, triggers a real (targeted) Jellyfin library scan
+        /// of just that library folder once — the file becomes a normal library item with
+        /// normal watched-tracking, no virtual-item code involved.
+        /// </summary>
+        [HttpGet("cache-status")]
+        [Authorize]
+        public async Task<ActionResult<SwarmStatusResult>> CacheStatus(
+            [FromQuery] string btih,
+            [FromQuery] int fileIndex,
+            [FromQuery] string? mediaType,
+            CancellationToken cancellationToken)
+        {
+            var status = await _swarmSession.CacheStatusAsync(btih, fileIndex, cancellationToken).ConfigureAwait(false);
+            if (status.Ready)
+            {
+                await FinalizeCacheAsync(btih, fileIndex, mediaType, cancellationToken).ConfigureAwait(false);
+            }
+
+            return Ok(status);
+        }
+
+        private static readonly ConcurrentDictionary<string, bool> _cacheFinalized = new();
+
+        private async Task FinalizeCacheAsync(
+            string btih,
+            int fileIndex,
+            string? mediaType,
+            CancellationToken cancellationToken)
+        {
+            var key = $"{btih}:{fileIndex}";
+            if (!_cacheFinalized.TryAdd(key, true))
+            {
+                return; // already scanned once for this file
+            }
+
+            await TriggerLibraryScanAsync(ResolveLibraryVirtualFolder(mediaType), cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Targeted (folder-scoped, not full-library) rescan so a newly-written file —
+        /// cached or a .strm pointer — shows up as a normal item without waiting for
+        /// Jellyfin's own scheduled scan. Shared by cache-to-library finalize and
+        /// stream-bind (both write directly under a resolved library folder).
+        /// </summary>
+        private async Task TriggerLibraryScanAsync(VirtualFolderInfo? libraryFolder, CancellationToken cancellationToken)
+        {
+            if (libraryFolder?.ItemId == null
+                || !Guid.TryParse(libraryFolder.ItemId, out var folderId)
+                || _libraryManager.GetItemById(folderId) is not Folder folder)
+            {
+                return;
+            }
+
+            try
+            {
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
+                await folder.ValidateChildren(
+                    new Progress<double>(),
+                    new MetadataRefreshOptions(_directoryService),
+                    recursive: true,
+                    allowRemoveRoot: false,
+                    timeout.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Scan keeps running inside Jellyfin's own library thread; not fatal here.
+            }
+        }
+
+        /// <summary>
+        /// "Stream" side of Add to Library (hotfix correction — this is the strmarr-style
+        /// pointer, NOT the same flow as the plain Play button): writes a real, permanent
+        /// .strm file into the resolved Jellyfin library. Its content is the client-built,
+        /// already-authenticated on-demand stream URL (<see cref="Stream"/>) — Jellyfin (or
+        /// ffprobe on next scan) only pulls bytes through the swarm when something actually
+        /// opens the item. No download, no ephemeral cache row, no virtual item.
+        /// </summary>
+        [HttpPost("stream-bind")]
+        [Authorize]
+        public async Task<ActionResult<SwarmCacheBindResult>> StreamBind(
+            [FromBody] SwarmEnsureRequest request,
+            CancellationToken cancellationToken)
+        {
+            request ??= new SwarmEnsureRequest();
+            var btih = string.IsNullOrWhiteSpace(request.Btih)
+                ? MagnetSanitizer.ExtractBtih(request.Magnet)
+                : request.Btih.Trim().ToLowerInvariant();
+            request.Btih = btih;
+
+            if (string.IsNullOrWhiteSpace(request.StreamUrl))
+            {
+                return Ok(new SwarmCacheBindResult
+                {
+                    Btih = btih ?? string.Empty,
+                    FileIndex = request.FileIndex,
+                    MediaType = request.MediaType,
+                    Ready = false,
+                    Phase = "error",
+                    Error = "missing_stream_url",
+                    Message = "No stream URL supplied — cannot write a .strm pointer."
+                });
+            }
+
+            await ResolveFileIndexAsync(request, cancellationToken).ConfigureAwait(false);
+
+            var libraryFolder = ResolveLibraryVirtualFolder(request.MediaType);
+            if (libraryFolder == null || libraryFolder.Locations.Length == 0)
+            {
+                var wantMovies = IsMovieType(request.MediaType);
+                return Ok(new SwarmCacheBindResult
+                {
+                    Btih = btih ?? string.Empty,
+                    FileIndex = request.FileIndex,
+                    MediaType = request.MediaType,
+                    Ready = false,
+                    Phase = "error",
+                    Error = "no_library",
+                    Message = $"No Jellyfin {(wantMovies ? "Movies" : "TV Shows")} library found — "
+                        + "add one in the Jellyfin Dashboard (Libraries) first, then retry."
+                });
+            }
+
+            var isTv = !IsMovieType(request.MediaType);
+            var titleFolder = SanitizeFolderName(request.DisplayName);
+            var destDir = isTv && request.Season is > 0
+                ? Path.Combine(libraryFolder.Locations[0], titleFolder, $"Season {request.Season:00}")
+                : Path.Combine(libraryFolder.Locations[0], titleFolder);
+            var fileName = isTv && request.Season is > 0 && request.Episode is > 0
+                ? $"{titleFolder} - S{request.Season:00}E{request.Episode:00}.strm"
+                : $"{titleFolder}.strm";
+            var destPath = Path.Combine(destDir, fileName);
+
+            try
+            {
+                Directory.CreateDirectory(destDir);
+                await System.IO.File.WriteAllTextAsync(
+                        destPath,
+                        request.StreamUrl!.Trim() + Environment.NewLine,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new SwarmCacheBindResult
+                {
+                    Btih = btih ?? string.Empty,
+                    FileIndex = request.FileIndex,
+                    MediaType = request.MediaType,
+                    Ready = false,
+                    Phase = "error",
+                    Error = "strm_write_failed",
+                    Message = $"Could not write .strm pointer: {ex.Message}"
+                });
+            }
+
+            // Bounded, folder-scoped scan so the item is browsable right away — same
+            // helper the cache-to-library finalize path uses once its download completes.
+            await TriggerLibraryScanAsync(libraryFolder, cancellationToken).ConfigureAwait(false);
+
+            return Ok(new SwarmCacheBindResult
+            {
+                Btih = btih ?? string.Empty,
+                FileIndex = request.FileIndex,
+                MediaType = request.MediaType,
+                Path = destPath,
+                Ready = true,
+                Phase = "ready"
+            });
+        }
+
+        private static bool IsMovieType(string? mediaType)
+            => string.Equals(mediaType, "movie", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Auto-resolve the destination library by MediaType (movies vs tvshows) — no
+        /// per-item prompt, per the 0.4 cache-to-library design: movie → Movies library,
+        /// series → TV Shows library. Deterministic pick (Name ascending) when more than
+        /// one library shares that collection type.
+        /// </summary>
+        private VirtualFolderInfo? ResolveLibraryVirtualFolder(string? mediaType)
+        {
+            var target = IsMovieType(mediaType) ? CollectionTypeOptions.movies : CollectionTypeOptions.tvshows;
+            return _libraryManager.GetVirtualFolders()
+                .Where(f => f.CollectionType == target && f.Locations is { Length: > 0 })
+                .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+        }
+
+        private static string SanitizeFolderName(string? name)
+        {
+            var trimmed = (name ?? string.Empty).Trim();
+            if (trimmed.Length == 0)
+            {
+                return "Swarmplay";
+            }
+
+            var invalid = Path.GetInvalidFileNameChars();
+            var sb = new StringBuilder(trimmed.Length);
+            foreach (var c in trimmed)
+            {
+                sb.Append(Array.IndexOf(invalid, c) >= 0 ? '_' : c);
+            }
+
+            var cleaned = sb.ToString().Trim();
+            return cleaned.Length == 0 ? "Swarmplay" : cleaned;
         }
 
         /// <summary>

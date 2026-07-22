@@ -188,6 +188,14 @@ def main() -> None:
         )
     if "deleteHistory" not in history_js or "clearHistory" not in history_js:
         fail("history.js dropdown must offer per-entry remove and a clear-history action")
+    if "focusin" not in history_js or "pointerdown" not in history_js:
+        fail("history.js must open on first click via capture focusin/pointerdown")
+    if "playLast" not in history_js or "searchAgain" not in history_js:
+        fail("history.js must offer play-last + search-again actions (not jellyseerrMoreInfo)")
+    if "showEpisodePicker" not in history_js:
+        fail("history.js playLast must reopen the episode picker for multi-file TV entries")
+    if "jellyseerrMoreInfo.open" in history_js or "jellyseerrMoreInfo?.open" in history_js:
+        fail("history.js must not call jellyseerrMoreInfo.open (Failed to load media information)")
     if "listHistory" not in api_js or "upsertHistory" not in api_js or "clearHistory" not in api_js:
         fail("api.js must expose history CRUD helpers")
     if '"history"' not in ctrl and 'HttpGet("history")' not in ctrl:
@@ -206,6 +214,88 @@ def main() -> None:
         fail("releases.js must auto-record search + play into history")
     if "recordPlay" not in lucky:
         fail("lucky.js must auto-record play-bind ready into history")
+
+    # 0.3 batch episode fanout
+    if "listFiles" not in api_js:
+        fail("api.js must expose listFiles → POST /list-files")
+    if 'HttpPost("list-files")' not in ctrl:
+        fail("SwarmController must expose POST /list-files")
+    if "showEpisodePicker" not in releases or "FileIndexExplicit" not in releases:
+        fail("releases.js must offer episode-in-batch picker with FileIndexExplicit")
+    if "swarmplay-ep-table" not in releases or "data-sort" not in releases:
+        fail("releases.js episode picker must be a sortable table (data-sort columns)")
+    if "swarmPlayLucky" not in releases:
+        fail("releases.js must expose swarmPlayLucky (rank-top + episode picker, no silent TV pick)")
+    if "swarmShowWarmOverlay" not in releases:
+        fail("releases.js must use warm overlay during play-bind")
+    lucky_full = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
+    if "swarmSetBatchSession" not in lucky_full or "playBatchNeighbor" not in lucky_full:
+        fail("lucky.js must expose batch prev/next neighbor play")
+    if "swarmShowWarmOverlay" not in lucky_full:
+        fail("lucky.js must export swarmShowWarmOverlay")
+    if "btnPreviousTrack" not in lucky_full or "btnNextTrack" not in lucky_full:
+        fail("lucky.js must hijack native .btnPreviousTrack/.btnNextTrack (no floating batch chrome)")
+    seq_cpp = (ROOT / "torrent/native/src/session_stub.cpp").read_text(encoding="utf-8", errors="replace")
+    if "readahead_pieces" not in seq_cpp:
+        fail("sequential phase must force readahead piece deadlines (anti blaze-ahead)")
+    if "readahead_ready" not in seq_cpp:
+        fail("warm_complete must gate Play on contiguous readahead_ready (anti blaze-ahead)")
+    session_cs = (
+        ROOT
+        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/ISwarmSession.cs"
+    ).read_text(encoding="utf-8", errors="replace")
+    if "FileIndexExplicit" not in session_cs:
+        fail("SwarmEnsureRequest must carry FileIndexExplicit")
+    if "TryParseEpisode" not in session_cs:
+        fail("FileIndexPicker must expose TryParseEpisode")
+    if "NormalizeAbsoluteSeasonEpisodes" not in session_cs:
+        fail("FileIndexPicker must port strmarr absolute-episode normalize")
+
+    # 0.4 cache-to-library
+    if "CacheEnsureAsync" not in session_cs or "CacheStatusAsync" not in session_cs:
+        fail("ISwarmSession must expose CacheEnsureAsync/CacheStatusAsync (0.4)")
+    if "SwarmCacheBindResult" not in session_cs:
+        fail("ISwarmSession must define SwarmCacheBindResult (0.4)")
+    if "swarm_cache_ensure" not in seq_cpp or "swarm_cache_status" not in seq_cpp:
+        fail("native must expose swarm_cache_ensure/swarm_cache_status (0.4 whole-file download)")
+    native_header = (
+        ROOT / "torrent/native/include/swarmplay_session.h"
+    ).read_text(encoding="utf-8", errors="replace")
+    if "swarm_cache_ensure" not in native_header or "float progress" not in native_header:
+        fail("swarmplay_session.h must declare swarm_cache_ensure + progress ABI field (0.4)")
+    if 'HttpPost("cache-bind")' not in ctrl or 'HttpGet("cache-status")' not in ctrl:
+        fail("SwarmController must expose POST cache-bind + GET cache-status (0.4)")
+    if "ResolveLibraryVirtualFolder" not in ctrl or "ValidateChildren" not in ctrl:
+        fail("SwarmController must auto-resolve a JF library by MediaType and scan it on cache complete (0.4)")
+    if "cacheBind" not in api_js or "cacheStatus" not in api_js:
+        fail("api.js must expose cacheBind/cacheStatus (0.4)")
+    if "swarmAddToLibrary" not in releases or "cacheBindAndStart" not in releases:
+        fail("releases.js must expose swarmAddToLibrary + cacheBindAndStart (0.4)")
+    if "jellyseerr-button-swarmplay-library" not in (PLUGIN_JS / "jellyseerr/ui.js").read_text(
+        encoding="utf-8", errors="replace"
+    ):
+        fail("ui.js missing Add to Library button (jellyseerr-button-swarmplay-library)")
+
+    # 0.4.1 hotfix: "Stream" = real .strm library pointer (strmarr-style), not the
+    # plain Play button's ephemeral flow — and readahead/progress regression fixes.
+    if "StreamUrl" not in session_cs:
+        fail("SwarmEnsureRequest must carry StreamUrl (stream-bind .strm pointer content)")
+    if 'HttpPost("stream-bind")' not in ctrl:
+        fail("SwarmController must expose POST stream-bind (.strm pointer, strmarr-style)")
+    if "TriggerLibraryScanAsync" not in ctrl:
+        fail("SwarmController must share a folder-scoped scan helper between cache + stream binds")
+    if "streamBind" not in api_js:
+        fail("api.js must expose streamBind → POST /stream-bind")
+    if "streamBindAndStart" not in releases or "streamRelease" not in releases:
+        fail("releases.js must expose streamRelease/streamBindAndStart (.strm Add to Library)")
+    if "mode === 'strm'" not in releases:
+        fail("releases.js release picker must support strm mode distinct from play/cache")
+    if "kReadaheadFloorBytes" not in seq_cpp:
+        fail("apply_sequential_phase must bound the readahead window in bytes, not raw piece count (regression fix)")
+    if "warm_progress" not in seq_cpp:
+        fail("swarm_status progress must reflect warm_progress (tail+head[+readahead] fraction), not raw torrent progress")
+    if "startWarmProgressPoll" not in lucky_full or "swarmplay-warm-bar-fill" not in lucky_full:
+        fail("lucky.js warm overlay must render/poll a real progress bar, not just a spinner")
 
     ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
     lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")

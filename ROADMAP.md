@@ -2,8 +2,11 @@
 
 **Trajectory:** Living-room JF pane (**one product:** JE fork) → TMDB/TVDB →
 ranked Nyaa/TPB → magnet → in-process libtorrent (O7a) → tail→head warm →
-growing file on a **virtual item** (O6a) → Play. No *arr. No STRM. **No Seerr
+growing file on a **virtual item** (O6a) → Play. No *arr. **No Seerr
 process / no Seerr fork** ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
+Play/Lucky stay non-STRM (real growing-file virtual item, always); the one
+deliberate exception is the opt-in **Add to Library → Stream** action, which
+writes a real `.strm` pointer by request ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)).
 
 Progress = **unit + integration tests** against [`PRODUCT.md`](PRODUCT.md) MVP.
 
@@ -27,7 +30,9 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 | **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Shipping |
 | **0.2.1** | **MKV-aware extent gate** — grow to real Cues/head instead of blind fixed floors ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md)) | Shipping |
 | **0.2.2** | **Virtual-item probe fix + history UX** — real ffprobe on the bound item, inline history dropdown | Shipping |
-| **0.3.0** | **Library promote** — slide streamed keep into normal library / offline archival ([design](docs/design/library-promote-0.3.md)) | Roadmap after 0.2 |
+| **0.3.0** | **Batch episode fanout** — pick episode inside multi-file TV release ([ADR-008](docs/adr/008-batch-episode-fanout-v0.3.md)) | Shipping |
+| **0.4.0** | **Cache-to-library** — Add to Library → download straight into a real JF library ([ADR-009](docs/adr/009-cache-to-library-v0.4.md)) | Shipping |
+| **0.4.1** | **Hotfix:** Add to Library → Stream now writes a real `.strm` pointer; warm-progress bar + blazing-ahead readahead-size regression fix ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)) | Shipping |
 | later | O7b sidecar, packaging polish | Phase 4 |
 
 ### 0.2.2 — Virtual-item probe fix + history UX (0.2.1's exit criteria, actually met)
@@ -93,14 +98,60 @@ the old fixed floor.
 
 **Exit:** Living-room can re-enter a prior title without retyping; history is manageable.
 
-### 0.3 — Library promote / archival (after 0.2)
+### 0.3 — Batch episode fanout
 
-- [ ] Operator archive root + “Keep in library” action
-- [ ] Full-file (or policy) materialize out of swarm cache → library Path
-- [ ] JF scan + real item; history badge optional
-- [ ] Seed/idle interaction documented
+Living-room TV packs: one infohash, many files — user picks which episode to
+warm and play. Not STRM fan-out (still one virtual item per play).
 
-**Exit:** Streamed play can become offline-capable library media without *arr/STRM.
+- [x] `POST /list-files` + `api.listFiles`
+- [x] Episode picker UI before play-bind (multi-video TV)
+- [x] `FileIndexExplicit` so picker choice is not overwritten
+- [x] `FileIndexPicker` absolute-ep / NCOP skip (strmarr lessons)
+- [x] History first-click fix (capture focusin/pointerdown)
+
+**Exit:** Pick a season pack → choose SxxExx file → warm + play that episode.
+
+### 0.4 — Cache-to-library (after 0.3)
+
+- [x] "Add to Library" poster button — prompts Stream vs Cache to library
+- [x] `swarm_cache_ensure`/`swarm_cache_status` — whole-file download straight
+      into the resolved library folder (no hardlink/copy step)
+- [x] Auto-resolve destination library by MediaType (movies/tvshows) — no
+      per-item prompt, no new plugin setting
+- [x] Targeted `Folder.ValidateChildren` scan on completion — real
+      Movie/Episode item, normal watched-tracking, no virtual item
+- [x] Keep seeding after completion (default; no stop-seeding control yet)
+
+**Exit:** Add to Library → Cache to library → downloads straight into a real
+library folder → shows up under the normal library view, offline-capable,
+without *arr/STRM. See [ADR-009](docs/adr/009-cache-to-library-v0.4.md).
+
+### 0.4.1 — Stream correction + warm-progress/regression hotfix
+
+"Stream" had shipped as a bare alias for the plain Play button (no library
+trace at all) — corrected to what "Add to Library → Stream" actually means:
+a real, permanent `.strm` pointer, strmarr-style. Also fixes a real
+regression in the 0.2.1-era blazing-ahead mitigation: the post-tail+head
+readahead window was sized in raw piece count and could balloon past a
+gigabyte on large-piece-length torrents, making warm noticeably slower than
+before that fix landed.
+
+- [x] `POST stream-bind` writes a `.strm` pointer into the auto-resolved
+      library folder (same resolution as `cache-bind`); content is the
+      existing authenticated on-demand stream URL
+- [x] Play/Lucky unchanged — still always bind a real growing-file virtual
+      item, never a placeholder ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md))
+- [x] Readahead window bounded in bytes (`kReadaheadFloorBytes`), not raw
+      piece count — was the actual "slower than the former tag" regression
+- [x] `swarm_status.progress` now reports warm-completion fraction
+      (tail+head[+readahead] pieces on disk), not raw libtorrent torrent
+      progress (whose denominator changes size mid-warm)
+- [x] Client warm overlay polls that progress into a real bar instead of an
+      indefinite spinner (wherever btih is known up front)
+
+**Exit:** Add to Library → Stream leaves a real, permanent library item
+behind; warming a fresh play shows real percentage progress and completes in
+roughly the same time it did before the blazing-ahead fix landed.
 
 ---
 
@@ -171,7 +222,11 @@ Prove O6a + O2a + O7a without Torznab ranking.
 
 - *arr, Seerr **process**, Prowlarr, fake qBittorrent
 - **Forking Seerr/Jellyseerr** (ADR-004 — not required; one JF plugin product)
-- STRM / library stub trees (O6b/O6c) — **0.3 promote is real library Path, not STRM**
+- STRM / library stub trees as the **core Play/Lucky path** (O6b/O6c) —
+  those always bind a real growing-file virtual item, never a placeholder.
+  **Cache to library** is likewise real library Path, not STRM. The single,
+  narrow, opt-in exception is **Add to Library → Stream**, which writes a
+  real `.strm` pointer by explicit request ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md))
 - Go/anacrolix engine
 - Multi-user silos
 - Spinoff polish (own org branding, docs site) beyond rename
@@ -185,6 +240,7 @@ Prove O6a + O2a + O7a without Torznab ranking.
 1. **0.2 Search history** (ADR-006) — commemorative bump
 2. Rename / gut remaining Seerr chrome as needed
 3. Packaging + seed/idle lore
-4. **0.3 Library promote** (archive root + Keep)
-5. (Later) O7b sidecar
+4. **0.3 Batch episode fanout**
+5. **0.4 Cache-to-library** (Add to Library → Stream/Cache prompt)
+6. (Later) O7b sidecar
 ```

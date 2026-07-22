@@ -57,6 +57,28 @@
         }
     };
 
+    /** List files in a torrent (metadata) for episode-in-batch pick. */
+    api.listFiles = async function (req) {
+        const url = `${base()}/list-files`;
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url,
+                data: JSON.stringify(req || {}),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: authHeaders(),
+                timeout: 120000
+            });
+        } catch (e) {
+            return {
+                files: [],
+                error: 'list_files_failed',
+                message: String(e && e.message ? e.message : e)
+            };
+        }
+    };
+
     api.playBind = async function (req) {
         const url = `${base()}/play-bind`;
         try {
@@ -202,6 +224,77 @@
         } catch (e) {
             console.warn(logPrefix, 'clearHistory failed', e);
             return { removed: 0, error: 'history_clear_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
+    // ── Cache-to-library (0.4) ────────────────────────────────────────
+    /** Whole-file download straight into a real, already-scanned Jellyfin
+     * library (movies/tvshows auto-resolved server-side by MediaType). */
+    api.cacheBind = async function (req) {
+        const url = `${base()}/cache-bind`;
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url,
+                data: JSON.stringify(req || {}),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: authHeaders(),
+                timeout: 120000
+            });
+        } catch (e) {
+            return {
+                Ready: false,
+                ready: false,
+                Error: 'cache_bind_failed',
+                error: 'cache_bind_failed',
+                Message: 'Cache-to-library request failed.',
+                message: String(e && e.message ? e.message : e)
+            };
+        }
+    };
+
+    api.cacheStatus = async function (btih, fileIndex, mediaType) {
+        try {
+            const qs = `btih=${encodeURIComponent(btih || '')}`
+                + `&fileIndex=${encodeURIComponent(fileIndex || 0)}`
+                + `&mediaType=${encodeURIComponent(mediaType || '')}`;
+            return await ApiClient.ajax({
+                type: 'GET',
+                url: `${base()}/cache-status?${qs}`,
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            return { ready: false, error: 'cache_status_unavailable', message: 'Cache status unavailable.' };
+        }
+    };
+
+    /** "Stream" side of Add to Library: writes a real .strm pointer (content =
+     * req.StreamUrl, built client-side via JE.swarmStreamUrl) into the resolved
+     * Jellyfin library — a permanent, browsable, strmarr-style entry. Returns
+     * synchronously (no polling — just a file write + bounded folder scan). */
+    api.streamBind = async function (req) {
+        const url = `${base()}/stream-bind`;
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url,
+                data: JSON.stringify(req || {}),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: authHeaders(),
+                timeout: 60000
+            });
+        } catch (e) {
+            return {
+                Ready: false,
+                ready: false,
+                Error: 'stream_bind_failed',
+                error: 'stream_bind_failed',
+                Message: 'Add-to-library (stream) request failed.',
+                message: String(e && e.message ? e.message : e)
+            };
         }
     };
 

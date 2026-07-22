@@ -24,13 +24,21 @@
         });
     }
 
-    /** Lucky bind + real Jellyfin player (no release picker). */
+    /** Lucky bind + real Jellyfin player. TV delegates to the ranked-top + episode-picker
+     * flow (JE.swarmPlayLucky in releases.js) so series/episode picks aren't silent. */
     async function playFeelingLucky(ctx) {
-        const title = (ctx && (ctx.title || ctx.query)) || 'title';
-        if (typeof JE.toast === 'function') {
-            JE.toast(`Swarmplay: lucky — warming top match for ${title}…`, 5000);
+        if (typeof JE.swarmSetBatchSession === 'function') JE.swarmSetBatchSession(null);
+        if (ctx && ctx.mediaType === 'tv' && typeof JE.swarmPlayLucky === 'function') {
+            return JE.swarmPlayLucky(ctx);
         }
-        const bind = await feelingLucky(ctx || {});
+        const title = (ctx && (ctx.title || ctx.query)) || 'title';
+        showWarmOverlay(`Lucky — warming top match for ${title}…`);
+        let bind;
+        try {
+            bind = await feelingLucky(ctx || {});
+        } finally {
+            hideWarmOverlay();
+        }
         const ready = !!(bind && (bind.ready === true || bind.Ready === true));
         const path = bind?.path || bind?.Path;
         if (!ready || !path) {
@@ -47,8 +55,11 @@
         if (typeof JE.toast === 'function') JE.toast('Swarmplay: starting playback…', 3000);
         const attempt = await attemptPlayback(bind, title);
         const ok = !!(attempt && attempt.ok);
-        if (ok && typeof JE.toast === 'function') JE.toast(`Swarmplay: playing ${title}`, 4000);
-        else if (!ok && typeof JE.toast === 'function') {
+        if (ok && attempt.message && typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: ${attempt.message}`, 5000);
+        } else if (ok && typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: playing ${title}`, 4000);
+        } else if (!ok && typeof JE.toast === 'function') {
             JE.toast(`Swarmplay: warm, but no Jellyfin playback (${(attempt && attempt.message) || (attempt && attempt.reason) || 'unknown'})`, 9000);
         }
         return { ok, bind, attempt };
@@ -166,8 +177,15 @@
                 if (isJellyfinPlayerUi()) {
                     return { ok: true, via: 'session_play_now', itemId, sessionId: session.Id };
                 }
-                // Command accepted; Desktop may take a moment — treat as success if 204-class.
-                return { ok: true, via: 'session_play_now_sent', itemId, sessionId: session.Id };
+                // Remote session accepted the command — tell the user where it went
+                // instead of silently succeeding with no local player UI.
+                return {
+                    ok: true,
+                    via: 'session_play_now_sent',
+                    itemId,
+                    sessionId: session.Id,
+                    message: `Play sent to ${session.Client || 'remote session'} — check that client.`
+                };
             } catch (e) {
                 console.warn('swarmplay: Session PlayNow failed', e);
                 return {
@@ -199,7 +217,218 @@
     }
 
     JE.feelingLucky = feelingLucky;
+    const WARM_OVERLAY_ID = 'swarmplay-warm-overlay';
+    let warmPollTimer = null;
+
+    function stopWarmProgressPoll() {
+        if (warmPollTimer) {
+            clearTimeout(warmPollTimer);
+            warmPollTimer = null;
+        }
+    }
+
+    /** Real percentage (native warm_progress: tail+head[+readahead] pieces on
+     * disk / total in that set) — not a guess, and not raw libtorrent
+     * torrent progress (that denominator changes size mid-warm and would
+     * make the bar visibly jump/regress). Polls independently of whatever
+     * blocking play-bind/ensure/lucky call is in flight. */
+    function startWarmProgressPoll(btih) {
+        stopWarmProgressPoll();
+        if (!btih) return; // caller doesn't know btih yet (e.g. movie /lucky) — stays indeterminate
+        const tick = async () => {
+            const el = document.getElementById(WARM_OVERLAY_ID);
+            if (!el) { stopWarmProgressPoll(); return; }
+            try {
+                const status = await JE.swarm.status(btih);
+                const pct = Number(status && (status.progress ?? status.Progress));
+                if (Number.isFinite(pct)) {
+                    const peers = Number(status.numPeers ?? status.NumPeers ?? status.peers ?? status.Peers) || 0;
+                    const fill = el.querySelector('.swarmplay-warm-bar-fill');
+                    const sub = el.querySelector('.swarmplay-warm-sub');
+                    if (fill) {
+                        fill.classList.remove('indeterminate');
+                        fill.style.width = `${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%`;
+                    }
+                    if (sub) {
+                        sub.textContent = `Head + tail extents — ${Math.round(Math.max(0, Math.min(1, pct)) * 100)}% · ${peers} peer${peers === 1 ? '' : 's'}`;
+                    }
+                }
+            } catch (e) { /* transient — keep polling, overlay just stays at last-known % */ }
+            warmPollTimer = setTimeout(tick, 1000);
+        };
+        tick();
+    }
+
+    /** btih (optional): when known up front, drives a real progress bar via
+     * startWarmProgressPoll; omit it (e.g. movie /lucky, which resolves btih
+     * server-side) and the bar just stays an indeterminate sweep. */
+    function showWarmOverlay(msg, btih) {
+        hideWarmOverlay();
+        const el = document.createElement('div');
+        el.id = WARM_OVERLAY_ID;
+        el.setAttribute('role', 'status');
+        el.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;';
+        el.innerHTML = `<div style="background:#1c1c1e;color:#f5f5f7;padding:1.2rem 1.5rem;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:.95rem;max-width:24rem;text-align:center;">
+            <div class="swarmplay-warm-bar-track" style="width:14rem;height:.5rem;border-radius:999px;background:rgba(255,255,255,.15);margin:0 auto .75rem;overflow:hidden;">
+                <div class="swarmplay-warm-bar-fill indeterminate" style="height:100%;width:40%;background:#56d7ff;border-radius:999px;"></div>
+            </div>
+            <div>${String(msg || 'Warming swarm…').replace(/</g, '&lt;')}</div>
+            <div class="swarmplay-warm-sub" style="opacity:.65;font-size:.8rem;margin-top:.4rem;">Head + tail extents — please wait</div>
+        </div>`;
+        if (!document.getElementById('swarmplay-warm-keyframes')) {
+            const s = document.createElement('style');
+            s.id = 'swarmplay-warm-keyframes';
+            s.textContent = '@keyframes swarmplay-spin{to{transform:rotate(360deg)}}'
+                + '@keyframes swarmplay-indeterminate{0%{margin-left:-40%;}100%{margin-left:100%;}}'
+                + '.swarmplay-warm-bar-fill{transition:width .3s linear;}'
+                + '.swarmplay-warm-bar-fill.indeterminate{animation:swarmplay-indeterminate 1.1s ease-in-out infinite;}';
+            document.head.appendChild(s);
+        }
+        document.body.appendChild(el);
+        startWarmProgressPoll(btih);
+    }
+
+    function hideWarmOverlay() {
+        stopWarmProgressPoll();
+        document.getElementById(WARM_OVERLAY_ID)?.remove();
+    }
+
+    /** Remember the multi-file batch so the native prev/next track buttons can
+     * step through it (see hijackTrackButtons below) — no floating custom chrome. */
+    function setBatchSession(session) {
+        JE.swarmBatchSession = session || null;
+        syncTrackButtons();
+    }
+
+    function batchNeighbors(s) {
+        const idx = Number(s.fileIndex) || 0;
+        const order = s.files.map((f, i) => ({ f, i })).sort((a, b) => {
+            const ai = a.f.index ?? a.f.Index ?? a.i;
+            const bi = b.f.index ?? b.f.Index ?? b.i;
+            return ai - bi;
+        });
+        const pos = order.findIndex((x) => (x.f.index ?? x.f.Index) === idx);
+        return {
+            prev: pos > 0 ? order[pos - 1].f : null,
+            next: pos >= 0 && pos < order.length - 1 ? order[pos + 1].f : null
+        };
+    }
+
+    /** Jellyfin's own OSD ships .btnPreviousTrack/.btnNextTrack (queue nav) inside
+     * .videoOsdBottom — already fades/hides with the rest of the player chrome.
+     * Hijack their click in the capture phase (blocks JF's own playlist handler)
+     * and drive our batch session instead of building separate floating buttons. */
+    function hijackTrackButton(btn, pickFile) {
+        if (!btn || btn.dataset.swarmplayHijacked) return;
+        btn.dataset.swarmplayHijacked = '1';
+        btn.addEventListener('click', (e) => {
+            const s = JE.swarmBatchSession;
+            if (!s) return; // no swarm batch — let Jellyfin's native handler run untouched
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const file = pickFile(s);
+            if (file) playBatchNeighbor(file);
+        }, { capture: true });
+    }
+
+    function syncTrackButtons() {
+        const prevBtn = document.querySelector('.btnPreviousTrack');
+        const nextBtn = document.querySelector('.btnNextTrack');
+        if (!prevBtn || !nextBtn) return;
+        hijackTrackButton(prevBtn, (s) => batchNeighbors(s).prev);
+        hijackTrackButton(nextBtn, (s) => batchNeighbors(s).next);
+        const s = JE.swarmBatchSession;
+        const active = !!(s && Array.isArray(s.files) && s.files.length > 1);
+        if (!active) {
+            if (prevBtn.dataset.swarmplayForced) {
+                prevBtn.classList.add('hide');
+                nextBtn.classList.add('hide');
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                delete prevBtn.dataset.swarmplayForced;
+                delete nextBtn.dataset.swarmplayForced;
+            }
+            return;
+        }
+        const { prev, next } = batchNeighbors(s);
+        prevBtn.dataset.swarmplayForced = '1';
+        nextBtn.dataset.swarmplayForced = '1';
+        prevBtn.classList.remove('hide');
+        nextBtn.classList.remove('hide');
+        prevBtn.disabled = !prev;
+        nextBtn.disabled = !next;
+        prevBtn.title = prev ? 'Previous file in this release' : '';
+        nextBtn.title = next ? 'Next file in this release' : '';
+    }
+
+    function stopTrackButtonWatch() {
+        if (JE._swarmTrackObs) {
+            JE._swarmTrackObs.disconnect();
+            JE._swarmTrackObs = null;
+        }
+        if (JE._swarmTrackTimer) {
+            clearInterval(JE._swarmTrackTimer);
+            JE._swarmTrackTimer = null;
+        }
+    }
+
+    function watchTrackButtons() {
+        stopTrackButtonWatch();
+        syncTrackButtons();
+        JE._swarmTrackObs = new MutationObserver(syncTrackButtons);
+        JE._swarmTrackObs.observe(document.body, { childList: true, subtree: true });
+        JE._swarmTrackTimer = setInterval(syncTrackButtons, 1000);
+    }
+    watchTrackButtons();
+
+    async function playBatchNeighbor(file) {
+        const s = JE.swarmBatchSession;
+        if (!s) return;
+        const fileIndex = file.index ?? file.Index ?? 0;
+        const season = file.season ?? file.Season ?? null;
+        const episode = file.episode ?? file.Episode ?? null;
+        const title = s.ctx?.title || s.releaseTitle || 'episode';
+        showWarmOverlay(`Warming next file in pack…`, s.btih);
+        try {
+            const bind = await JE.swarm.playBind({
+                Btih: s.btih || '',
+                Magnet: s.magnet || null,
+                FileIndex: fileIndex,
+                FileIndexExplicit: true,
+                Season: season,
+                Episode: episode,
+                MediaType: s.ctx?.mediaType || 'tv',
+                DisplayName: title,
+                TailMib: 8,
+                HeadMib: 8
+            });
+            const ready = !!(bind && (bind.ready === true || bind.Ready === true));
+            const path = bind?.path || bind?.Path;
+            if (!ready || !path) {
+                const why = (JE.swarm && JE.swarm.formatError)
+                    ? JE.swarm.formatError(bind)
+                    : (bind?.Message || bind?.message || 'not ready');
+                if (typeof JE.toast === 'function') JE.toast(`Swarmplay: ${why}`, 7000);
+                return;
+            }
+            s.fileIndex = fileIndex;
+            setBatchSession(s);
+            if (JE.swarmHistory?.recordPlay) JE.swarmHistory.recordPlay(s.ctx || {}, bind, s.releaseTitle || title);
+            const attempt = await attemptPlayback(bind, title);
+            if (!(attempt && attempt.ok) && typeof JE.toast === 'function') {
+                JE.toast(`Swarmplay: ${attempt.message || attempt.reason || 'playback failed'}`, 8000);
+            } else if (attempt?.message && typeof JE.toast === 'function') {
+                JE.toast(`Swarmplay: ${attempt.message}`, 5000);
+            }
+        } finally {
+            hideWarmOverlay();
+        }
+    }
+
     JE.playFeelingLucky = playFeelingLucky;
     JE.swarmAttemptPlayback = attemptPlayback;
+    JE.swarmShowWarmOverlay = showWarmOverlay;
+    JE.swarmHideWarmOverlay = hideWarmOverlay;
+    JE.swarmSetBatchSession = setBatchSession;
     JE.swarmStreamUrl = streamUrl;
 })(window.JellyfinEnhanced);

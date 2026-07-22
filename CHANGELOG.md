@@ -2,8 +2,40 @@
 
 ## Unreleased
 
-### Planned
-- **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
+## 0.4.1 — 2026-07-22 (hotfix)
+
+### Fixed
+- **"Add to Library → Stream" now writes a real `.strm` pointer** instead of silently aliasing the plain Play button (no library trace at all, which defeats the point of "Add to Library"). New `POST /Swarmplay/swarm/stream-bind` writes one line — the same authenticated on-demand stream URL already used for direct-play links — into a `.strm` file inside the same auto-resolved library folder `cache-bind` uses, then triggers the same targeted `Folder.ValidateChildren` scan. Play and Lucky are unchanged: still always bind a real growing-file virtual item, never a placeholder ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)).
+- **Blazing-ahead readahead-window regression:** the post-tail+head readahead window (added to stop Direct Play racing into sparse holes) was sized in raw piece count (`+48` pieces) — on torrents with a large libtorrent-auto-selected piece length this ballooned into hundreds of MiB to a full gigabyte before Play would unblock, far slower than before that fix landed. Bounded in bytes instead (`kReadaheadFloorBytes`, 24 MiB), independent of piece length.
+- **Warm progress bar (was a dumb spinner):** `swarm_status`'s `progress` field now reports the fraction of tail+head[+readahead] pieces actually on disk (`warm_progress`) instead of raw libtorrent torrent progress, whose denominator silently changes size mid-warm and made any progress UI driven by it jump around or under-report. The client warm overlay (play-bind, cache-neighbor nav, history replay) now polls `/status` and renders a real percentage + peer count wherever the btih is known up front, falling back to an indeterminate sweep only for the one path that resolves btih server-side (`/lucky` for movies).
+
+## 0.4.0 — 2026-07-22
+
+### Fixed
+- **History row actions:** play (last btih) + search-again icons; no more jellyseerrMoreInfo "Failed to load media information" on row click.
+- **Episode pick felt silent:** persistent warm overlay/spinner for the full play-bind wait; batch prev/next bar stages neighbor files through ensure+warm.
+- **Blazing-ahead seeks:** gate Play until contiguous readahead window is on disk, then slide piece deadlines from the first missing piece on status polls (Direct Play + Cues into sparse holes).
+- **Batch prev/next:** dropped the floating bar entirely — hijack Jellyfin's own `.btnPreviousTrack`/`.btnNextTrack` OSD buttons (capture-phase click override), so batch navigation lives inside native player chrome and hides/fades with it automatically.
+- **Episode picker:** replaced the plain `<ul>` with a sortable `<table>` (click any column — #, S, E, File, Size — to sort asc/desc).
+- **Lucky on TV:** no longer silently binds S1E1 of the rank-#1 release — `swarmPlayLucky` reuses the same rank-top pick (search results are already RankReleases-ordered) but routes through `playRelease`, so the episode-picker table still opens for multi-file series releases.
+- **History "▶ play last" on TV:** also reopens the same episode picker (via `listFiles`, exported `JE.swarmReleases.showEpisodePicker`) instead of silently re-binding whatever file index was played last time.
+
+### Added
+- **Cache-to-library (0.4):** new "Add to Library" poster button next to Play/Lucky — prompts Stream vs Cache to library, then reuses the ranked release picker + sortable episode picker. Cache to library downloads the chosen file straight into a real, auto-resolved Jellyfin library folder (movies/tvshows matched by MediaType — no hardlink/copy step, no new plugin setting) and triggers one targeted `Folder.ValidateChildren` scan on completion, so it becomes a normal library item with normal watched-tracking ([ADR-009](docs/adr/009-cache-to-library-v0.4.md)).
+- New native ABI: `swarm_cache_ensure`/`swarm_cache_status`, plus an append-only `progress` field on `swarm_status_result`.
+- New endpoints: `POST /Swarmplay/swarm/cache-bind`, `GET /Swarmplay/swarm/cache-status`.
+
+## 0.3.0 — 2026-07-22
+
+### Added
+- **Batch episode fanout:** TV multi-file releases open an in-release episode picker (`POST /list-files` → pick file → `play-bind` with `FileIndexExplicit`). Ports strmarr BatchFileIndex lessons into `FileIndexPicker` (absolute cour numbers, NCOP skip, dense-band normalize) ([ADR-008](docs/adr/008-batch-episode-fanout-v0.3.md)).
+
+### Fixed
+- **History first-click:** dropdown opens on the first focus/click via capture `focusin`/`pointerdown` (no longer requires typing or a second click).
+- **Head gate waited on Tracks only:** `parse_head` clears ready only after Attachments (fonts) are fully in-buffer or Cluster ends the head — strmarr `headAttachmentsReady` / `BytesRead`.
+
+### Changed
+- Library promote / archival commemorative target moved to **0.4** (was 0.3).
 
 ## 0.2.2 — 2026-07-22
 

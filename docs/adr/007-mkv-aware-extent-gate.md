@@ -53,11 +53,11 @@ the Go, into swarmplay's own C++ native layer.
    no third-party dependency — a few hundred lines of variable-length
    EBML ID/size reading is enough for this scope):
    - `parse_head(bytes, len) -> HeadResult{segment_offset, bytes_read, ok}` —
-     walk `Segment(0x18538067)`, descend only into
-     `Tracks(0x1654AE6B)`/`Attachments(0x1941A469)`, skip everything else
-     (`SeekHead`, `Info`, `Cluster`, `Cues`, ...) by declared element size.
-     Confirms the header directory actually parses instead of trusting a
-     byte count.
+     walk `Segment(0x18538067)`, require complete `Tracks(0x1654AE6B)` and,
+     when present, complete `Attachments(0x1941A469)` (font `FileData` must
+     be in-buffer — strmarr `headAttachmentsReady`); stop at `Cluster`.
+     `bytes_consumed` extends through Attachments, not Tracks alone.
+     Skip everything else (`SeekHead`, `Info`, `Cues`, ...) by declared size.
    - `find_cues(bytes, len, tail_start) -> CueResult{found, points_or_count}` —
      scan for the 4-byte Cues prefix **from the end of the buffer backward**,
      and for each candidate try a bounded EBML sub-parse for

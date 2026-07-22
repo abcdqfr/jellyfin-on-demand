@@ -217,6 +217,11 @@ HeadProbeResult parse_head(const std::uint8_t* data, std::size_t len) {
     HeadProbeResult result;
     if (data == nullptr || len == 0) return result;
 
+    // strmarr lesson (extent_gate.headAttachmentsReady + ParseHead BytesRead):
+    // Tracks alone is not enough. ASS/SSA clients need font Attachments fully
+    // present before play. Do not clear the gate at Tracks -- keep walking
+    // Segment children until Attachments is complete, or Cluster marks the
+    // end of the head region (no attachments in-header).
     std::size_t pos = 0;
     while (pos < len) {
         ChildHeader const top = read_child_header(data, len, pos);
@@ -226,35 +231,59 @@ HeadProbeResult parse_head(const std::uint8_t* data, std::size_t len) {
             result.segment_offset = static_cast<std::int64_t>(top.content_start);
             std::size_t const seg_end = top.content_end; // Clamped defensively.
             std::size_t child_pos = top.content_start;
+            bool have_tracks = false;
+            std::size_t head_end = 0;
             while (child_pos < seg_end) {
                 ChildHeader const child = read_child_header(data, len, child_pos);
-                if (!child.ok) return result; // Retryable: need more bytes.
+                if (!child.ok) {
+                    // Mid-header cut after Tracks but before Attachments/Cluster:
+                    // grow (retryable). Never clear the gate early.
+                    return result;
+                }
 
                 if (child.id == kElementTracks) {
-                    if (child.truncated) return result; // Tracks not fully in hand yet.
+                    if (child.truncated) return result;
                     int tracks_found = 0;
                     if (!scan_tracks(data, len, child.content_start, child.content_end,
                                      tracks_found)) {
-                        return result; // Retryable.
-                    }
-                    if (tracks_found > 0) {
-                        result.num_tracks_found = tracks_found;
-                        result.bytes_consumed = static_cast<std::int64_t>(child.content_end);
-                        result.ok = true;
                         return result;
                     }
-                    // Tracks present but no valid entries yet (unusual); keep
-                    // scanning the rest of Segment defensively.
+                    if (tracks_found > 0) {
+                        have_tracks = true;
+                        result.num_tracks_found = tracks_found;
+                        if (child.content_end > head_end) head_end = child.content_end;
+                    }
                     child_pos = child.next_pos;
                     continue;
                 }
 
-                // Attachments, SeekHead, Info, Cluster, Cues, etc: never
-                // parsed here, only skipped by declared size.
-                if (child.truncated) return result; // Can't safely skip: retryable.
+                if (child.id == kElementAttachments) {
+                    // Font FileData lives inside Attachments -- truncated means
+                    // fonts are not on disk yet (strmarr headAttachmentsReady).
+                    if (child.truncated) return result;
+                    if (child.content_end > head_end) head_end = child.content_end;
+                    child_pos = child.next_pos;
+                    continue;
+                }
+
+                if (child.id == kElementCluster) {
+                    // Past the head region. Gate clears only if Tracks landed.
+                    if (have_tracks) {
+                        result.bytes_consumed = static_cast<std::int64_t>(head_end);
+                        result.ok = true;
+                    }
+                    return result;
+                }
+
+                // SeekHead, Info, Chapters, Cues, void, etc: skip by size.
+                if (child.truncated) return result;
                 child_pos = child.next_pos;
             }
-            return result; // Exhausted Segment's available bytes, no Tracks.
+            if (have_tracks) {
+                result.bytes_consumed = static_cast<std::int64_t>(head_end);
+                result.ok = true;
+            }
+            return result;
         }
 
         // EBML header (or any other top-level element): skip by declared size.

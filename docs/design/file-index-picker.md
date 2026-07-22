@@ -1,3 +1,5 @@
+**Status:** shipped in **0.3** (episode-in-batch UI + hardened `FileIndexPicker`; [ADR-008](../adr/008-batch-episode-fanout-v0.3.md))
+
 # Multi-file torrent picker
 
 **Scope:** choose one playable torrent file before calling `Ensure`; the chosen
