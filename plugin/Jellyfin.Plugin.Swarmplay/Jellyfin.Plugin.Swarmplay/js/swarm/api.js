@@ -131,6 +131,80 @@
         }
     };
 
+    // ── Search history (0.2) ──────────────────────────────────────────
+    api.listHistory = async function () {
+        try {
+            return await ApiClient.ajax({
+                type: 'GET',
+                url: `${base()}/history`,
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            console.warn(logPrefix, 'listHistory failed', e);
+            return { entries: [], error: 'history_list_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
+    api.upsertHistory = async function (entry) {
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url: `${base()}/history`,
+                data: JSON.stringify(entry || {}),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            console.warn(logPrefix, 'upsertHistory failed', e);
+            return { error: 'history_upsert_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
+    api.pinHistory = async function (id) {
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url: `${base()}/history/${encodeURIComponent(id)}/pin`,
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            console.warn(logPrefix, 'pinHistory failed', e);
+            return { error: 'history_pin_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
+    api.deleteHistory = async function (id) {
+        try {
+            await ApiClient.ajax({
+                type: 'DELETE',
+                url: `${base()}/history/${encodeURIComponent(id)}`,
+                headers: authHeaders()
+            });
+            return { ok: true };
+        } catch (e) {
+            console.warn(logPrefix, 'deleteHistory failed', e);
+            return { ok: false, error: 'history_delete_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
+    api.clearHistory = async function (all) {
+        const url = `${base()}/history` + (all ? '?all=1' : '');
+        try {
+            return await ApiClient.ajax({
+                type: 'DELETE',
+                url,
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            console.warn(logPrefix, 'clearHistory failed', e);
+            return { removed: 0, error: 'history_clear_failed', message: String(e && e.message ? e.message : e) };
+        }
+    };
+
     /** Prefer Message / message from server; fall back to known codes. */
     api.formatError = function (result) {
         if (!result) return 'Unknown swarm error.';

@@ -60,4 +60,12 @@ fi
 printf '== live public-config / route smoke ==\n'
 python3 "$root/scripts/live_public_config_smoke.py"
 
+printf '== history API smoke ==\n'
+if curl -sf -m 3 "${JF_URL:-http://127.0.0.1:8096}/System/Info/Public" >/dev/null; then
+  JF_USER="${JF_USER:-jellyfin}" JF_PASS="${JF_PASS:-jellyfin}" \
+    python3 "$root/scripts/jf_history_smoke.py"
+else
+  printf 'skip history smoke (JF not reachable)\n'
+fi
+
 printf 'CI_GATE PASS\n'

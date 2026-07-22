@@ -619,6 +619,7 @@
                 'swarm/ranker.js',
                 'swarm/releases.js',
                 'swarm/lucky.js',
+                'swarm/history.js',
                 'swarm/magnet.js',
 
                 // jellyseerr chrome (search/posters) — data from Swarmplay/TMDB

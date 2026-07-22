@@ -40,6 +40,10 @@
             if (typeof JE.toast === 'function') JE.toast(`Swarmplay: ${why}`, 7000);
             return { ok: false, bind };
         }
+        if (JE.swarmHistory && typeof JE.swarmHistory.recordPlay === 'function') {
+            const releaseTitle = bind?.DisplayName || bind?.displayName || title;
+            JE.swarmHistory.recordPlay(ctx || {}, bind, releaseTitle);
+        }
         if (typeof JE.toast === 'function') JE.toast('Swarmplay: starting playback…', 3000);
         const attempt = await attemptPlayback(bind, title);
         const ok = !!(attempt && attempt.ok);

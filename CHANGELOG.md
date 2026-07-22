@@ -3,8 +3,12 @@
 ## Unreleased
 
 ### Planned
-- **0.2** — Search history + management ([ADR-006](docs/adr/006-search-history-v0.2.md))
 - **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
+
+## 0.2.0 — 2026-07-22
+
+### Added
+- **Search history:** per-user `swarm-history.json` (pin / delete / clear / LRU cap 100), discovery floating **History** panel, auto-record on Torznab picker + play-bind ready ([ADR-006](docs/adr/006-search-history-v0.2.md))
 
 ## 0.1.11 — 2026-07-22
 

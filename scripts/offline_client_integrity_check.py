@@ -158,6 +158,34 @@ def main() -> None:
     if "metadata_unreachable" not in api_js or "Dead pin" not in api_js:
         fail("api.js formatError must surface metadata_unreachable / dead-pin copy")
 
+    # 0.2 search history surface
+    if "swarm/history.js" not in main_js:
+        fail("plugin.js must load swarm/history.js after lucky.js")
+    lucky_idx = main_js.find("'swarm/lucky.js'")
+    hist_idx = main_js.find("'swarm/history.js'")
+    if lucky_idx < 0 or hist_idx < 0 or hist_idx < lucky_idx:
+        fail("plugin.js must load swarm/history.js after swarm/lucky.js")
+    history_js = (PLUGIN_JS / "swarm/history.js").read_text(encoding="utf-8", errors="replace")
+    if "swarmplay-history-float" not in history_js or "JE.swarmHistory" not in history_js:
+        fail("history.js must expose floating History control via JE.swarmHistory")
+    if "listHistory" not in api_js or "upsertHistory" not in api_js or "clearHistory" not in api_js:
+        fail("api.js must expose history CRUD helpers")
+    if '"history"' not in ctrl and 'HttpGet("history")' not in ctrl:
+        fail("SwarmController must expose GET /history")
+    if 'HttpPost("history")' not in ctrl or 'HttpDelete("history")' not in ctrl:
+        fail("SwarmController must expose POST/DELETE /history")
+    if 'HttpPost("history/{id}/pin")' not in ctrl and 'history/{id}/pin' not in ctrl:
+        fail("SwarmController must expose POST /history/{id}/pin")
+    store_cs = (
+        ROOT
+        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Swarm/SearchHistoryStore.cs"
+    ).read_text(encoding="utf-8", errors="replace")
+    if "swarm-history.json" not in store_cs or "MaxUnpinned" not in store_cs:
+        fail("SearchHistoryStore must persist swarm-history.json with unpinned cap")
+    if "recordSearch" not in releases or "recordPlay" not in releases:
+        fail("releases.js must auto-record search + play into history")
+    if "recordPlay" not in lucky:
+        fail("lucky.js must auto-record play-bind ready into history")
 
     ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
     lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")

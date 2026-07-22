@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Swarmplay.Configuration;
+using Jellyfin.Plugin.Swarmplay.Helpers;
 using Jellyfin.Plugin.Swarmplay.Swarm;
 using Jellyfin.Plugin.Swarmplay.Swarm.Torznab;
 using MediaBrowser.Controller.Entities;
@@ -28,15 +30,18 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         private readonly ISwarmSession _swarmSession;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILibraryManager _libraryManager;
+        private readonly SearchHistoryStore _history;
 
         public SwarmController(
             ISwarmSession swarmSession,
             IHttpClientFactory httpClientFactory,
-            ILibraryManager libraryManager)
+            ILibraryManager libraryManager,
+            UserConfigurationManager userConfigurationManager)
         {
             _swarmSession = swarmSession;
             _httpClientFactory = httpClientFactory;
             _libraryManager = libraryManager;
+            _history = new SearchHistoryStore(userConfigurationManager);
         }
 
         [HttpPost("ensure")]
@@ -333,6 +338,148 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Per-user search history (0.2) — pinned first, then lastPlayedAt/searchedAt desc.
+        /// </summary>
+        [HttpGet("history")]
+        [Authorize]
+        public IActionResult ListHistory()
+        {
+            var auth = ResolveCurrentUserN(out var userIdN);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            return Ok(new { entries = _history.List(userIdN) });
+        }
+
+        [HttpPost("history")]
+        [Authorize]
+        public IActionResult UpsertHistory([FromBody] SearchHistoryEntry? body)
+        {
+            var auth = ResolveCurrentUserN(out var userIdN);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            if (body == null
+                || (string.IsNullOrWhiteSpace(body.Query) && body.TmdbId is not > 0))
+            {
+                return BadRequest(new { error = true, message = "query or tmdbId is required." });
+            }
+
+            try
+            {
+                var entry = _history.Upsert(userIdN, body);
+                return Ok(entry);
+            }
+            catch (InvalidDataException)
+            {
+                return StatusCode(503, new { error = true, message = "history store unreadable." });
+            }
+        }
+
+        [HttpPost("history/{id}/pin")]
+        [Authorize]
+        public IActionResult ToggleHistoryPin(string id)
+        {
+            var auth = ResolveCurrentUserN(out var userIdN);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(new { error = true, message = "id is required." });
+            }
+
+            try
+            {
+                var entry = _history.TogglePin(userIdN, id);
+                if (entry == null)
+                {
+                    return NotFound(new { error = true, message = "history entry not found." });
+                }
+
+                return Ok(entry);
+            }
+            catch (InvalidDataException)
+            {
+                return StatusCode(503, new { error = true, message = "history store unreadable." });
+            }
+        }
+
+        [HttpDelete("history/{id}")]
+        [Authorize]
+        public IActionResult DeleteHistoryEntry(string id)
+        {
+            var auth = ResolveCurrentUserN(out var userIdN);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(new { error = true, message = "id is required." });
+            }
+
+            try
+            {
+                if (!_history.Delete(userIdN, id))
+                {
+                    return NotFound(new { error = true, message = "history entry not found." });
+                }
+
+                return NoContent();
+            }
+            catch (InvalidDataException)
+            {
+                return StatusCode(503, new { error = true, message = "history store unreadable." });
+            }
+        }
+
+        /// <summary>
+        /// Clear unpinned history. Pass <c>?all=1</c> to clear pinned too.
+        /// </summary>
+        [HttpDelete("history")]
+        [Authorize]
+        public IActionResult ClearHistory([FromQuery] int all = 0)
+        {
+            var auth = ResolveCurrentUserN(out var userIdN);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            try
+            {
+                var removed = _history.Clear(userIdN, all == 1);
+                return Ok(new { removed });
+            }
+            catch (InvalidDataException)
+            {
+                return StatusCode(503, new { error = true, message = "history store unreadable." });
+            }
+        }
+
+        private IActionResult? ResolveCurrentUserN(out string userIdN)
+        {
+            userIdN = string.Empty;
+            var uid = UserHelper.GetCurrentUserId(User);
+            if (!uid.HasValue)
+            {
+                return Forbid();
+            }
+
+            // UserConfigurationManager expects folder names in N format (without dashes).
+            userIdN = uid.Value.ToString("N");
+            return null;
         }
 
         /// <summary>

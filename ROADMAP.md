@@ -24,16 +24,16 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 | Tier | Theme | Status |
 |------|--------|--------|
 | **0.1.x** | Play path: Torznab → libtorrent → extent gate → real JF player | Shipping (hotfixes) |
-| **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Next commemorative |
+| **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Shipping |
 | **0.3.0** | **Library promote** — slide streamed keep into normal library / offline archival ([design](docs/design/library-promote-0.3.md)) | Roadmap after 0.2 |
 | later | O7b sidecar, packaging polish | Phase 4 |
 
 ### 0.2 — Search history (commemorative)
 
-- [ ] Persist per-user history (query, TMDB id, last btih/play)
-- [ ] Discovery UI: list, open again, pin, delete, clear / prune
-- [ ] Record on search + successful play-bind
-- [ ] Gate: history API round-trip
+- [x] Persist per-user history (query, TMDB id, last btih/play)
+- [x] Discovery UI: list, open again, pin, delete, clear / prune
+- [x] Record on search + successful play-bind
+- [x] Gate: history API round-trip
 
 **Exit:** Living-room can re-enter a prior title without retyping; history is manageable.
 

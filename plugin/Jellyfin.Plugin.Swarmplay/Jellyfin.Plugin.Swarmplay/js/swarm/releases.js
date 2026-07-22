@@ -99,6 +99,10 @@
             return;
         }
 
+        if (JE.swarmHistory && typeof JE.swarmHistory.recordPlay === 'function') {
+            JE.swarmHistory.recordPlay(ctx, bind, relTitle(release));
+        }
+
         if (typeof JE.toast === 'function') {
             JE.toast(`Swarmplay: starting playback…`, 3000);
         }
@@ -306,6 +310,9 @@
             panel.appendChild(empty);
             console.log(logPrefix, `query="${query}" → 0 relevant of ${results.length}`);
             return;
+        }
+        if (JE.swarmHistory && typeof JE.swarmHistory.recordSearch === 'function') {
+            JE.swarmHistory.recordSearch(ctx);
         }
         const annotated = relevant.map(annotate);
         let filters = { ...filters0 };
