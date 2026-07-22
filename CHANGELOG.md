@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6 — 2026-07-21
+
+### Fixed
+- `no_playback_manager` on JF 10.11/Desktop: `playbackManager` is not on `window` — play via fullscreen stream `<video>` overlay (PM used only if exposed)
+- Weak Torznab matches for titles like “Straight A's to XXX”: stopword-aware similarity + 0.67 gate (drops “Straight To The A …”)
+- Growing-file cache left tmpfs `/tmp` (filled RAM) — now **`/home/brandon/cache/swarmplay`** on btrfs (same tree as strmarr/arr), overridable via `SWARMPLAY_CACHE_DIR`
+
 ## 0.1.5 — 2026-07-21
 
 ### Fixed

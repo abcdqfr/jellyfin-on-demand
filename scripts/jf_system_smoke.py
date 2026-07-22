@@ -66,7 +66,8 @@ def main() -> None:
         fail(f"auth failed: {st} {body}")
     token = body["AccessToken"]
 
-    download = Path("/tmp/swarmplay") / INFOHASH
+    cache = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+    download = cache / INFOHASH
     # leave existing; ensure will reuse
 
     ti = lt.torrent_info(str(TORRENT_PATH))

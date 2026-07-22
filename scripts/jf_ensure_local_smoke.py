@@ -26,7 +26,8 @@ PLUGIN_DLL = (
     ROOT
     / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/bin/Debug/net9.0/Jellyfin.Plugin.Swarmplay.dll"
 )
-JF_ROOT = Path("/tmp/swarmplay-jf-data")
+CACHE_ROOT = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+JF_ROOT = CACHE_ROOT / ".jf-local-smoke"
 INFOHASH = "fce002e43ed1159f4612982ce8fcdb9d30e48f1e"
 EXPECTED_SIZE = 636
 PORT = 18096
@@ -66,24 +67,24 @@ def http_json(method: str, url: str, body=None, token: str | None = None, timeou
         return e.code, parsed
 
 
-def wait_ready(timeout: float = 90.0) -> str:
-    """Wait past SetupServer bootstrap until auth against the main host works."""
+def wait_ready(timeout: float = 120.0) -> str:
+    """Wait past migrations, complete wizard if needed, then auth."""
     deadline = time.monotonic() + timeout
     last = None
     while time.monotonic() < deadline:
         try:
-            st, body = http_json(
-                "POST",
-                BASE + "/Users/authenticatebyname",
-                {"Username": USER, "Pw": PASS},
-                timeout=5,
-            )
-            if st == 200 and isinstance(body, dict) and body.get("AccessToken"):
-                return body["AccessToken"]
-            last = (st, body)
+            st, body = http_json("GET", BASE + "/System/Info/Public", timeout=5)
+            # 503 HTML = still migrating; 200 JSON = API up.
+            if st == 200 and isinstance(body, dict):
+                token = complete_wizard_if_needed()
+                if token:
+                    return token
+            last = (st, type(body).__name__)
+        except SystemExit as exc:
+            last = exc
         except Exception as exc:
             last = exc
-        time.sleep(0.5)
+        time.sleep(1.0)
     fail(f"JF auth not ready: {last}")
 
 
@@ -129,6 +130,7 @@ def ensure_plugin() -> None:
 def start_jellyfin() -> subprocess.Popen:
     env = os.environ.copy()
     env["LD_LIBRARY_PATH"] = f"{NATIVE_DIR}:{env.get('LD_LIBRARY_PATH', '')}"
+    env["SWARMPLAY_CACHE_DIR"] = str(CACHE_ROOT)
     JF_ROOT.mkdir(parents=True, exist_ok=True)
     for sub in ("data", "config", "cache", "logs"):
         (JF_ROOT / sub).mkdir(exist_ok=True)
@@ -154,27 +156,37 @@ def complete_wizard_if_needed() -> str:
     )
     if st == 200 and isinstance(body, dict) and body.get("AccessToken"):
         return body["AccessToken"]
+    if st == 503:
+        return ""  # still starting — caller retries
 
-    # Startup wizard
-    http_json("POST", BASE + "/Startup/Configuration", {
-        "UICulture": "en-US",
-        "MetadataCountryCode": "US",
-        "PreferredAudioLanguage": "eng",
-        "PreferredSubtitleLanguage": "eng",
-    })
-    st, body = http_json("POST", BASE + "/Startup/User", {"Name": USER, "Password": PASS})
-    if st not in (200, 204) and st != 400:
-        # 400 may mean user already exists
-        pass
-    http_json("POST", BASE + "/Startup/Complete", {})
+    # Startup wizard (ignore transient 503)
+    for path, payload in (
+        ("/Startup/Configuration", {
+            "UICulture": "en-US",
+            "MetadataCountryCode": "US",
+            "PreferredAudioLanguage": "eng",
+            "PreferredSubtitleLanguage": "eng",
+        }),
+        ("/Startup/User", {"Name": USER, "Password": PASS}),
+        ("/Startup/Complete", {}),
+    ):
+        st, body = http_json("POST", BASE + path, payload)
+        if st == 503:
+            return ""
+        if path.endswith("/User") and st not in (200, 204, 400):
+            pass
+
     st, body = http_json(
         "POST",
         BASE + "/Users/authenticatebyname",
         {"Username": USER, "Pw": PASS},
     )
-    if st != 200 or not isinstance(body, dict) or not body.get("AccessToken"):
-        fail(f"auth failed after wizard: {st} {body}")
-    return body["AccessToken"]
+    if st == 200 and isinstance(body, dict) and body.get("AccessToken"):
+        return body["AccessToken"]
+    if st == 503:
+        return ""
+    fail(f"auth failed after wizard: {st} {body}")
+    return ""
 
 
 def start_seeder():
@@ -196,8 +208,9 @@ def start_seeder():
 def main() -> None:
     if DATA_FILE.stat().st_size != EXPECTED_SIZE:
         fail("bad fixture size")
-    download = Path("/tmp/swarmplay") / INFOHASH
+    download = CACHE_ROOT / INFOHASH
     shutil.rmtree(download, ignore_errors=True)
+    CACHE_ROOT.mkdir(parents=True, exist_ok=True)
     ensure_plugin()
 
     # Kill any prior user-scoped JF on our port

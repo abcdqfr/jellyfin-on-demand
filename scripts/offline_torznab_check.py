@@ -71,6 +71,16 @@ def main() -> None:
     if "SWARM_ERROR_IO" not in hdr:
         fail("native header must define SWARM_ERROR_IO (mkdir vs bad magnet)")
 
+    native_src = (
+        ROOT / "torrent/native/src/session_stub.cpp"
+    ).read_text(encoding="utf-8")
+    if 'getenv("SWARMPLAY_CACHE_DIR")' not in native_src:
+        fail("native must honor SWARMPLAY_CACHE_DIR (disk cache, not tmpfs)")
+    if '"/tmp/swarmplay"' in native_src:
+        fail("native must not hardcode /tmp/swarmplay (tmpfs fills RAM)")
+    if "SwarmCacheRoot" not in ctrl:
+        fail("SwarmController must SwarmCacheRoot() for stream path allowlist")
+
     print(f"torznab items: {count}; magnet-from-guid: ok; size+stream routes: ok")
 
 

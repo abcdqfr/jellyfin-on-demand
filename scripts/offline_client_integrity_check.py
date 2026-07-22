@@ -99,18 +99,19 @@ def main() -> None:
     lucky = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
     if "/Swarmplay/swarm/stream" not in lucky:
         fail("lucky.js must build /Swarmplay/swarm/stream URL for real playback")
-    if "Protocol: 'Http'" not in lucky and 'Protocol: "Http"' not in lucky:
-        fail("lucky.js must use MediaSource Protocol Http (not Path-only File)")
+    if "swarmplay-player-overlay" not in lucky:
+        fail("lucky.js must overlay <video> when playbackManager is not on window (JF 10.11)")
+    if "filterRelevant" not in (PLUGIN_JS / "swarm/ranker.js").read_text(encoding="utf-8", errors="replace"):
+        fail("ranker.js must filterRelevant weak Torznab title matches")
     releases = (PLUGIN_JS / "swarm/releases.js").read_text(encoding="utf-8", errors="replace")
     if "warming swarm" not in releases:
         fail("releases.js must toast warming after release selection")
-    if "player did not start" not in releases:
-        fail("releases.js must not claim playing when the player did not start")
+    if "filterRelevant" not in releases:
+        fail("releases.js must apply filterRelevant before listing")
     if "data-f=\"kind\"" not in releases and "data-f='kind'" not in releases:
         fail("releases.js must offer Episode/Batch kind filter for series")
     if "data-f=\"group\"" not in releases and "data-f='group'" not in releases:
         fail("releases.js must offer release-group filter")
-
     print("PASS: offline_client_integrity_check")
 
 

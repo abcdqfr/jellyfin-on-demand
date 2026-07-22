@@ -15,6 +15,7 @@
 #include <chrono>
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <map>
 #include <memory>
@@ -165,6 +166,16 @@ void set_ensure_error(swarm_ensure_result* out, int error) {
         out->err = error;
     }
 }
+
+/// Growing files on real disk (lab: btrfs /home/brandon), never tmpfs /tmp.
+/// Override with SWARMPLAY_CACHE_DIR (systemd drop-in sets this).
+std::filesystem::path cache_root() {
+    if (char const* env = std::getenv("SWARMPLAY_CACHE_DIR");
+        env != nullptr && env[0] != '\0') {
+        return std::filesystem::path(env);
+    }
+    return std::filesystem::path("/home/brandon/cache/swarmplay");
+}
 } // namespace
 
 int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
@@ -183,13 +194,10 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
 
     Session& session = Session::get();
     std::lock_guard<std::mutex> lock(session.mutex);
-    std::filesystem::path const save_path =
-        std::filesystem::path("/tmp/swarmplay") / key;
+    std::filesystem::path const save_path = cache_root() / key;
     std::error_code filesystem_error;
     std::filesystem::create_directories(save_path, filesystem_error);
     if (filesystem_error) {
-        // Do not map to invalid_argument — lab footgun was jellyfin unable to
-        // mkdir under /tmp/swarmplay owned by another user.
         set_ensure_error(out, kIo);
         return kIo;
     }
@@ -294,11 +302,10 @@ int swarm_list_files(const char* source, char* json_out, int json_cap) {
     if (existing != session.torrents.end()) {
         handle = existing->second.handle;
     } else {
-        std::filesystem::path const save_path =
-            std::filesystem::path("/tmp/swarmplay") / key;
+        std::filesystem::path const save_path = cache_root() / key;
         std::error_code filesystem_error;
         std::filesystem::create_directories(save_path, filesystem_error);
-        if (filesystem_error) return kInvalidArgument;
+        if (filesystem_error) return kIo;
         params.save_path = save_path.string();
         handle = session.session.add_torrent(params);
         if (!wait_for_metadata(handle)) return kMetadataTimeout;

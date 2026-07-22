@@ -13,6 +13,9 @@ export DOTNET_NOLOGO=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export LD_LIBRARY_PATH="$root/torrent/native/build:${LD_LIBRARY_PATH:-}"
+# Growing files on btrfs lab cache — never tmpfs /tmp.
+export SWARMPLAY_CACHE_DIR="${SWARMPLAY_CACHE_DIR:-/home/brandon/cache/swarmplay}"
+mkdir -p "$SWARMPLAY_CACHE_DIR"
 
 die() { printf 'CI_GATE FAIL: %s\n' "$*" >&2; exit 1; }
 
@@ -40,7 +43,17 @@ printf '== native local-seed smoke ==\n'
 python3 "$root/scripts/native_ensure_local_seed_smoke.py"
 
 printf '== JF play-bind integration smoke ==\n'
-python3 "$root/scripts/jf_ensure_local_smoke.py"
+# Prefer system Jellyfin on the lab host (real disk cache + plugin). Fall back to
+# ephemeral user-scoped JF only when the system instance is down.
+if curl -sf -m 3 "${JF_URL:-http://127.0.0.1:8096}/System/Info/Public" >/dev/null \
+  && [[ -n "${JF_USER:-}" && -n "${JF_PASS:-}" ]]; then
+  python3 "$root/scripts/jf_system_smoke.py"
+elif curl -sf -m 3 "${JF_URL:-http://127.0.0.1:8096}/System/Info/Public" >/dev/null; then
+  JF_USER="${JF_USER:-jellyfin}" JF_PASS="${JF_PASS:-jellyfin}" \
+    python3 "$root/scripts/jf_system_smoke.py"
+else
+  python3 "$root/scripts/jf_ensure_local_smoke.py"
+fi
 
 # When system JF is up (lab host), also prove public-config / route rename.
 # Unreachable JF → skip inside the script (temp JF smoke above still required).

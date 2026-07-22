@@ -6,6 +6,8 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 SUDO="${SUDO:-sudo}"
 JF_PLUGIN_DIR="${JF_PLUGIN_DIR:-/var/lib/jellyfin/plugins/Jellyfin.Plugin.Swarmplay}"
 JF_NATIVE_LIB="${JF_NATIVE_LIB:-/usr/local/lib/libswarmplay_native.so}"
+# Real disk (lab btrfs under /home/brandon) — never tmpfs /tmp.
+SWARMPLAY_CACHE_DIR="${SWARMPLAY_CACHE_DIR:-/home/brandon/cache/swarmplay}"
 DROPIN_DIR=/etc/systemd/system/jellyfin.service.d
 DROPIN="${DROPIN_DIR}/swarmplay.conf"
 
@@ -27,6 +29,13 @@ dist="$root/dist/swarmplay-${ver}"
 [[ -d "$dist/Jellyfin.Plugin.Swarmplay" ]] || die "missing $dist — run: make package VERSION=$ver"
 [[ -f "$dist/libswarmplay_native.so" ]] || die "missing native in $dist"
 
+# Refuse tmpfs roots — growing files must live on disk (btrfs here).
+case "$SWARMPLAY_CACHE_DIR" in
+  /tmp|/tmp/*|/dev/shm|/dev/shm/*)
+    die "SWARMPLAY_CACHE_DIR=$SWARMPLAY_CACHE_DIR is tmpfs; use disk e.g. /home/brandon/cache/swarmplay"
+    ;;
+esac
+
 echo "deploy: plugin → $JF_PLUGIN_DIR"
 "$SUDO" install -d -o jellyfin -g jellyfin -m 0755 "$JF_PLUGIN_DIR"
 "$SUDO" install -o jellyfin -g jellyfin -m 0644 \
@@ -40,14 +49,11 @@ echo "deploy: native → $JF_NATIVE_LIB"
 "$SUDO" install -m 0755 "$dist/libswarmplay_native.so" "$JF_NATIVE_LIB"
 "$SUDO" ldconfig
 
-# Growing-file cache: jellyfin must mkdir here. Lab smokes may also write as the
-# interactive user — sticky world-writable avoids "invalid_argument" misreports.
-echo "deploy: swarm cache → /tmp/swarmplay"
-"$SUDO" mkdir -p /tmp/swarmplay
-"$SUDO" chmod 1777 /tmp/swarmplay
-"$SUDO" chown jellyfin:jellyfin /tmp/swarmplay 2>/dev/null || true
-# Reclaim dirs created by lab user smokes so Ensure can write into them.
-"$SUDO" find /tmp/swarmplay -mindepth 1 -maxdepth 1 -type d -exec chown -R jellyfin:jellyfin {} + 2>/dev/null || true
+# Sibling of strmarr/arr under brandon:jellyfin setgid cache tree on btrfs.
+echo "deploy: swarm cache → $SWARMPLAY_CACHE_DIR (disk)"
+"$SUDO" mkdir -p "$SWARMPLAY_CACHE_DIR"
+"$SUDO" chown jellyfin:jellyfin "$SWARMPLAY_CACHE_DIR"
+"$SUDO" chmod 2775 "$SWARMPLAY_CACHE_DIR"
 
 echo "deploy: systemd drop-in $DROPIN"
 "$SUDO" install -d -m 0755 "$DROPIN_DIR"
@@ -55,6 +61,7 @@ echo "deploy: systemd drop-in $DROPIN"
 # Managed by swarmplay scripts/deploy_local.sh — libtorrent native for Ensure/play-bind
 [Service]
 Environment=LD_LIBRARY_PATH=/usr/local/lib
+Environment=SWARMPLAY_CACHE_DIR=$SWARMPLAY_CACHE_DIR
 UNIT
 "$SUDO" systemctl daemon-reload
 

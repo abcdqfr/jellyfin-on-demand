@@ -270,8 +270,9 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 cancellationToken).ConfigureAwait(false);
 
             var path = ensure.Path;
+            var cacheRoot = SwarmCacheRoot();
             if (string.IsNullOrEmpty(path)
-                || !path.StartsWith("/tmp/swarmplay/", StringComparison.Ordinal)
+                || !path.StartsWith(cacheRoot.TrimEnd('/') + "/", StringComparison.Ordinal)
                 || !System.IO.File.Exists(path))
             {
                 return NotFound(new
@@ -361,31 +362,48 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             IReadOnlyList<TorznabReleaseDto> releases,
             string query)
         {
+            // Drop weak matches client-side too; server gate keeps the list honest.
+            const double minSimilarity = 0.67;
             return releases
-                .OrderByDescending(r => TitleSimilarity(r.Title, query))
-                .ThenByDescending(r => r.Seeders)
-                .ThenBy(r => string.Equals(r.Indexer, "nyaa", StringComparison.OrdinalIgnoreCase) ? 0 : 1);
+                .Select(r => (Release: r, Score: TitleSimilarity(r.Title, query)))
+                .Where(x => x.Score >= minSimilarity)
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Release.Seeders)
+                .ThenBy(x => string.Equals(x.Release.Indexer, "nyaa", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .Select(x => x.Release);
         }
+
+        private static readonly HashSet<string> TitleStopWords = new(StringComparer.Ordinal)
+        {
+            "a", "an", "the", "to", "of", "and", "or", "in", "on", "for", "with",
+            "from", "as", "is", "at", "by", "vs", "via", "into"
+        };
 
         private static double TitleSimilarity(string title, string query)
         {
-            var titleWords = Words(title);
-            var queryWords = Words(query);
-            if (titleWords.Count == 0 || queryWords.Count == 0)
+            var queryWords = SignificantWords(query);
+            if (queryWords.Count == 0)
             {
                 return 0;
             }
 
+            var titleWords = new HashSet<string>(SignificantWords(title), StringComparer.Ordinal);
             var shared = queryWords.Count(w => titleWords.Contains(w));
             return (double)shared / queryWords.Count;
         }
 
-        private static HashSet<string> Words(string value)
+        private static List<string> SignificantWords(string value)
         {
-            return new HashSet<string>(
-                Regex.Split(value.ToLowerInvariant(), @"[^a-z0-9]+")
-                    .Where(w => w.Length > 0),
-                StringComparer.Ordinal);
+            var normalized = (value ?? string.Empty)
+                .ToLowerInvariant()
+                .Replace("'s", "s", StringComparison.Ordinal)
+                .Replace("’s", "s", StringComparison.Ordinal)
+                .Replace("'", string.Empty, StringComparison.Ordinal)
+                .Replace("’", string.Empty, StringComparison.Ordinal);
+
+            return Regex.Split(normalized, @"[^a-z0-9]+")
+                .Where(w => w.Length > 1 && !TitleStopWords.Contains(w))
+                .ToList();
         }
 
         /// <summary>
@@ -419,6 +437,18 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
 
             return s;
+        }
+
+        /// <summary>
+        /// Growing-file root on real disk (btrfs lab cache), not tmpfs /tmp.
+        /// Must match native <c>SWARMPLAY_CACHE_DIR</c> / default.
+        /// </summary>
+        internal static string SwarmCacheRoot()
+        {
+            var env = Environment.GetEnvironmentVariable("SWARMPLAY_CACHE_DIR");
+            return string.IsNullOrWhiteSpace(env)
+                ? "/home/brandon/cache/swarmplay"
+                : env.TrimEnd('/');
         }
 
         private static string AppendTorznabSearch(string baseUrl, string query)

@@ -153,7 +153,7 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                 -4 => ("invalid_file_index",
                     "That file is not in this torrent (bad file index). Pick another file or release.", n),
                 -5 => ("io_error",
-                    "Cannot write the swarm cache directory (permission denied under /tmp/swarmplay). Fix ownership or redeploy.", n),
+                    "Cannot write the swarm cache directory (check SWARMPLAY_CACHE_DIR permissions on disk).", n),
                 _ when !string.IsNullOrEmpty(legacy) => (legacy, legacy, n),
                 _ => ("error", $"Swarm error{(n is null ? string.Empty : $" ({n})")}.", n)
             };

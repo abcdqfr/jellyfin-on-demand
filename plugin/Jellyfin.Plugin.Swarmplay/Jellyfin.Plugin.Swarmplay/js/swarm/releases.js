@@ -283,7 +283,19 @@
         }
 
         panel.querySelector('.loading')?.remove();
-        const annotated = results.map(annotate);
+        // Drop weak title matches (e.g. "Straight To The A … XXX" vs "Straight A's to XXX 2017").
+        const relevant = (JE.swarmRanker && JE.swarmRanker.filterRelevant)
+            ? JE.swarmRanker.filterRelevant(results, query, 0.67)
+            : results;
+        if (!relevant.length) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = `No close title matches for “${query}”. Try another spelling or year.`;
+            panel.appendChild(empty);
+            console.log(logPrefix, `query="${query}" → 0 relevant of ${results.length}`);
+            return;
+        }
+        const annotated = relevant.map(annotate);
         let filters = { ...filters0 };
         const readFilters = mountFilters(panel, annotated, ctx, (next) => {
             filters = next;
@@ -291,7 +303,7 @@
         });
         filters = readFilters();
         renderList(panel, annotated, filters, ctx);
-        console.log(logPrefix, `query="${query}" → ${results.length} ranked release(s)`);
+        console.log(logPrefix, `query="${query}" → ${relevant.length} relevant of ${results.length}`);
     };
 
     JE.swarmReleases = { showPicker: JE.swarmShowReleasePicker };

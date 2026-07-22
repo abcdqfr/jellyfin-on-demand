@@ -29,7 +29,6 @@
         const btih = bind.Btih || bind.btih;
         const fileIndex = bind.FileIndex ?? bind.fileIndex ?? 0;
         if (!btih) return null;
-        // api_key so <video>/hls fetch authenticates (headers are not always sent).
         return ApiClient.getUrl('/Swarmplay/swarm/stream', {
             btih,
             fileIndex,
@@ -37,10 +36,90 @@
         });
     }
 
+    /** JF 10.11 webpack — playbackManager is not on window (projectionist lore). */
+    function resolvePlaybackManager() {
+        const candidates = [
+            window.PlaybackManager,
+            window.playbackManager,
+            window.Emby?.PlaybackManager,
+            window.require?.defined?.('playbackManager') && window.require('playbackManager'),
+            // jellyfin-xposed / rare injectors
+            window.Xp?.components?.playback?.playbackmanager,
+            window.Xp?.playbackManager
+        ];
+        for (const pm of candidates) {
+            if (pm && typeof pm.play === 'function') return pm;
+        }
+        return null;
+    }
+
+    function ensureOverlayStyles() {
+        if (document.getElementById('swarmplay-player-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'swarmplay-player-styles';
+        style.textContent = `
+            #swarmplay-player-overlay {
+                position: fixed; inset: 0; z-index: 2147483000;
+                background: #000; display: flex; flex-direction: column;
+            }
+            #swarmplay-player-overlay .bar {
+                display: flex; align-items: center; gap: .75rem;
+                padding: .5rem .75rem; background: rgba(0,0,0,.85); color: #f5f5f7;
+                font: 14px/1.3 system-ui, sans-serif;
+            }
+            #swarmplay-player-overlay .bar button {
+                background: rgba(255,255,255,.12); border: 0; color: inherit;
+                border-radius: 6px; padding: .35rem .7rem; cursor: pointer;
+            }
+            #swarmplay-player-overlay .title { flex: 1; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #swarmplay-player-overlay video { flex: 1; width: 100%; height: 100%; background: #000; outline: none; }
+        `;
+        document.head.appendChild(style);
+    }
+
     /**
-     * Real playback attempt via authenticated HTTP stream of the growing file.
-     * Path-only fake items resolve in playbackManager but never start a player.
-     * @returns {{ ok:boolean, reason?:string, url?:string }}
+     * Fullscreen HTML5 video overlay — works when JF's playbackManager is not global.
+     */
+    function playViaOverlay(url, title) {
+        ensureOverlayStyles();
+        document.getElementById('swarmplay-player-overlay')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'swarmplay-player-overlay';
+        overlay.innerHTML = `
+            <div class="bar">
+                <button type="button" data-act="close">Close</button>
+                <div class="title"></div>
+            </div>
+            <video controls autoplay playsinline></video>`;
+        overlay.querySelector('.title').textContent = title || 'Swarmplay';
+        const video = overlay.querySelector('video');
+        video.src = url;
+
+        const close = () => {
+            try { video.pause(); } catch (_) { /* ignore */ }
+            video.removeAttribute('src');
+            video.load();
+            overlay.remove();
+            document.removeEventListener('keydown', onKey);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        overlay.querySelector('[data-act="close"]').onclick = close;
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(overlay);
+
+        return video.play()
+            .then(() => ({ ok: true, url, via: 'overlay' }))
+            .catch((e) => {
+                // Still show controls — user can hit play (autoplay policies).
+                console.warn('swarmplay: overlay autoplay blocked', e);
+                return { ok: true, url, via: 'overlay_manual', reason: 'autoplay_blocked' };
+            });
+    }
+
+    /**
+     * Real playback: try JF playbackManager if exposed; else overlay <video> on stream URL.
+     * @returns {{ ok:boolean, reason?:string, url?:string, via?:string }}
      */
     async function attemptPlayback(bind, title) {
         if (!bind || !(bind.Ready || bind.ready)) {
@@ -49,68 +128,50 @@
         const url = streamUrl(bind);
         if (!url) return { ok: false, reason: 'missing_btih' };
 
-        const pm = window.PlaybackManager || window.playbackManager;
-        if (!pm || typeof pm.play !== 'function') {
-            return { ok: false, reason: 'no_playback_manager', url };
-        }
-
-        const item = {
-            Name: title || 'Swarmplay',
-            Id: (bind.VirtualItemKey || bind.Btih || 'swarmplay').replace(/[^a-zA-Z0-9_-]/g, ''),
-            ServerId: ApiClient.serverId?.() || ApiClient.serverInfo?.()?.Id,
-            MediaType: 'Video',
-            Type: 'Movie',
-            IsFolder: false,
-            RunTimeTicks: 0,
-            MediaSources: [{
-                Id: 'swarmplay',
-                Path: url,
-                Protocol: 'Http',
-                Type: 'Default',
-                Container: 'mkv',
-                IsRemote: true,
-                SupportsDirectPlay: true,
-                SupportsDirectStream: true,
-                SupportsTranscoding: true,
-                RequiredHttpHeaders: {},
-                Formats: [],
-                MediaStreams: [{
-                    Type: 'Video',
-                    Index: 0,
-                    IsDefault: true,
-                    IsForced: false,
-                    Codec: 'h264'
+        const pm = resolvePlaybackManager();
+        if (pm) {
+            const item = {
+                Name: title || 'Swarmplay',
+                Id: (bind.VirtualItemKey || bind.Btih || 'swarmplay').replace(/[^a-zA-Z0-9_-]/g, ''),
+                ServerId: ApiClient.serverId?.() || ApiClient.serverInfo?.()?.Id,
+                MediaType: 'Video',
+                Type: 'Movie',
+                IsFolder: false,
+                RunTimeTicks: 0,
+                MediaSources: [{
+                    Id: 'swarmplay',
+                    Path: url,
+                    Protocol: 'Http',
+                    Type: 'Default',
+                    Container: 'mkv',
+                    IsRemote: true,
+                    SupportsDirectPlay: true,
+                    SupportsDirectStream: true,
+                    SupportsTranscoding: true,
+                    RequiredHttpHeaders: {},
+                    Formats: [],
+                    MediaStreams: [{
+                        Type: 'Video',
+                        Index: 0,
+                        IsDefault: true,
+                        IsForced: false,
+                        Codec: 'h264'
+                    }]
                 }]
-            }]
-        };
-
-        try {
-            await pm.play({
-                items: [item],
-                startPositionTicks: 0,
-                fullscreen: true
-            });
-            // play() often resolves even when nothing started — verify a player engaged.
-            await new Promise((r) => setTimeout(r, 700));
-            const player = typeof pm.getCurrentPlayer === 'function'
-                ? pm.getCurrentPlayer()
-                : (pm._currentPlayer || null);
-            const state = typeof pm.getPlayerState === 'function' ? pm.getPlayerState() : null;
-            const videoEl = document.querySelector('video.htmlvideoplayer, video.videoPlayer, .videoPlayerContainer video, video');
-            const engaged = !!(
-                player
-                || (state && (state.PlayState || state.NowPlayingItem))
-                || (videoEl && !videoEl.paused)
-                || document.querySelector('.videoOsdBottom, #videoOsdPage, .htmlvideoplayer')
-            );
-            if (!engaged) {
-                return { ok: false, reason: 'player_did_not_start', url };
+            };
+            try {
+                await pm.play({ items: [item], startPositionTicks: 0, fullscreen: true });
+                await new Promise((r) => setTimeout(r, 700));
+                const player = typeof pm.getCurrentPlayer === 'function' ? pm.getCurrentPlayer() : null;
+                if (player || document.querySelector('.videoOsdBottom, video.htmlvideoplayer, video')) {
+                    return { ok: true, url, via: 'playback_manager' };
+                }
+            } catch (e) {
+                console.warn('swarmplay: playbackManager.play failed, falling back to overlay', e);
             }
-            return { ok: true, url };
-        } catch (e) {
-            console.warn('swarmplay: playbackManager.play failed', e);
-            return { ok: false, reason: String(e && e.message ? e.message : e), url };
         }
+
+        return playViaOverlay(url, title);
     }
 
     JE.feelingLucky = feelingLucky;

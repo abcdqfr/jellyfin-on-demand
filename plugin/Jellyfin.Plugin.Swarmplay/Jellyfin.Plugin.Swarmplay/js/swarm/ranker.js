@@ -9,31 +9,58 @@
         '720': [0.7e9, 8e9], '480': [0.2e9, 3e9]
     };
     const indexerOrder = { nyaa: 0, tpb: 1 };
+    const STOP = new Set([
+        'a', 'an', 'the', 'to', 'of', 'and', 'or', 'in', 'on', 'for', 'with',
+        'from', 'as', 'is', 'at', 'by', 'vs', 'via', 'into'
+    ]);
 
     function resolution(value) {
         const match = String(value || '').match(/(2160|1080|720|480)/);
         return match ? match[1] : '';
     }
 
-    function words(value) {
-        return new Set(String(value || '').toLowerCase()
-            .replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean));
+    function normalizeTitle(value) {
+        return String(value || '')
+            .toLowerCase()
+            .replace(/['’]s\b/g, 's')
+            .replace(/['’]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
     }
 
+    function significantWords(value) {
+        return normalizeTitle(value)
+            .split(/\s+/)
+            .filter((w) => w.length > 1 && !STOP.has(w));
+    }
+
+    function words(value) {
+        return new Set(significantWords(value));
+    }
+
+    /**
+     * Stopword-aware recall of query tokens in the release title.
+     * Drops weak matches like "Straight To The A … XXX" for "Straight A's to XXX 2017".
+     */
     function titleSimilarity(title, queryTitle) {
-        const titleWords = words(title);
-        const queryWords = words(queryTitle);
-        if (!titleWords.size || !queryWords.size) return 0;
+        const queryWords = significantWords(queryTitle);
+        if (!queryWords.length) return 0;
+        const titleSet = words(title);
         let shared = 0;
-        queryWords.forEach(word => { if (titleWords.has(word)) shared++; });
-        return shared / queryWords.size;
+        queryWords.forEach((w) => { if (titleSet.has(w)) shared++; });
+        const recall = shared / queryWords.length;
+        // Prefer contiguous significant phrase when present.
+        const qPhrase = queryWords.join(' ');
+        const tPhrase = significantWords(title).join(' ');
+        if (tPhrase.includes(qPhrase)) return Math.max(recall, 0.99);
+        return recall;
     }
 
     function languagePoints(release) {
         const language = String(release.language || '').toLowerCase();
         const preferred = release.preferredLanguages || release.preferred_languages || ['en'];
         if (!language) return 0;
-        return preferred.map(String).map(x => x.toLowerCase()).includes(language) ? 15 : -10;
+        return preferred.map(String).map((x) => x.toLowerCase()).includes(language) ? 15 : -10;
     }
 
     function score(release, queryTitle) {
@@ -44,18 +71,18 @@
         const size = Number(release.size_bytes);
         const band = sizeBands[res];
         const sizeFit = band && (!Number.isFinite(size) || size < band[0] || size > band[1]) ? -20 : 0;
-        const junk = /\b(sample|trailer|xxx)\b/i.test(String(release.title || '')) ||
+        const junk = /\b(sample|trailer)\b/i.test(String(release.title || '')) ||
             /^(cam|ts)$/i.test(source) ? 100 : 0;
 
         return (resolutionPoints[res] || 0) + (sourcePoints[source] || 0) +
             Math.log2(1 + seeders) * 8 + sizeFit + languagePoints(release) +
-            titleSimilarity(release.title, queryTitle || release.query_title) * 20 - junk;
+            titleSimilarity(release.title, queryTitle || release.query_title) * 40 - junk;
     }
 
     function compare(a, b, queryTitle) {
-        const junkA = /\b(sample|trailer|xxx)\b/i.test(String(a.title || '')) ||
+        const junkA = /\b(sample|trailer)\b/i.test(String(a.title || '')) ||
             /^(cam|ts)$/i.test(String(a.source || ''));
-        const junkB = /\b(sample|trailer|xxx)\b/i.test(String(b.title || '')) ||
+        const junkB = /\b(sample|trailer)\b/i.test(String(b.title || '')) ||
             /^(cam|ts)$/i.test(String(b.source || ''));
         if (junkA !== junkB) return junkA ? 1 : -1;
         const delta = score(b, queryTitle) - score(a, queryTitle);
@@ -68,12 +95,22 @@
 
     function rank(releases) {
         const list = Array.isArray(releases) ? releases : [];
-        const queryTitle = list.find(item => item && item.query_title)?.query_title;
+        const queryTitle = list.find((item) => item && item.query_title)?.query_title;
         return list.slice().sort((a, b) => compare(a, b, queryTitle));
     }
 
+    /** Drop weak title matches (default ≥0.67 of significant query tokens). */
+    function filterRelevant(releases, queryTitle, minScore) {
+        const min = minScore == null ? 0.67 : minScore;
+        const q = queryTitle || '';
+        return (Array.isArray(releases) ? releases : []).filter((r) => {
+            const title = r.title || r.Title || '';
+            return titleSimilarity(title, q) >= min;
+        });
+    }
+
     function rankSelfTest(releases, expectedOrder) {
-        const actual = rank(releases).map(item => item.id || item.btih);
+        const actual = rank(releases).map((item) => item.id || item.btih);
         return Array.isArray(expectedOrder) && actual.length === expectedOrder.length &&
             actual.every((id, index) => id === expectedOrder[index]);
     }
@@ -85,7 +122,6 @@
         return { season: Number(m[1]), episode: Number(m[2]) };
     }
 
-    /** Scene/fansub group: [Group] prefix or -GROUP suffix. */
     function parseGroup(title) {
         const s = String(title || '');
         const bracket = s.match(/^\[([^\]]{1,40})\]/);
@@ -94,19 +130,18 @@
         return dash ? dash[1] : '';
     }
 
-    /** Batch/season pack heuristic (vs single episodic release). */
     function isBatchRelease(title, sizeBytes) {
         const s = String(title || '');
         if (parseEpisode(s)) return false;
         if (/\b(complete|season\s*\d+|s\d{1,2}(?!\s*e\d)|batch|pack)\b/i.test(s)) return true;
         const size = Number(sizeBytes) || 0;
-        // Large packs without SxxExx are usually batches.
         return size >= 3e9;
     }
 
     JE.swarmRanker = {
-        score, rank, rankSelfTest,
-        parseEpisode, parseGroup, isBatchRelease, titleSimilarity
+        score, rank, rankSelfTest, filterRelevant,
+        parseEpisode, parseGroup, isBatchRelease, titleSimilarity,
+        normalizeTitle, significantWords
     };
     JE.ranker = JE.swarmRanker;
 })(window.JellyfinEnhanced);

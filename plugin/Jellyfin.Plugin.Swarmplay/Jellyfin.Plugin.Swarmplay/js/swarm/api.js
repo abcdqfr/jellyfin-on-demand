@@ -114,8 +114,8 @@
         const map = {
             invalid_argument: 'Invalid torrent identity — the infohash or magnet was rejected (often a corrupted magnet string). Try another release.',
             'native_error_-2': 'Invalid torrent identity — the infohash or magnet was rejected (often a corrupted magnet string). Try another release.',
-            io_error: 'Cannot write the swarm cache directory (permission denied under /tmp/swarmplay). Fix ownership or redeploy.',
-            'native_error_-5': 'Cannot write the swarm cache directory (permission denied under /tmp/swarmplay). Fix ownership or redeploy.',
+            io_error: 'Cannot write the swarm cache directory (check SWARMPLAY_CACHE_DIR permissions on disk).',
+            'native_error_-5': 'Cannot write the swarm cache directory (check SWARMPLAY_CACHE_DIR permissions on disk).',
             metadata_timeout: 'Timed out waiting for torrent metadata. Try again or pick another release.',
             'native_error_-3': 'Timed out waiting for torrent metadata. Try again or pick another release.',
             invalid_file_index: 'That file is not in this torrent. Pick another file or release.',

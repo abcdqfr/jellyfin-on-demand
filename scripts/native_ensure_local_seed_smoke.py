@@ -2,6 +2,7 @@
 """Smoke-test swarm_ensure against a local python-libtorrent seeder."""
 
 import ctypes
+import os
 import shutil
 import sys
 import time
@@ -21,7 +22,8 @@ TORRENT_PATH = DATA_DIR / "sweden.png.torrent"
 DATA_FILE = DATA_DIR / "sweden.png"
 LIBRARY_PATH = ROOT / "torrent/native/build/libswarmplay_native.so"
 INFOHASH = "fce002e43ed1159f4612982ce8fcdb9d30e48f1e"
-DOWNLOAD_DIR = Path("/tmp/swarmplay") / INFOHASH
+CACHE_ROOT = Path(os.environ.get("SWARMPLAY_CACHE_DIR", "/home/brandon/cache/swarmplay"))
+DOWNLOAD_DIR = CACHE_ROOT / INFOHASH
 EXPECTED_SIZE = 636
 
 
