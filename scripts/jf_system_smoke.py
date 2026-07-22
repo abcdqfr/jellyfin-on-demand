@@ -84,15 +84,30 @@ def main() -> None:
     st, body = http_json(
         "POST",
         BASE + "/Swarmplay/swarm/play-bind",
-        {"Magnet": magnet, "Btih": INFOHASH, "FileIndex": 0, "TailMib": 1, "HeadMib": 1},
+        {
+            "Magnet": magnet,
+            "Btih": INFOHASH,
+            "FileIndex": 0,
+            "TailMib": 1,
+            "HeadMib": 1,
+            "DisplayName": "Swarmplay System Smoke",
+        },
         token=token,
         timeout=120,
     )
     if st != 200 or not isinstance(body, dict) or not body.get("Ready"):
         fail(f"play-bind failed: {st} {body}")
     path = body["Path"]
+    item_id = body.get("ItemId") or body.get("itemId")
+    if not item_id:
+        fail(f"play-bind missing ItemId (O6a): {body}")
     if Path(path).read_bytes() != DATA_FILE.read_bytes():
         fail("bytes mismatch")
+    st_item, item = http_json("GET", f"{BASE}/Items/{item_id}", token=token, timeout=30)
+    if st_item != 200 or not isinstance(item, dict):
+        fail(f"GET Items/{{ItemId}} failed: {st_item} {item}")
+    if not item.get("Path"):
+        fail(f"library item has no Path: {item}")
     probe = subprocess.run(
         ["/usr/lib/jellyfin-ffmpeg/ffprobe", "-v", "error", "-show_entries", "format=size", "-of", "json", path],
         capture_output=True,
@@ -101,7 +116,7 @@ def main() -> None:
     )
     if probe.returncode != 0:
         fail(f"ffprobe failed: {probe.stderr}")
-    print(f"OK system play-bind path={path} ready=1")
+    print(f"OK system play-bind path={path} ready=1 itemId={item_id}")
 
 
 if __name__ == "__main__":

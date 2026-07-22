@@ -79,11 +79,13 @@
         const isTv = ctx.mediaType === 'tv';
         const bind = await JE.swarm.playBind({
             Btih: btih || '',
-            Magnet: btih ? null : (release.magnet || release.Magnet || null),
+            // Pass original magnet so server can keep ASCII tr= trackers (not bare btih).
+            Magnet: release.magnet || release.Magnet || null,
             FileIndex: 0,
             Season: isTv ? Number(filters.season) || 1 : null,
             Episode: isTv && filters.kind === 'episode' ? (Number(filters.episode) || 1) : null,
             MediaType: ctx.mediaType || null,
+            DisplayName: title,
             TailMib: 8,
             HeadMib: 8
         });
@@ -114,10 +116,13 @@
         }
 
         console.warn(logPrefix, 'playback attempt failed', attempt);
-        const detail = (attempt && attempt.message)
-            || (reason === 'no_jellyfin_player'
-                ? 'Jellyfin’s player is not available to this plugin — refusing a substitute player.'
-                : (reason || 'unknown'));
+        if (reason === 'opened_item_details') {
+            if (typeof JE.toast === 'function') {
+                JE.toast('Swarmplay: opened Jellyfin item — press Play in the normal player.', 6000);
+            }
+            return;
+        }
+        const detail = (attempt && attempt.message) || reason || 'unknown';
         if (typeof JE.toast === 'function') {
             JE.toast(`Swarmplay: warm, but no Jellyfin playback (${detail})`, 9000);
         }

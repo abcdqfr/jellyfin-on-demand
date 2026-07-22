@@ -1,14 +1,19 @@
-// This controller intentionally has no external dependencies.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Swarmplay.Swarm;
 using Jellyfin.Plugin.Swarmplay.Swarm.Torznab;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,11 +27,16 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         private static readonly TimeSpan TorznabTimeout = TimeSpan.FromSeconds(20);
         private readonly ISwarmSession _swarmSession;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILibraryManager _libraryManager;
 
-        public SwarmController(ISwarmSession swarmSession, IHttpClientFactory httpClientFactory)
+        public SwarmController(
+            ISwarmSession swarmSession,
+            IHttpClientFactory httpClientFactory,
+            ILibraryManager libraryManager)
         {
             _swarmSession = swarmSession;
             _httpClientFactory = httpClientFactory;
+            _libraryManager = libraryManager;
         }
 
         [HttpPost("ensure")]
@@ -98,11 +108,11 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 });
             }
 
-            var btih = ExtractBtih(top.Magnet);
+            var btih = MagnetSanitizer.ExtractBtih(top.Magnet);
             var ensureRequest = new SwarmEnsureRequest
             {
-                // Hex BTIH only for native P/Invoke (magnets get ANSI-corrupted).
-                Magnet = string.IsNullOrEmpty(btih) ? top.Magnet : null,
+                // ASCII magnet (xt+tr) so Torznab trackers reach native P/Invoke.
+                Magnet = MagnetSanitizer.BuildAsciiMagnet(top.Magnet, btih),
                 Btih = btih,
                 FileIndex = 0,
                 TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
@@ -128,16 +138,20 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         {
             request ??= new SwarmEnsureRequest();
             var btih = string.IsNullOrWhiteSpace(request.Btih)
-                ? ExtractBtih(request.Magnet)
+                ? MagnetSanitizer.ExtractBtih(request.Magnet)
                 : request.Btih.Trim().ToLowerInvariant();
             request.Btih = btih;
-            if (!string.IsNullOrEmpty(btih))
+            var asciiMagnet = MagnetSanitizer.BuildAsciiMagnet(request.Magnet, btih);
+            if (!string.IsNullOrEmpty(asciiMagnet))
             {
-                request.Magnet = null; // avoid ANSI-corrupted magnet P/Invoke
+                request.Magnet = asciiMagnet;
             }
 
             // Resolve metadata + file list, then strmarr-style file_index pick.
-            var source = !string.IsNullOrEmpty(btih) ? btih : (request.Magnet ?? string.Empty);
+            // Prefer sanitized magnet (trackers) over bare btih.
+            var source = !string.IsNullOrEmpty(request.Magnet)
+                ? request.Magnet
+                : (btih ?? string.Empty);
             if (!string.IsNullOrEmpty(source)
                 && (request.Season is > 0 || request.Episode is > 0
                     || string.Equals(request.MediaType, "movie", StringComparison.OrdinalIgnoreCase)
@@ -202,21 +216,109 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 errorCode = null;
             }
 
+            string? itemId = null;
+            if (ready && !string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(btih))
+            {
+                try
+                {
+                    itemId = await BindVirtualMovieAsync(
+                            btih,
+                            request.FileIndex,
+                            path,
+                            request.DisplayName,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    ready = false;
+                    error = "virtual_item_bind_failed";
+                    message = $"Warm ok but could not create Jellyfin item: {ex.Message}";
+                    errorCode = null;
+                }
+            }
+
             var bind = new SwarmPlayBindResult
             {
                 VirtualItemKey = string.IsNullOrEmpty(btih) ? string.Empty : $"swarm:{btih}:{request.FileIndex}",
+                ItemId = itemId,
                 Btih = btih ?? string.Empty,
                 FileIndex = request.FileIndex,
                 Path = path,
-                Ready = ready && !string.IsNullOrEmpty(path),
+                Ready = ready && !string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(itemId),
                 Protocol = "File",
                 Phase = phase ?? (ready ? "ready" : "error"),
-                Error = ready && !string.IsNullOrEmpty(path) ? null : (error ?? "not_ready"),
+                Error = ready && !string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(itemId)
+                    ? null
+                    : (error ?? "not_ready"),
                 Message = message,
                 ErrorCode = errorCode
             };
             SwarmErrorText.Apply(bind);
             return Ok(bind);
+        }
+
+        /// <summary>
+        /// O6a: mint/update a real Movie Guid whose Path is the growing file so
+        /// Desktop PlayNow / PlaybackInfo / ffmpeg transcode work (no DIY player).
+        /// </summary>
+        private Task<string> BindVirtualMovieAsync(
+            string btih,
+            int fileIndex,
+            string path,
+            string? displayName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var id = SwarmItemId(btih, fileIndex);
+            var name = string.IsNullOrWhiteSpace(displayName)
+                ? Path.GetFileNameWithoutExtension(path)
+                : displayName.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = $"Swarmplay {btih[..Math.Min(8, btih.Length)]}";
+            }
+
+            // Prefer user root so the item is addressable for PlaybackInfo / PlayNow.
+            BaseItem parent = _libraryManager.GetUserRootFolder() ?? _libraryManager.RootFolder;
+            var existing = _libraryManager.GetItemById(id) as Movie;
+            if (existing is null)
+            {
+                var movie = new Movie
+                {
+                    Id = id,
+                    Name = name,
+                    Path = path,
+                    IsVirtualItem = true,
+                    VideoType = VideoType.VideoFile,
+                    ForcedSortName = $"swarmplay-{btih}-{fileIndex}",
+                    ParentId = parent.Id
+                };
+                // CreateItem persists; avoid UpdateItemAsync here (can block on library refresh).
+                _libraryManager.CreateItem(movie, parent);
+            }
+            else
+            {
+                existing.Name = name;
+                existing.Path = path;
+                existing.IsVirtualItem = true;
+                existing.VideoType = VideoType.VideoFile;
+                existing.ParentId = parent.Id;
+                // Fire-and-forget metadata edit — path must update for the next PlayNow.
+                _ = _libraryManager.UpdateItemAsync(
+                    existing,
+                    existing.GetParent() ?? parent,
+                    ItemUpdateType.MetadataEdit,
+                    CancellationToken.None);
+            }
+
+            return Task.FromResult(id.ToString("D"));
+        }
+
+        private static Guid SwarmItemId(string btih, int fileIndex)
+        {
+            var bytes = MD5.HashData(Encoding.UTF8.GetBytes($"swarmplay:{btih}:{fileIndex}"));
+            return new Guid(bytes);
         }
 
         [HttpPost("stop")]
@@ -345,7 +447,7 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                             Magnet = item.Magnet,
                             Indexer = indexer,
                             QueryTitle = query,
-                            Btih = ExtractBtih(item.Magnet)
+                            Btih = MagnetSanitizer.ExtractBtih(item.Magnet)
                         });
                     }
                 }
@@ -473,39 +575,6 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             {
                 return false;
             }
-        }
-
-        private static string ExtractBtih(string? magnetOrBtih)
-        {
-            if (string.IsNullOrWhiteSpace(magnetOrBtih))
-            {
-                return string.Empty;
-            }
-
-            var value = magnetOrBtih.Trim();
-            const string marker = "xt=urn:btih:";
-            var idx = value.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0)
-            {
-                return value.Length == 40 ? value.ToLowerInvariant() : string.Empty;
-            }
-
-            var start = idx + marker.Length;
-            var end = start;
-            while (end < value.Length)
-            {
-                var c = value[end];
-                if (char.IsLetterOrDigit(c))
-                {
-                    end++;
-                    continue;
-                }
-
-                break;
-            }
-
-            var hash = value.Substring(start, end - start);
-            return hash.Length is 40 or 32 ? hash.ToLowerInvariant() : string.Empty;
         }
 
         public sealed class SwarmLuckyRequest

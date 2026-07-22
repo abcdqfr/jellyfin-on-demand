@@ -28,6 +28,10 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         {
             public int Ready;
             public int Error;
+            public int HasMetadata;
+            public int NumPeers;
+            public int NumSeeds;
+            public int DhtNodes;
         }
 
         [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -81,11 +85,14 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                     out var nativeResult);
 
                 var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var phase = errorCode == 0
+                    ? (nativeResult.Ready != 0 ? "ready" : "warming")
+                    : (errorCode == -3 ? "dead_pin" : "error");
                 var result = new SwarmEnsureResult
                 {
                     Path = nativeResult.Path == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(nativeResult.Path),
                     Ready = nativeResult.Ready != 0,
-                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "warming") : "error",
+                    Phase = phase,
                     Error = errorCode == 0 ? null : $"native_error_{errorCode}",
                     ErrorCode = errorCode == 0 ? null : errorCode
                 };
@@ -101,10 +108,18 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                 cancellationToken.ThrowIfCancellationRequested();
                 var resultCode = swarm_status(btih, out var nativeResult);
                 var errorCode = nativeResult.Error != 0 ? nativeResult.Error : resultCode;
+                var phase = errorCode == 0
+                    ? (nativeResult.Ready != 0 ? "ready" : "warming")
+                    : (errorCode == -3 ? "dead_pin" : "error");
                 var result = new SwarmStatusResult
                 {
                     Ready = nativeResult.Ready != 0,
-                    Phase = errorCode == 0 ? (nativeResult.Ready != 0 ? "ready" : "warming") : "error",
+                    Phase = phase,
+                    HasMetadata = nativeResult.HasMetadata != 0,
+                    Peers = nativeResult.NumPeers,
+                    NumPeers = nativeResult.NumPeers,
+                    NumSeeds = nativeResult.NumSeeds,
+                    DhtNodes = nativeResult.DhtNodes,
                     Error = errorCode == 0 ? null : $"native_error_{errorCode}",
                     ErrorCode = errorCode == 0 ? null : errorCode
                 };
@@ -177,10 +192,23 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             }, cancellationToken)!;
         }
 
+        /// <summary>
+        /// Prefer sanitized ASCII magnet (xt + tr) over bare btih so Torznab trackers reach libtorrent.
+        /// </summary>
         private static string PreferAsciiSource(SwarmEnsureRequest request)
         {
             var btih = (request.Btih ?? string.Empty).Trim().ToLowerInvariant();
-            if (btih.Length is 40 or 32) return btih;
+            var sanitized = MagnetSanitizer.BuildAsciiMagnet(request.Magnet, btih);
+            if (!string.IsNullOrEmpty(sanitized))
+            {
+                return sanitized;
+            }
+
+            if (btih.Length is 40 or 32)
+            {
+                return btih;
+            }
+
             var magnet = request.Magnet?.Trim();
             return !string.IsNullOrWhiteSpace(magnet) ? magnet : btih;
         }

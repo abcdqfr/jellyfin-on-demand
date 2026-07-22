@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.8 — 2026-07-21
+
+### Added
+- O6a virtual **Movie** bind: play-bind creates/updates a real Jellyfin `ItemId` whose `Path` is the growing file, then client **PlayNow** to Jellyfin Desktop (normal OSD + transcoder). No DIY player.
+
+### Fixed
+- Cold Torznab magnets timed out at metadata (−3): C# now passes sanitized `xt`+`tr=` magnets (drops `dn=`); native bootstraps DHT like vlc-bt, unlocks during metadata wait, persists `SWARMPLAY_CACHE_DIR/metainfo/<btih>.torrent`, and surfaces peers/trackers/`has_metadata` for dead-pin failures
+
 ## 0.1.7 — 2026-07-21
 
 ### Removed

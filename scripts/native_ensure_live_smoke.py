@@ -12,7 +12,14 @@ class EnsureResult(ctypes.Structure):
 
 
 class StatusResult(ctypes.Structure):
-    _fields_ = [("ready", ctypes.c_int), ("err", ctypes.c_int)]
+    _fields_ = [
+        ("ready", ctypes.c_int),
+        ("err", ctypes.c_int),
+        ("has_metadata", ctypes.c_int),
+        ("num_peers", ctypes.c_int),
+        ("num_seeds", ctypes.c_int),
+        ("dht_nodes", ctypes.c_int),
+    ]
 
 
 ROOT = Path(__file__).resolve().parents[1]

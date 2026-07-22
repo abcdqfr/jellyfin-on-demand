@@ -12,8 +12,8 @@
 
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyVersion>0.1.7.0</AssemblyVersion>
-        <FileVersion>0.1.7.0</FileVersion>
+        <AssemblyVersion>0.1.8.0</AssemblyVersion>
+        <FileVersion>0.1.8.0</FileVersion>
         <RootNamespace>Jellyfin.Plugin.Swarmplay</RootNamespace>
         <AssemblyName>Jellyfin.Plugin.Swarmplay</AssemblyName>
     </PropertyGroup>

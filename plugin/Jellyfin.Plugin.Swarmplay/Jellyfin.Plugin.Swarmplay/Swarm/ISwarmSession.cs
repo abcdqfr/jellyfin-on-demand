@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public int? Episode { get; set; }
         /// <summary>movie | tv — guides auto file pick when S/E absent.</summary>
         public string? MediaType { get; set; }
+        /// <summary>Display name for the virtual Movie item (TMDB title).</summary>
+        public string? DisplayName { get; set; }
         public int TailMib { get; set; } = 8;
         public int HeadMib { get; set; } = 8;
         public string WarmOrder { get; set; } = "tail_then_head";
@@ -43,11 +46,130 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public string? Path { get; set; }
         public bool Ready { get; set; }
         public string? Phase { get; set; }
+        /// <summary>True once libtorrent has torrent_file / metainfo (native has_metadata).</summary>
+        public bool HasMetadata { get; set; }
+        /// <summary>Connected peers (native num_peers; mirrors Peers for older clients).</summary>
         public int Peers { get; set; }
+        public int NumPeers { get; set; }
+        public int NumSeeds { get; set; }
+        public int DhtNodes { get; set; }
         public double Progress { get; set; }
         public string? Error { get; set; }
         public string? Message { get; set; }
         public int? ErrorCode { get; set; }
+    }
+
+    /// <summary>
+    /// ASCII-safe magnet for CharSet.Ansi P/Invoke: xt=urn:btih + tr= only (drop dn=/non-ASCII).
+    /// </summary>
+    public static class MagnetSanitizer
+    {
+        public static string BuildAsciiMagnet(string? magnetOrBtih, string? knownBtih = null)
+        {
+            var btih = NormalizeBtih(knownBtih);
+            if (btih.Length is not (40 or 32))
+            {
+                btih = ExtractBtih(magnetOrBtih);
+            }
+
+            if (btih.Length is not (40 or 32))
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder(64);
+            sb.Append("magnet:?xt=urn:btih:").Append(btih);
+            foreach (var tr in ExtractAsciiTrackerValues(magnetOrBtih))
+            {
+                sb.Append("&tr=").Append(tr);
+            }
+
+            return sb.ToString();
+        }
+
+        public static string ExtractBtih(string? magnetOrBtih)
+        {
+            if (string.IsNullOrWhiteSpace(magnetOrBtih))
+            {
+                return string.Empty;
+            }
+
+            var value = magnetOrBtih.Trim();
+            const string marker = "xt=urn:btih:";
+            var idx = value.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+            {
+                return NormalizeBtih(value);
+            }
+
+            var start = idx + marker.Length;
+            var end = start;
+            while (end < value.Length)
+            {
+                var c = value[end];
+                if (char.IsLetterOrDigit(c))
+                {
+                    end++;
+                    continue;
+                }
+
+                break;
+            }
+
+            return NormalizeBtih(value.Substring(start, end - start));
+        }
+
+        private static string NormalizeBtih(string? value)
+        {
+            var hash = (value ?? string.Empty).Trim().ToLowerInvariant();
+            return hash.Length is 40 or 32 ? hash : string.Empty;
+        }
+
+        private static IEnumerable<string> ExtractAsciiTrackerValues(string? magnet)
+        {
+            if (string.IsNullOrWhiteSpace(magnet))
+            {
+                yield break;
+            }
+
+            var qIdx = magnet.IndexOf('?');
+            var query = qIdx >= 0 ? magnet[(qIdx + 1)..] : magnet;
+            foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var eq = part.IndexOf('=');
+                if (eq <= 0)
+                {
+                    continue;
+                }
+
+                var key = part[..eq];
+                if (!key.Equals("tr", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var value = part[(eq + 1)..];
+                if (value.Length == 0 || !IsAscii(value))
+                {
+                    continue;
+                }
+
+                yield return value;
+            }
+        }
+
+        private static bool IsAscii(string value)
+        {
+            foreach (var c in value)
+            {
+                if (c > 0x7F)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     public sealed class SwarmTorrentFile
@@ -63,6 +185,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
     public sealed class SwarmPlayBindResult
     {
         public string VirtualItemKey { get; set; } = string.Empty;
+        /// <summary>Real Jellyfin library Guid for PlaybackInfo / PlayNow (O6a).</summary>
+        public string? ItemId { get; set; }
         public string Btih { get; set; } = string.Empty;
         public int FileIndex { get; set; }
         public string? Path { get; set; }
@@ -142,14 +266,22 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
                 }
             }
 
+            // Legacy clients may still send/store "metadata_timeout" for -3.
+            if (string.Equals(legacy, "metadata_timeout", StringComparison.Ordinal)
+                || string.Equals(legacy, "metadata_unreachable", StringComparison.Ordinal)
+                || string.Equals(legacy, "dead_pin", StringComparison.Ordinal))
+            {
+                n ??= -3;
+            }
+
             return n switch
             {
                 -1 => ("native_unavailable",
                     "BitTorrent engine is not loaded on this Jellyfin host.", n),
                 -2 => ("invalid_argument",
                     "Invalid torrent identity — the infohash or magnet was rejected (often a corrupted magnet string). Try another release.", n),
-                -3 => ("metadata_timeout",
-                    "Timed out waiting for torrent metadata from the swarm. Peers may be scarce — try again or pick another release.", n),
+                -3 => ("metadata_unreachable",
+                    "Dead pin: could not fetch torrent metadata (no usable peers/trackers answered in time). Try another release or indexer — this is not a player bug.", n),
                 -4 => ("invalid_file_index",
                     "That file is not in this torrent (bad file index). Pick another file or release.", n),
                 -5 => ("io_error",

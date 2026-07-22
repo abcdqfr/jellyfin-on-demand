@@ -14,6 +14,11 @@ typedef struct {
 typedef struct {
     int ready;
     int err;
+    /* Append-only ABI fields (native half of status-surface). */
+    int has_metadata;
+    int num_peers;
+    int num_seeds;
+    int dht_nodes;
 } swarm_status_result;
 
 enum {
