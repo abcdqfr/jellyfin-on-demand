@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.5.0 — 2026-07-22
+
+### Added
+- **Discover pane:** sidebar entry next to Enhanced Panel / Bookmarks that mirrors Seerr Discover's default slider order — Trending, Popular Movies, Movie Genres, Upcoming Movies, Popular Series, Series Genres, Upcoming Series. Cards reuse the rolled-in jellyseerr poster chrome, so Play / Lucky / Library behave identically to search. TMDB-backed when Seerr is off (`GET /Swarmplay/jellyseerr/discover/{trending,movies,tv}` + genreslider). Search landing page (empty query) also gets a "Browse Discover" link. Genre color tones / slider titles from seerr Discover (MIT — steal-log in [`ATTRIBUTION.md`](ATTRIBUTION.md)).
+
+### Changed
+- **Attribution:** [`ATTRIBUTION.md`](ATTRIBUTION.md) now explicitly documents that upstream Jellyfin Enhanced's Seerr/Jellyseerr *client chrome* is rolled into this Swarmplay fork (GPL-3.0 JE derivative) and retargeted — Seerr/Jellyseerr remains reference-only, not a runtime ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
+
+### Fixed
+- Discover click no longer pushes `#/discover` into Jellyfin's router (404).
+- Discover empty pane: container query used `.sections swarmplay-discover` (descendant) instead of `.sections.swarmplay-discover`.
+
 ## 0.4.1 — 2026-07-22 (hotfix)
 
 ### Fixed

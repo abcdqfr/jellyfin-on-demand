@@ -1341,6 +1341,241 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             }
         }
 
+        /// <summary>
+        /// True when Swarmplay discovery is on and Seerr is not configured —
+        /// discover/search chrome is backed by TMDB (ADR-004), not a Seerr process.
+        /// </summary>
+        private static bool IsSwarmplayTmdbMode(Configuration.PluginConfiguration? config)
+            => config != null
+               && config.SwarmplayDiscoveryEnabled
+               && !string.IsNullOrWhiteSpace(config.TMDB_API_KEY)
+               && (!config.JellyseerrEnabled
+                   || string.IsNullOrEmpty(config.JellyseerrUrls)
+                   || string.IsNullOrEmpty(config.JellyseerrApiKey));
+
+        private static object MapTmdbItemToJellyseerr(JsonElement item, string mediaType)
+        {
+            var id = item.TryGetProperty("id", out var idEl) ? idEl.GetInt32() : 0;
+            string? title = null;
+            string? name = null;
+            string? releaseDate = null;
+            string? firstAirDate = null;
+            if (mediaType == "movie")
+            {
+                title = item.TryGetProperty("title", out var t) ? t.GetString() : null;
+                releaseDate = item.TryGetProperty("release_date", out var rd) ? rd.GetString() : null;
+            }
+            else
+            {
+                name = item.TryGetProperty("name", out var n) ? n.GetString() : null;
+                firstAirDate = item.TryGetProperty("first_air_date", out var fad) ? fad.GetString() : null;
+            }
+
+            return new
+            {
+                id,
+                mediaType,
+                title = title ?? name,
+                name = name ?? title,
+                overview = item.TryGetProperty("overview", out var ov) ? ov.GetString() : null,
+                posterPath = item.TryGetProperty("poster_path", out var pp) && pp.ValueKind == JsonValueKind.String ? pp.GetString() : null,
+                backdropPath = item.TryGetProperty("backdrop_path", out var bp) && bp.ValueKind == JsonValueKind.String ? bp.GetString() : null,
+                voteAverage = item.TryGetProperty("vote_average", out var va) && va.ValueKind == JsonValueKind.Number ? va.GetDouble() : 0d,
+                releaseDate,
+                firstAirDate,
+                mediaInfo = new { status = 1 }
+            };
+        }
+
+        private async Task<IActionResult> FetchTmdbAsJellyseerrAsync(string tmdbPathAndQuery, string? forcedMediaType = null)
+        {
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            var apiKey = config?.TMDB_API_KEY ?? string.Empty;
+            var separator = tmdbPathAndQuery.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+            var requestUri =
+                $"https://api.themoviedb.org/3/{tmdbPathAndQuery.TrimStart('/')}{separator}api_key={Uri.EscapeDataString(apiKey)}&include_adult=false";
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                using var response = await httpClient.GetAsync(requestUri);
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.Warning($"TMDB discover failed ({tmdbPathAndQuery}): {(int)response.StatusCode}");
+                    return StatusCode((int)response.StatusCode, new { error = true, code = "tmdb_error", message = "TMDB discover failed." });
+                }
+
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var results = new List<object>();
+                if (root.TryGetProperty("results", out var tmdbResults) && tmdbResults.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in tmdbResults.EnumerateArray())
+                    {
+                        var mediaType = forcedMediaType
+                            ?? (item.TryGetProperty("media_type", out var mt) ? mt.GetString() : null);
+                        if (mediaType != "movie" && mediaType != "tv")
+                        {
+                            continue;
+                        }
+
+                        var id = item.TryGetProperty("id", out var idEl) ? idEl.GetInt32() : 0;
+                        if (id <= 0) continue;
+                        results.Add(MapTmdbItemToJellyseerr(item, mediaType));
+                    }
+                }
+
+                var pageOut = root.TryGetProperty("page", out var pEl) && pEl.TryGetInt32(out var pVal) ? pVal : 1;
+                var totalPages = root.TryGetProperty("total_pages", out var tpEl) && tpEl.TryGetInt32(out var tpVal) ? tpVal : 1;
+                var totalResults = root.TryGetProperty("total_results", out var trEl) && trEl.TryGetInt32(out var trVal) ? trVal : results.Count;
+
+                return Ok(new
+                {
+                    page = pageOut,
+                    totalPages,
+                    totalResults,
+                    results
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"TMDB discover exception: {ex.Message}");
+                return StatusCode(500, new { error = true, code = "tmdb_unreachable", message = "Failed to reach TMDB." });
+            }
+        }
+
+        private async Task<IActionResult> FetchTmdbGenreSliderAsync(string mediaType)
+        {
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            var apiKey = config?.TMDB_API_KEY ?? string.Empty;
+            var genrePath = mediaType == "tv" ? "genre/tv/list" : "genre/movie/list";
+            var requestUri = $"https://api.themoviedb.org/3/{genrePath}?api_key={Uri.EscapeDataString(apiKey)}&language=en";
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                using var response = await httpClient.GetAsync(requestUri);
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode, new { error = true, code = "tmdb_error", message = "TMDB genres failed." });
+                }
+
+                using var doc = JsonDocument.Parse(body);
+                var list = new List<object>();
+                if (doc.RootElement.TryGetProperty("genres", out var genres) && genres.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var g in genres.EnumerateArray())
+                    {
+                        var id = g.TryGetProperty("id", out var idEl) ? idEl.GetInt32() : 0;
+                        var name = g.TryGetProperty("name", out var nameEl) ? nameEl.GetString() : null;
+                        if (id <= 0 || string.IsNullOrEmpty(name)) continue;
+                        // Seerr GenreSliderItem shape: id, name, backdrops[]
+                        list.Add(new { id, name, backdrops = Array.Empty<string>() });
+                    }
+                }
+
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"TMDB genre slider exception: {ex.Message}");
+                return StatusCode(500, new { error = true, code = "tmdb_unreachable", message = "Failed to reach TMDB." });
+            }
+        }
+
+        [HttpGet("jellyseerr/discover/trending")]
+        [Authorize]
+        public Task<IActionResult> DiscoverTrending(
+            [FromQuery] int page = 1,
+            [FromQuery] string timeWindow = "day",
+            [FromQuery] string mediaType = "all")
+        {
+            if (page < 1) page = 1;
+            var window = string.Equals(timeWindow, "week", StringComparison.OrdinalIgnoreCase) ? "week" : "day";
+            var type = mediaType?.ToLowerInvariant() switch
+            {
+                "movie" => "movie",
+                "tv" => "tv",
+                _ => "all"
+            };
+
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                // TMDB trending/{media_type}/{time_window}
+                return FetchTmdbAsJellyseerrAsync($"trending/{type}/{window}?page={page}",
+                    forcedMediaType: type is "movie" or "tv" ? type : null);
+            }
+
+            return ProxyJellyseerrRequest(
+                $"/api/v1/discover/trending?page={page}&timeWindow={window}&mediaType={type}",
+                HttpMethod.Get);
+        }
+
+        [HttpGet("jellyseerr/discover/movies")]
+        [Authorize]
+        public Task<IActionResult> DiscoverMovies(
+            [FromQuery] int page = 1,
+            [FromQuery] string? primaryReleaseDateGte = null,
+            [FromQuery] string? genre = null,
+            [FromQuery] string? sortBy = null)
+        {
+            if (page < 1) page = 1;
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                var qs = new StringBuilder($"discover/movie?page={page}&language=en-US");
+                if (!string.IsNullOrWhiteSpace(primaryReleaseDateGte))
+                    qs.Append($"&primary_release_date.gte={Uri.EscapeDataString(primaryReleaseDateGte)}");
+                if (!string.IsNullOrWhiteSpace(genre))
+                    qs.Append($"&with_genres={Uri.EscapeDataString(genre)}");
+                qs.Append($"&sort_by={Uri.EscapeDataString(string.IsNullOrWhiteSpace(sortBy) ? "popularity.desc" : sortBy)}");
+                return FetchTmdbAsJellyseerrAsync(qs.ToString(), forcedMediaType: "movie");
+            }
+
+            var path = AppendDiscoverFilters($"/api/v1/discover/movies?page={page}");
+            if (!string.IsNullOrWhiteSpace(primaryReleaseDateGte))
+                path += $"&primaryReleaseDateGte={Uri.EscapeDataString(primaryReleaseDateGte)}";
+            if (!string.IsNullOrWhiteSpace(genre))
+                path += $"&genre={Uri.EscapeDataString(genre)}";
+            if (!string.IsNullOrWhiteSpace(sortBy))
+                path += $"&sortBy={Uri.EscapeDataString(sortBy)}";
+            return ProxyJellyseerrRequest(path, HttpMethod.Get);
+        }
+
+        [HttpGet("jellyseerr/discover/tv")]
+        [Authorize]
+        public Task<IActionResult> DiscoverTv(
+            [FromQuery] int page = 1,
+            [FromQuery] string? firstAirDateGte = null,
+            [FromQuery] string? genre = null,
+            [FromQuery] string? sortBy = null)
+        {
+            if (page < 1) page = 1;
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                var qs = new StringBuilder($"discover/tv?page={page}&language=en-US");
+                if (!string.IsNullOrWhiteSpace(firstAirDateGte))
+                    qs.Append($"&first_air_date.gte={Uri.EscapeDataString(firstAirDateGte)}");
+                if (!string.IsNullOrWhiteSpace(genre))
+                    qs.Append($"&with_genres={Uri.EscapeDataString(genre)}");
+                qs.Append($"&sort_by={Uri.EscapeDataString(string.IsNullOrWhiteSpace(sortBy) ? "popularity.desc" : sortBy)}");
+                return FetchTmdbAsJellyseerrAsync(qs.ToString(), forcedMediaType: "tv");
+            }
+
+            var path = AppendDiscoverFilters($"/api/v1/discover/tv?page={page}");
+            if (!string.IsNullOrWhiteSpace(firstAirDateGte))
+                path += $"&firstAirDateGte={Uri.EscapeDataString(firstAirDateGte)}";
+            if (!string.IsNullOrWhiteSpace(genre))
+                path += $"&genre={Uri.EscapeDataString(genre)}";
+            if (!string.IsNullOrWhiteSpace(sortBy))
+                path += $"&sortBy={Uri.EscapeDataString(sortBy)}";
+            return ProxyJellyseerrRequest(path, HttpMethod.Get);
+        }
+
         [HttpGet("jellyseerr/sonarr")]
         [Authorize]
         public Task<IActionResult> GetSonarrInstances()
@@ -2056,6 +2291,15 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         [Authorize]
         public Task<IActionResult> DiscoverTvByGenre(int genreId, [FromQuery] int page = 1)
         {
+            if (page < 1) page = 1;
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                return FetchTmdbAsJellyseerrAsync(
+                    $"discover/tv?page={page}&language=en-US&with_genres={genreId}&sort_by=popularity.desc",
+                    forcedMediaType: "tv");
+            }
+
             return ProxyJellyseerrRequest(AppendDiscoverFilters($"/api/v1/discover/tv?page={page}&genre={genreId}"), HttpMethod.Get);
         }
 
@@ -2063,6 +2307,15 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         [Authorize]
         public Task<IActionResult> DiscoverMoviesByGenre(int genreId, [FromQuery] int page = 1)
         {
+            if (page < 1) page = 1;
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                return FetchTmdbAsJellyseerrAsync(
+                    $"discover/movie?page={page}&language=en-US&with_genres={genreId}&sort_by=popularity.desc",
+                    forcedMediaType: "movie");
+            }
+
             return ProxyJellyseerrRequest(AppendDiscoverFilters($"/api/v1/discover/movies?page={page}&genre={genreId}"), HttpMethod.Get);
         }
 
@@ -2120,6 +2373,12 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         [Authorize]
         public Task<IActionResult> GetMovieGenreSlider()
         {
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                return FetchTmdbGenreSliderAsync("movie");
+            }
+
             return ProxyJellyseerrRequest("/api/v1/discover/genreslider/movie", HttpMethod.Get);
         }
 
@@ -2127,6 +2386,12 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         [Authorize]
         public Task<IActionResult> GetTvGenreSlider()
         {
+            var config = JellyfinEnhanced.Instance?.Configuration;
+            if (IsSwarmplayTmdbMode(config))
+            {
+                return FetchTmdbGenreSliderAsync("tv");
+            }
+
             return ProxyJellyseerrRequest("/api/v1/discover/genreslider/tv", HttpMethod.Get);
         }
 

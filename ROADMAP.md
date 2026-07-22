@@ -33,6 +33,7 @@ Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-par
 | **0.3.0** | **Batch episode fanout** — pick episode inside multi-file TV release ([ADR-008](docs/adr/008-batch-episode-fanout-v0.3.md)) | Shipping |
 | **0.4.0** | **Cache-to-library** — Add to Library → download straight into a real JF library ([ADR-009](docs/adr/009-cache-to-library-v0.4.md)) | Shipping |
 | **0.4.1** | **Hotfix:** Add to Library → Stream now writes a real `.strm` pointer; warm-progress bar + blazing-ahead readahead-size regression fix ([ADR-010](docs/adr/010-strm-add-to-library-v0.4.1.md)) | Shipping |
+| **0.5.0** | **Discover pane** — Seerr-shaped browse home next to Enhanced/Bookmarks (TMDB-backed; JE jellyseerr chrome rolled in) | Shipping |
 | later | O7b sidecar, packaging polish | Phase 4 |
 
 ### 0.2.2 — Virtual-item probe fix + history UX (0.2.1's exit criteria, actually met)
@@ -152,6 +153,20 @@ before that fix landed.
 **Exit:** Add to Library → Stream leaves a real, permanent library item
 behind; warming a fresh play shows real percentage progress and completes in
 roughly the same time it did before the blazing-ahead fix landed.
+
+### 0.5.0 — Discover pane (Seerr-shaped browse, JE chrome rolled in)
+
+Living-room Discover home next to Enhanced Panel / Bookmarks. Reuses the
+jellyseerr poster cards already rolled into this JE fork (Play / Lucky /
+Library), backed by TMDB when Seerr is off. Attribution for JE chrome + MIT
+seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
+
+- [x] Sidebar Discover pane + search landing link
+- [x] Default Seerr slider order (trending / popular / genres / upcoming)
+- [x] TMDB discover endpoints when Swarmplay discovery is on
+- [x] Empty-pane + `#/discover` 404 fixes
+
+**Exit:** Open Discover → see sliders → Play/Lucky/Library work like search.
 
 ---
 

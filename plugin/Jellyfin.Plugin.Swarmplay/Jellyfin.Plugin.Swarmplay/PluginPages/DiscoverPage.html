@@ -1,0 +1,40 @@
+<div id="je-loading">Loading...</div>
+<div data-role="content">
+  <div class="content-primary je-discover-page">
+    <div class="sections swarmplay-discover"></div>
+  </div>
+</div>
+<div id="je-error" style="display:none">
+  Swarmplay Discover not ready.
+</div>
+<script>
+(function () {
+  const MAX_WAIT = 5000;
+  const INTERVAL = 50;
+  let waited = 0;
+
+  const loadingEl = document.getElementById("je-loading");
+  const errorEl = document.getElementById("je-error");
+
+  const timer = setInterval(() => {
+    const JE = window.JellyfinEnhanced;
+    if (JE && typeof JE.initializeDiscoverPage === "function") {
+      clearInterval(timer);
+      loadingEl.remove();
+      const host = document.querySelector(".sections.swarmplay-discover");
+      if (host && typeof JE.swarmShowDiscover === "function") {
+        // Plugin Pages shell already visible — render into the marker.
+        JE.initializeDiscoverPage();
+      }
+      console.log("🪼 Swarmplay Discover: Plugin Pages shell loaded.");
+      return;
+    }
+    waited += INTERVAL;
+    if (waited >= MAX_WAIT) {
+      clearInterval(timer);
+      loadingEl.style.display = "none";
+      errorEl.style.display = "block";
+    }
+  }, INTERVAL);
+})();
+</script>

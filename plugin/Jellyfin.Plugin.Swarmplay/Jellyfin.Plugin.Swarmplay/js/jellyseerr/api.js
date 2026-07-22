@@ -946,6 +946,62 @@
         }
     };
 
+    /** Swarmplay Discover pane — Seerr-shaped lists backed by TMDB when Seerr is off. */
+    api.fetchDiscoverTrending = async function(page = 1, opts = {}) {
+        const timeWindow = opts.timeWindow === 'week' ? 'week' : 'day';
+        const mediaType = opts.mediaType || 'all';
+        try {
+            return await get(`/discover/trending?page=${page}&timeWindow=${timeWindow}&mediaType=${mediaType}`);
+        } catch (error) {
+            console.error(`${logPrefix} Failed to fetch trending:`, error);
+            return { results: [] };
+        }
+    };
+
+    api.fetchDiscoverMovies = async function(page = 1, opts = {}) {
+        const qs = [`page=${page}`];
+        if (opts.primaryReleaseDateGte) qs.push(`primaryReleaseDateGte=${encodeURIComponent(opts.primaryReleaseDateGte)}`);
+        if (opts.genre) qs.push(`genre=${encodeURIComponent(opts.genre)}`);
+        if (opts.sortBy) qs.push(`sortBy=${encodeURIComponent(opts.sortBy)}`);
+        try {
+            return await get(`/discover/movies?${qs.join('&')}`);
+        } catch (error) {
+            console.error(`${logPrefix} Failed to fetch discover movies:`, error);
+            return { results: [] };
+        }
+    };
+
+    api.fetchDiscoverTv = async function(page = 1, opts = {}) {
+        const qs = [`page=${page}`];
+        if (opts.firstAirDateGte) qs.push(`firstAirDateGte=${encodeURIComponent(opts.firstAirDateGte)}`);
+        if (opts.genre) qs.push(`genre=${encodeURIComponent(opts.genre)}`);
+        if (opts.sortBy) qs.push(`sortBy=${encodeURIComponent(opts.sortBy)}`);
+        try {
+            return await get(`/discover/tv?${qs.join('&')}`);
+        } catch (error) {
+            console.error(`${logPrefix} Failed to fetch discover tv:`, error);
+            return { results: [] };
+        }
+    };
+
+    api.fetchDiscoverMoviesByGenre = async function(genreId, page = 1) {
+        try {
+            return await get(`/discover/movies/genre/${genreId}?page=${page}`);
+        } catch (error) {
+            console.error(`${logPrefix} Failed to fetch movies by genre:`, error);
+            return { results: [] };
+        }
+    };
+
+    api.fetchDiscoverTvByGenre = async function(genreId, page = 1) {
+        try {
+            return await get(`/discover/tv/genre/${genreId}?page=${page}`);
+        } catch (error) {
+            console.error(`${logPrefix} Failed to fetch tv by genre:`, error);
+            return { results: [] };
+        }
+    };
+
     /**
      * Resolves the Seerr base URL based on URL mappings or falls back to the default base URL.
      * This function checks if there are URL mappings configured and matches the current Jellyfin server URL

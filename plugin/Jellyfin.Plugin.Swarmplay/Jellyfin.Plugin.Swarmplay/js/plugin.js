@@ -621,6 +621,7 @@
                 'swarm/lucky.js',
                 'swarm/history.js',
                 'swarm/magnet.js',
+                'swarm/discover-page.js',
 
                 // jellyseerr chrome (search/posters) — data from Swarmplay/TMDB
                 'jellyseerr/seerr-status.js',
@@ -705,6 +706,9 @@
                 && (swarmDiscovery
                     || (JE.pluginConfig?.JellyseerrEnabled && JE.pluginConfig?.JellyseerrShowSearchResults !== false))) {
                 JE.initializeJellyseerrScript();
+            }
+            if (typeof JE.initializeDiscoverPage === 'function' && swarmDiscovery) {
+                JE.initializeDiscoverPage();
             }
             if (typeof JE.initializePauseScreen === 'function') JE.initializePauseScreen();
             if (typeof JE.initializeBookmarks === 'function') JE.initializeBookmarks();

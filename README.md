@@ -3,7 +3,9 @@
 Living-room Jellyfin pane → magnet/Torznab → in-process libtorrent →
 tail→head warm → growing file on a **virtual item** → Play.
 
-No *arr. No `.strm`. No Seerr runtime. No Go/anacrolix engine.
+No *arr. No Seerr/Jellyseerr **runtime**. No Go/anacrolix engine.
+(JE's former Seerr *client chrome* is rolled into this Swarmplay plugin and
+retargeted — see [`ATTRIBUTION.md`](ATTRIBUTION.md).)
 
 **Status:** active product tree. Local integration is the commit gate
 ([ADR-005](docs/adr/005-local-integration-commit-gate.md)).

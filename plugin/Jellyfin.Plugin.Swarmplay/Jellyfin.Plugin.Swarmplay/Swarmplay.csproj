@@ -12,8 +12,8 @@
 
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyVersion>0.4.1.0</AssemblyVersion>
-        <FileVersion>0.4.1.0</FileVersion>
+        <AssemblyVersion>0.5.0.0</AssemblyVersion>
+        <FileVersion>0.5.0.0</FileVersion>
         <RootNamespace>Jellyfin.Plugin.Swarmplay</RootNamespace>
         <AssemblyName>Jellyfin.Plugin.Swarmplay</AssemblyName>
     </PropertyGroup>
@@ -53,6 +53,8 @@
     <EmbeddedResource Include="PluginPages\DownloadsPage.html"/>
     <None Remove="PluginPages\BookmarksPage.html"/>
     <EmbeddedResource Include="PluginPages\BookmarksPage.html"/>
+    <None Remove="PluginPages\DiscoverPage.html"/>
+    <EmbeddedResource Include="PluginPages\DiscoverPage.html"/>
     <None Remove="PluginPages\HiddenContentPage.html"/>
     <EmbeddedResource Include="PluginPages\HiddenContentPage.html"/>
     <None Remove="Configuration\configPage.html"/>

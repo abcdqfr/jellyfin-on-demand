@@ -297,6 +297,43 @@ def main() -> None:
     if "startWarmProgressPoll" not in lucky_full or "swarmplay-warm-bar-fill" not in lucky_full:
         fail("lucky.js warm overlay must render/poll a real progress bar, not just a spinner")
 
+    # Discover pane (Seerr-shaped home next to Enhanced/Bookmarks)
+    discover_js = (PLUGIN_JS / "swarm/discover-page.js").read_text(encoding="utf-8", errors="replace")
+    if "initializeDiscoverPage" not in discover_js or "je-nav-discover-item" not in discover_js:
+        fail("discover-page.js must expose initializeDiscoverPage + sidebar nav (je-nav-discover-item)")
+    if "swarmplay-discover-landing-link" not in discover_js:
+        fail("discover-page.js must inject a Discover link on the search landing page")
+    if "SECTION_SELECTOR" not in discover_js or ".sections.swarmplay-discover" not in discover_js:
+        fail("discover-page.js must query .sections.swarmplay-discover (compound class), not `.${SECTION_CLASS}`")
+    if "querySelector(`.${SECTION_CLASS}`)" in discover_js or 'querySelector(`.${SECTION_CLASS}`)' in discover_js:
+        fail("discover-page.js must not querySelector(`.${SECTION_CLASS}`) — that yields an empty Discover pane")
+    jellyseerr_api_js = (PLUGIN_JS / "jellyseerr/api.js").read_text(encoding="utf-8", errors="replace")
+    if "fetchDiscoverTrending" not in jellyseerr_api_js or "fetchDiscoverMovies" not in jellyseerr_api_js:
+        fail("jellyseerr/api.js must expose fetchDiscoverTrending/Movies/Tv for Discover pane")
+    enhanced_ctrl = (
+        ROOT
+        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/Controllers/JellyfinEnhancedController.cs"
+    ).read_text(encoding="utf-8", errors="replace")
+    if 'HttpGet("jellyseerr/discover/trending")' not in enhanced_ctrl or 'HttpGet("jellyseerr/discover/movies")' not in enhanced_ctrl:
+        fail("JellyfinEnhancedController must expose discover/trending + discover/movies (TMDB-backed)")
+    if "IsSwarmplayTmdbMode" not in enhanced_ctrl or "FetchTmdbAsJellyseerrAsync" not in enhanced_ctrl:
+        fail("Controller must route Swarmplay discover through TMDB (IsSwarmplayTmdbMode)")
+    if "swarm/discover-page.js" not in (PLUGIN_JS / "plugin.js").read_text(encoding="utf-8", errors="replace"):
+        fail("plugin.js must load swarm/discover-page.js")
+    if "initializeDiscoverPage" not in (PLUGIN_JS / "plugin.js").read_text(encoding="utf-8", errors="replace"):
+        fail("plugin.js must call initializeDiscoverPage when SwarmplayDiscoveryEnabled")
+    discover_html = (
+        ROOT
+        / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/PluginPages/DiscoverPage.html"
+    )
+    if not discover_html.is_file():
+        fail("PluginPages/DiscoverPage.html missing")
+    enhanced_cs = (
+        ROOT / "plugin/Jellyfin.Plugin.Swarmplay/Jellyfin.Plugin.Swarmplay/JellyfinEnhanced.cs"
+    ).read_text(encoding="utf-8", errors="replace")
+    if 'Name = "discoverPage"' not in enhanced_cs:
+        fail("JellyfinEnhanced.GetViews must register discoverPage")
+
     ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
     lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
     if "jellyseerr-button-swarmplay-lucky" not in ui_js:

@@ -299,6 +299,9 @@ namespace Jellyfin.Plugin.Swarmplay
             bool bookmarksExists = config.Value<JArray>("pages")!
                 .Any(x => x.Value<string>("Id") == $"{namespaceName}.BookmarksPage");
 
+            bool discoverExists = config.Value<JArray>("pages")!
+                .Any(x => x.Value<string>("Id") == $"{namespaceName}.DiscoverPage");
+
             bool hiddenContentExists = config.Value<JArray>("pages")!
                 .Any(x => x.Value<string>("Id") == $"{namespaceName}.HiddenContentPage");
 
@@ -368,6 +371,30 @@ namespace Jellyfin.Plugin.Swarmplay
                 if (bookmarksPage != null)
                 {
                     config.Value<JArray>("pages")!.Remove(bookmarksPage);
+                }
+            }
+
+            // Discover: always offer via Plugin Pages when Swarmplay discovery is on
+            // (standalone sidebar injection is the primary path; this is the optional
+            // Plugin Pages sidebar entry when that plugin is installed).
+            if (!discoverExists && pluginConfig.SwarmplayDiscoveryEnabled)
+            {
+                config.Value<JArray>("pages")!.Add(new JObject
+                {
+                    { "Id", $"{namespaceName}.DiscoverPage" },
+                    { "Url", $"{(supportsSubUrls ? "" : rootUrl)}/Swarmplay/discoverPage" },
+                    { "DisplayText", "Discover" },
+                    { "Icon", "explore" },
+                    { "Version", pluginPageConfigVersion }
+                });
+            }
+            else if (discoverExists && !pluginConfig.SwarmplayDiscoveryEnabled)
+            {
+                var discoverPage = config.Value<JArray>("pages")!
+                    .FirstOrDefault(x => x.Value<string>("Id") == $"{namespaceName}.DiscoverPage");
+                if (discoverPage != null)
+                {
+                    config.Value<JArray>("pages")!.Remove(discoverPage);
                 }
             }
 
@@ -478,6 +505,10 @@ namespace Jellyfin.Plugin.Swarmplay
                 new PluginPageInfo {
                     Name = "bookmarksPage",
                     EmbeddedResourcePath = $"{GetType().Namespace}.PluginPages.BookmarksPage.html"
+                },
+                new PluginPageInfo {
+                    Name = "discoverPage",
+                    EmbeddedResourcePath = $"{GetType().Namespace}.PluginPages.DiscoverPage.html"
                 },
                 new PluginPageInfo {
                     Name = "hiddenContentPage",
