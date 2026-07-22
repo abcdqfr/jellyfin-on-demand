@@ -86,8 +86,8 @@
             Episode: isTv && filters.kind === 'episode' ? (Number(filters.episode) || 1) : null,
             MediaType: ctx.mediaType || null,
             DisplayName: title,
-            TailMib: 32,
-            HeadMib: 32
+            TailMib: 8,
+            HeadMib: 8
         });
         const ready = !!(bind && (bind.ready === true || bind.Ready === true));
         const path = bind?.path || bind?.Path;
@@ -161,15 +161,22 @@
         if (countEl) {
             countEl.textContent = `${Math.min(filtered.length, MAX_VISIBLE)} / ${filtered.length} shown (${annotated.length} total)`;
         }
-        if (!filtered.length) {
+        let rows = filtered;
+        if (!rows.length && annotated.length) {
+            rows = annotated; /* filter too tight — still show ranked hits */
+            if (countEl) {
+                countEl.textContent = `${Math.min(rows.length, MAX_VISIBLE)} / ${rows.length} shown (filters cleared — ${annotated.length} total)`;
+            }
+        }
+        if (!rows.length) {
             const empty = document.createElement('div');
             empty.className = 'empty';
-            empty.textContent = 'No releases match these filters. Widen episode/group or switch Episode ↔ Batch.';
+            empty.textContent = 'No Torznab releases for this title. Try Lucky or another query.';
             panel.appendChild(empty);
             return;
         }
         const ul = document.createElement('ul');
-        filtered.slice(0, MAX_VISIBLE).forEach((row, i) => {
+        rows.slice(0, MAX_VISIBLE).forEach((row, i) => {
             const li = document.createElement('li');
             li.tabIndex = 0;
             const tags = [];
@@ -201,8 +208,8 @@
             ${isTv ? `
             <label>Kind
                 <select data-f="kind">
+                    <option value="batch" selected>Batch / season</option>
                     <option value="episode">Episode</option>
-                    <option value="batch">Batch / season</option>
                 </select>
             </label>
             <label>S <input data-f="season" type="number" min="1" max="99" value="${Number(ctx.season) || 1}"></label>
@@ -220,7 +227,7 @@
         panel.querySelector('header')?.after(wrap);
 
         const read = () => ({
-            kind: wrap.querySelector('[data-f="kind"]')?.value || 'episode',
+            kind: wrap.querySelector('[data-f="kind"]')?.value || 'batch',
             season: Number(wrap.querySelector('[data-f="season"]')?.value) || 1,
             episode: Number(wrap.querySelector('[data-f="episode"]')?.value) || 1,
             group: wrap.querySelector('[data-f="group"]')?.value || '',
@@ -245,7 +252,7 @@
         closePicker();
         ctx = ctx || {};
         const filters0 = {
-            kind: 'episode',
+            kind: 'batch',
             season: Number(ctx.season) || 1,
             episode: Number(ctx.episode) || 1,
             group: '',
@@ -290,7 +297,7 @@
         panel.querySelector('.loading')?.remove();
         // Drop weak title matches (e.g. "Straight To The A … XXX" vs "Straight A's to XXX 2017").
         const relevant = (JE.swarmRanker && JE.swarmRanker.filterRelevant)
-            ? JE.swarmRanker.filterRelevant(results, query, 0.67)
+            ? JE.swarmRanker.filterRelevant(results, query, 0.5)
             : results;
         if (!relevant.length) {
             const empty = document.createElement('div');

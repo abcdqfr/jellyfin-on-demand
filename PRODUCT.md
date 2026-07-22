@@ -22,8 +22,8 @@ growing file path on virtual item (O6a + O2a)
 Jellyfin ffmpeg / client
 ```
 
-Roadmap (not MVP): O7b sidecar `swarmplayd` — re-derive session /
-seed / cache examples when that work starts.
+Roadmap (not MVP): **0.2** search history; **0.3** library promote / archival;
+later O7b sidecar `swarmplayd` — see [`ROADMAP.md`](ROADMAP.md).
 
 ## Owns
 

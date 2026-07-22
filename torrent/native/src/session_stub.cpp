@@ -310,14 +310,17 @@ lt::torrent_handle add_or_get_locked(Session& session, std::string const& key,
 }
 
 constexpr std::int64_t kMiB = 1024 * 1024;
-constexpr std::int64_t kWarmFloorBytes = 32 * kMiB;
+/* strmarr DefaultExtentHeadFloor / minWarmupBytes — 32MiB/5% starved cold packs. */
+constexpr std::int64_t kWarmFloorBytes = 8 * kMiB;
+constexpr auto kWarmBlockTimeout = std::chrono::seconds(180);
 
 std::int64_t warm_band_bytes(std::int64_t file_length, int mib_hint) {
-    std::int64_t const pct = file_length / 20; /* 5% */
-    std::int64_t const floor_bytes = (mib_hint > 0)
-        ? std::max<std::int64_t>(std::int64_t(mib_hint) * kMiB, kWarmFloorBytes)
-        : kWarmFloorBytes;
-    return std::max(floor_bytes, pct);
+    std::int64_t floor_bytes = kWarmFloorBytes;
+    if (mib_hint > 0) {
+        floor_bytes = std::max<std::int64_t>(std::int64_t(mib_hint) * kMiB, kWarmFloorBytes);
+    }
+    if (file_length > 0 && floor_bytes > file_length) return file_length;
+    return floor_bytes;
 }
 
 bool pieces_complete(lt::torrent_handle const& handle,
@@ -325,6 +328,16 @@ bool pieces_complete(lt::torrent_handle const& handle,
     if (pieces.empty()) return true;
     return std::all_of(pieces.begin(), pieces.end(),
         [&handle](lt::piece_index_t piece) { return handle.have_piece(piece); });
+}
+
+void force_piece_deadlines(lt::torrent_handle const& handle,
+                           std::vector<lt::piece_index_t> const& pieces) {
+    int rank = 0;
+    for (auto piece : pieces) {
+        /* 0 = highest urgency; stagger slightly so the swarm walks the band. */
+        handle.set_piece_deadline(piece, rank * 10);
+        ++rank;
+    }
 }
 
 void set_piece_range_priority(
@@ -422,7 +435,7 @@ void begin_warm(lt::torrent_handle const& handle, lt::torrent_info const& info,
         first_piece, piece_count, tail_start, head_end,
         entry.tail_pieces, entry.head_pieces);
     entry.file_index = file_index;
-    entry.head_mib_hint = head_mib > 0 ? head_mib : 32;
+    entry.head_mib_hint = head_mib > 0 ? head_mib : 8;
     entry.warm_phase = 0;
     entry.warm_pieces.clear();
     entry.warm_pieces.insert(entry.warm_pieces.end(),
@@ -430,6 +443,7 @@ void begin_warm(lt::torrent_handle const& handle, lt::torrent_info const& info,
     entry.warm_pieces.insert(entry.warm_pieces.end(),
         entry.head_pieces.begin(), entry.head_pieces.end());
     apply_tail_phase(handle, info, file_index, first_piece, piece_count, tail_start);
+    force_piece_deadlines(handle, entry.tail_pieces);
 }
 
 void advance_warm(Entry& entry) {
@@ -446,13 +460,16 @@ void advance_warm(Entry& entry) {
     int head_end = -1;
     std::vector<lt::piece_index_t> ignored_tail;
     std::vector<lt::piece_index_t> ignored_head;
-    compute_warm_bands(*info, entry.file_index, 32, entry.head_mib_hint,
+    compute_warm_bands(*info, entry.file_index, 8, entry.head_mib_hint,
         first_piece, piece_count, tail_start, head_end, ignored_tail, ignored_head);
 
     if (entry.warm_phase == 0) {
         if (!pieces_complete(entry.handle, entry.tail_pieces)) return;
         entry.warm_phase = 1;
         apply_head_phase(entry.handle, first_piece, piece_count, tail_start, head_end);
+        force_piece_deadlines(entry.handle, entry.head_pieces);
+        std::fprintf(stderr, "[swarmplay] warm phase=head forced (%zu pieces)\n",
+            entry.head_pieces.size());
     }
     if (entry.warm_phase == 1) {
         if (!pieces_complete(entry.handle, entry.head_pieces)) return;
@@ -546,15 +563,47 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
 
     persist_metainfo_cache(key, info);
 
-    Entry entry;
-    entry.handle = handle;
-    entry.path = info->files().file_path(lt::file_index_t(file_index), save_path.string());
-    begin_warm(handle, *info, file_index, tail_mib, head_mib, entry);
-    session.torrents[key] = std::move(entry);
+    auto existing = session.torrents.find(key);
+    if (existing == session.torrents.end()
+        || existing->second.file_index != file_index
+        || existing->second.tail_pieces.empty()) {
+        Entry entry;
+        entry.handle = handle;
+        entry.path = info->files().file_path(lt::file_index_t(file_index), save_path.string());
+        begin_warm(handle, *info, file_index, tail_mib, head_mib, entry);
+        session.torrents[key] = std::move(entry);
+    } else {
+        existing->second.handle = handle;
+        existing->second.path =
+            info->files().file_path(lt::file_index_t(file_index), save_path.string());
+    }
+
+    /* strmarr PreparePlay: withhold ready until head+tail extents are on disk. */
+    auto const deadline = std::chrono::steady_clock::now() + kWarmBlockTimeout;
+    while (std::chrono::steady_clock::now() < deadline) {
+        auto& stored = session.torrents[key];
+        if (warm_complete(stored)) {
+            out->path = stored.path.c_str();
+            out->ready = 1;
+            out->err = kOk;
+            std::fprintf(stderr, "[swarmplay] extent gate OK (tail+head warm)\n");
+            return kOk;
+        }
+        lock.unlock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        lock.lock();
+        if (session.torrents.find(key) == session.torrents.end()) break;
+    }
+
     auto& stored = session.torrents[key];
     out->path = stored.path.c_str();
     out->ready = warm_complete(stored) ? 1 : 0;
     out->err = kOk;
+    if (!out->ready) {
+        std::fprintf(stderr,
+            "[swarmplay] extent gate NOT ready (phase=%d tail=%zu head=%zu)\n",
+            stored.warm_phase, stored.tail_pieces.size(), stored.head_pieces.size());
+    }
     return kOk;
 }
 

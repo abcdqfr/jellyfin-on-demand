@@ -66,7 +66,8 @@
                 data: JSON.stringify(req),
                 contentType: 'application/json',
                 dataType: 'json',
-                headers: authHeaders()
+                headers: authHeaders(),
+                timeout: 240000
             });
         } catch (e) {
             return {
@@ -115,7 +116,8 @@
                 data: JSON.stringify(req || {}),
                 contentType: 'application/json',
                 dataType: 'json',
-                headers: authHeaders()
+                headers: authHeaders(),
+                timeout: 240000
             });
         } catch (e) {
             return {
@@ -147,7 +149,8 @@
             invalid_file_index: 'That file is not in this torrent. Pick another file or release.',
             torznab_empty: 'No Torznab results. Check indexer URLs / Prowlarr.',
             no_magnet: 'Results had no magnets. Try another release.',
-            not_ready: 'Still warming — not enough of the file is on disk yet.'
+            not_ready: 'Still warming — not enough of the file is on disk yet.',
+            extent_warm_timeout: 'Extent gate: head/tail not warm in time (strmarr PreparePlay). Try again or another release.'
         };
         return map[code] || code || 'Swarm error.';
     };

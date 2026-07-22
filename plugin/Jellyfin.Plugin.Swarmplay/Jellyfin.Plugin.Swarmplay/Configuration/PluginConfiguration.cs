@@ -49,8 +49,8 @@ namespace Jellyfin.Plugin.Swarmplay.Configuration
             TorznabTpbUrl = "";
             RankMinSeeders = 3;
             RankPreferMaxResolution = "1080p";
-            WarmTailMib = 32;
-            WarmHeadMib = 32;
+            WarmTailMib = 8;
+            WarmHeadMib = 8;
 
             ClearLocalStorageTimestamp = 0;
             ClearTranslationCacheTimestamp = 0;

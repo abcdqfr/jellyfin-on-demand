@@ -23,7 +23,7 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
     [ApiController]
     public class SwarmController : ControllerBase
     {
-        private static readonly TimeSpan ReadyTimeout = TimeSpan.FromSeconds(90);
+        private static readonly TimeSpan ReadyTimeout = TimeSpan.FromSeconds(45);
         private static readonly TimeSpan TorznabTimeout = TimeSpan.FromSeconds(20);
         private readonly ISwarmSession _swarmSession;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -121,10 +121,10 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 Episode = request?.Episode,
                 TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
                     ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
-                    : 32,
+                    : 8,
                 HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
                     ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
-                    : 32
+                    : 8
             };
 
             return await PlayBind(ensureRequest, cancellationToken).ConfigureAwait(false);
@@ -193,15 +193,8 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                         path = status.Path;
                     }
 
-                    if (!ready && string.IsNullOrEmpty(error) && HasFailOpenBytes(path))
-                    {
-                        ready = true;
-                        phase = "fail_open";
-                        error = null;
-                        message = null;
-                        errorCode = null;
-                    }
-
+                    // strmarr: never fail-open on Length — libtorrent preallocates sparse
+                    // full size; only native warm_complete (tail then head) means ready.
                     if (ready || !string.IsNullOrEmpty(error))
                     {
                         break;
@@ -211,13 +204,11 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 }
             }
 
-            if (!ready && string.IsNullOrEmpty(error) && HasFailOpenBytes(path))
+            if (!ready && string.IsNullOrEmpty(error))
             {
-                ready = true;
-                phase = "fail_open";
-                error = null;
-                message = null;
-                errorCode = null;
+                phase = "warm_timeout";
+                error = "extent_warm_timeout";
+                message = "Head/tail extents not ready — refusing play (no fail-open on sparse Length).";
             }
 
             string? itemId = null;
@@ -368,10 +359,10 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                     FileIndex = fileIndex,
                     TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
                         ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
-                        : 32,
+                        : 8,
                     HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
                         ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
-                        : 32
+                        : 8
                 },
                 cancellationToken).ConfigureAwait(false);
 
@@ -563,23 +554,6 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
             return $"{baseUrl}{sep}t=search&q={Uri.EscapeDataString(query)}&limit=50";
         }
 
-        private static bool HasFailOpenBytes(string? path)
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                return false;
-            }
-
-            try
-            {
-                var info = new FileInfo(path);
-                return info.Exists && info.Length >= 256 * 1024;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         public sealed class SwarmLuckyRequest
         {

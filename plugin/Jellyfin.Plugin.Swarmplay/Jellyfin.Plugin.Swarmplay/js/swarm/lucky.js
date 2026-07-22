@@ -19,8 +19,8 @@
             MediaType: ctx.mediaType || 'movie',
             Season: ctx.mediaType === 'tv' ? (Number(ctx.season) || 1) : null,
             Episode: ctx.mediaType === 'tv' ? (Number(ctx.episode) || 1) : null,
-            TailMib: 32,
-            HeadMib: 32
+            TailMib: 8,
+            HeadMib: 8
         });
     }
 

@@ -141,6 +141,9 @@ def main() -> None:
 
     if "avoid ANSI-corrupted magnet" in ctrl or "request.Magnet = null" in ctrl:
         fail("SwarmController must not null Magnet once BTIH is known")
+    if "fail_open" in ctrl or "HasFailOpenBytes" in ctrl:
+        fail("PlayBind must not fail-open on FileInfo.Length (sparse prealloc fools it)")
+
     if "MagnetSanitizer.BuildAsciiMagnet" not in ctrl:
         fail("SwarmController must sanitize magnets via MagnetSanitizer.BuildAsciiMagnet")
 
@@ -167,8 +170,10 @@ def main() -> None:
     native_cpp = (ROOT / "torrent/native/src/session_stub.cpp").read_text(encoding="utf-8", errors="replace")
     if "warm phase=tail" not in native_cpp or "warm_band_bytes" not in native_cpp:
         fail("native must apply mature tail→head warm (warm_band_bytes + phase=tail)")
-    if "kWarmFloorBytes" not in native_cpp:
-        fail("native missing 32 MiB warm floor")
+    if "kWarmFloorBytes" not in native_cpp or "8 * kMiB" not in native_cpp:
+        fail("native missing strmarr 8 MiB warm floor")
+    if "extent gate OK" not in native_cpp and "kWarmBlockTimeout" not in native_cpp:
+        fail("native must block in ensure until extent gate (PreparePlay)")
 
     check_magnet_sanitizer()
     print("PASS: offline_client_integrity_check")

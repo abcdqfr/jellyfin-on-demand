@@ -46,7 +46,7 @@ Play may start when **any** of:
 **Draft defaults (tune with evidence):**
 
 - Floors: `max(32 MiB, 5% of file)` for each of tail and head (operator hat bet).
-- Warm deadline: 30–90s (config); then mode C if head has ≥ 256 KiB.
+- Warm deadline: wait for native tail→head warm only (no Length fail-open; sparse prealloc lies).
 - `ready: false` ⇒ JF should not start ffmpeg yet (plugin waits or shows spinner).
 
 Unit tests (when Wi‑Fi): synthetic piece map asserting priority order; no network required for order tests.

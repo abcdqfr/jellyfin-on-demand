@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Planned
+- **0.2** — Search history + management ([ADR-006](docs/adr/006-search-history-v0.2.md))
+- **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
+
+## 0.1.11 — 2026-07-22
+
+### Fixed
+- **Extent gate (strmarr PreparePlay):** `swarm_ensure` blocks until 8 MiB tail then 8 MiB head are on disk (piece deadlines); no 5%/32 MiB tax; withhold PlayNow until `extent gate OK`
+- **Play picker empty:** TV defaults to Batch/season; if episode filters wipe the list, show ranked hits anyway; relevance gate 0.5; 240 s client timeout for warm
+
+## 0.1.10 — 2026-07-22
+
+### Fixed
+- **To Love-Ru / extent gate:** removed `fail_open` on `FileInfo.Length` — libtorrent sparse prealloc made play start ~11s into tail-only warm (no head, rolling buffer, no audio/subs). Play waits for native `warm_complete` (tail then head) only.
+
 ## 0.1.9 — 2026-07-22
 
 ### Added

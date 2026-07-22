@@ -16,9 +16,39 @@ Working plugin tree:
 fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced)).
 Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/).
 
+
 ---
 
-## Phase 0 — Bones (docs + fork) ← now
+## Version tiers (commemorative)
+
+| Tier | Theme | Status |
+|------|--------|--------|
+| **0.1.x** | Play path: Torznab → libtorrent → extent gate → real JF player | Shipping (hotfixes) |
+| **0.2.0** | **Search history** + management ([ADR-006](docs/adr/006-search-history-v0.2.md), [design](docs/design/search-history.md)) | Next commemorative |
+| **0.3.0** | **Library promote** — slide streamed keep into normal library / offline archival ([design](docs/design/library-promote-0.3.md)) | Roadmap after 0.2 |
+| later | O7b sidecar, packaging polish | Phase 4 |
+
+### 0.2 — Search history (commemorative)
+
+- [ ] Persist per-user history (query, TMDB id, last btih/play)
+- [ ] Discovery UI: list, open again, pin, delete, clear / prune
+- [ ] Record on search + successful play-bind
+- [ ] Gate: history API round-trip
+
+**Exit:** Living-room can re-enter a prior title without retyping; history is manageable.
+
+### 0.3 — Library promote / archival (after 0.2)
+
+- [ ] Operator archive root + “Keep in library” action
+- [ ] Full-file (or policy) materialize out of swarm cache → library Path
+- [ ] JF scan + real item; history badge optional
+- [ ] Seed/idle interaction documented
+
+**Exit:** Streamed play can become offline-capable library media without *arr/STRM.
+
+---
+
+## Phase 0 — Bones (docs + fork)
 
 - [x] Invariants / product / lessons / ADRs
 - [x] Lock O1–O7a MVP; O7b roadmap
@@ -85,7 +115,7 @@ Prove O6a + O2a + O7a without Torznab ranking.
 
 - *arr, Seerr **process**, Prowlarr, fake qBittorrent
 - **Forking Seerr/Jellyseerr** (ADR-004 — not required; one JF plugin product)
-- STRM / library stub trees (O6b/O6c)
+- STRM / library stub trees (O6b/O6c) — **0.3 promote is real library Path, not STRM**
 - Go/anacrolix engine
 - Multi-user silos
 - Spinoff polish (own org branding, docs site) beyond rename
@@ -95,12 +125,10 @@ Prove O6a + O2a + O7a without Torznab ranking.
 ## Suggested near-term order of work
 
 ```text
-0. Travel mode: TRAVEL.md offline checklist (rename, gut gates, specs)
-1. Rename fork identity (Swarmplay)
-2. Gut Seerr/*arr clients; keep discovery shell → retarget to Swarm APIs
-3. libtorrent native Ensure + warm unit tests   [needs Wi‑Fi / packages]
-4. Virtual item + magnet Play integration       [needs Wi‑Fi / JF]
-5. Torznab + ranker + feeling-lucky
-6. Packaging + seed/idle lore
-7. (Later) O7b
+0. Stabilize 0.1.x extent gate + Lucky/Play (living-room evidence)
+1. **0.2 Search history** (ADR-006) — commemorative bump
+2. Rename / gut remaining Seerr chrome as needed
+3. Packaging + seed/idle lore
+4. **0.3 Library promote** (archive root + Keep)
+5. (Later) O7b sidecar
 ```
