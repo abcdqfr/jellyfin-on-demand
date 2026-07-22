@@ -105,6 +105,30 @@
         }
     };
 
+    /** Feeling lucky: Torznab → rank #1 → play-bind (server-side). */
+    api.lucky = async function (req) {
+        const url = `${base()}/lucky`;
+        try {
+            return await ApiClient.ajax({
+                type: 'POST',
+                url,
+                data: JSON.stringify(req || {}),
+                contentType: 'application/json',
+                dataType: 'json',
+                headers: authHeaders()
+            });
+        } catch (e) {
+            return {
+                Ready: false,
+                ready: false,
+                Error: 'lucky_failed',
+                error: 'lucky_failed',
+                Message: 'Feeling-lucky request failed.',
+                message: String(e && e.message ? e.message : e)
+            };
+        }
+    };
+
     /** Prefer Message / message from server; fall back to known codes. */
     api.formatError = function (result) {
         if (!result) return 'Unknown swarm error.';

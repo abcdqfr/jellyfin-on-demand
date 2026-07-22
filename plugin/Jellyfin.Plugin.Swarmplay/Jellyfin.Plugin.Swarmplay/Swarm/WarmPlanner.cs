@@ -5,10 +5,25 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
 {
     /// <summary>
     /// Builds non-overlapping piece ranges for tail-first media warming.
+    /// Mature band: max(32 MiB, 5% of file) unless an explicit larger floor is requested.
     /// </summary>
     public static class WarmPlanner
     {
         private const long BytesPerMib = 1024L * 1024L;
+        public const long FloorMib = 32;
+
+        /// <summary>Bytes for one warm band: max(floorMiB, 5% of file).</summary>
+        public static long BandBytes(long fileLength, long floorMib = FloorMib)
+        {
+            if (fileLength <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fileLength));
+            }
+
+            var floor = Math.Max(floorMib, FloorMib) * BytesPerMib;
+            var pct = fileLength / 20;
+            return Math.Max(floor, pct);
+        }
 
         /// <summary>
         /// Returns ranges in download order: tail, head, then the remaining middle.
@@ -40,8 +55,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             }
 
             var pieceCount = DivideRoundUp(fileLength, pieceLength);
-            var tailPieces = Math.Min(pieceCount, DivideRoundUp(ToBytes(tailMib), pieceLength));
-            var headPieces = Math.Min(pieceCount, DivideRoundUp(ToBytes(headMib), pieceLength));
+            var tailPieces = Math.Min(pieceCount, DivideRoundUp(BandBytes(fileLength, tailMib > 0 ? tailMib : FloorMib), pieceLength));
+            var headPieces = Math.Min(pieceCount, DivideRoundUp(BandBytes(fileLength, headMib > 0 ? headMib : FloorMib), pieceLength));
             var tailStart = pieceCount - tailPieces;
             var headEnd = Math.Min(headPieces - 1, tailStart - 1);
             var ranges = new List<PieceRange>(3);
@@ -58,11 +73,6 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
             {
                 ranges.Add(new PieceRange(priority, first, last));
             }
-        }
-
-        private static long ToBytes(long mib)
-        {
-            return mib > long.MaxValue / BytesPerMib ? long.MaxValue : mib * BytesPerMib;
         }
 
         private static long DivideRoundUp(long dividend, long divisor)

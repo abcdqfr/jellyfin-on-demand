@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.9 — 2026-07-22
+
+### Added
+- Discovery **Lucky** button next to Play: Torznab → rank #1 → mature warm → real Jellyfin player (skips release picker)
+
+### Fixed
+- Extent warming now mature: band `max(32 MiB, 5% of file)`, **full tail before head**, then sequential — ready only after both bands land
+
 ## 0.1.8 — 2026-07-21
 
 ### Added

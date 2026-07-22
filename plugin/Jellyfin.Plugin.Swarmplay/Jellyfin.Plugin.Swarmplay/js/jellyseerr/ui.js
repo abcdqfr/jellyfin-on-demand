@@ -391,6 +391,9 @@
             .layout-mobile .jellyseerr-request-button svg { width: 1em; height: 1em; }
             .layout-mobile .jellyseerr-request-button span { font-size: 0.8em !important; }
             .jellyseerr-request-button.jellyseerr-button-offline, .jellyseerr-request-button.jellyseerr-button-no-user { opacity: .6; cursor: not-allowed; }
+            .jellyseerr-swarm-actions { display: flex; flex-wrap: wrap; gap: 0.4em; justify-content: center; width: 100%; }
+            .jellyseerr-request-button.jellyseerr-button-swarmplay-lucky { background-color: #0f766e !important; color: #fff !important; }
+            .jellyseerr-request-button.jellyseerr-button-swarmplay-lucky:hover:not(:disabled) { background-color: #0d9488 !important; transform: translateY(-2px); }
             .jellyseerr-request-button.jellyseerr-button-request { background-color: #5a3fb8 !important; color: #fff !important; }
             .jellyseerr-request-button.jellyseerr-button-request:hover:not(:disabled) { background-color: #6b4bb5 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(90, 63, 184, 0.4); }
             .jellyseerr-request-button.jellyseerr-button-pending { background-color: #b45309 !important; color: #fff !important; }
@@ -1127,7 +1130,7 @@
 
                 // Click handler on overview to open modal
                 overview.addEventListener('click', (e) => {
-                    if (e.target.closest('.jellyseerr-request-button')) {
+                    if (e.target.closest('.jellyseerr-request-button') || e.target.closest('.jellyseerr-swarm-actions')) {
                         return;
                     }
                     if (e.target.closest('.jellyseerr-overview-link')) {
@@ -1490,12 +1493,30 @@
             return;
         }
 
-        // Swarmplay: same cards, Play opens ranked Torznab picker (not auto-lucky).
+        // Swarmplay: Play = ranked picker; Lucky = rank #1 → warm → real JF player.
         const swarmPlay = JE.pluginConfig?.SwarmplayDiscoveryEnabled !== false && !JE.pluginConfig?.JellyseerrEnabled;
         if (swarmPlay && item.mediaType !== 'collection') {
             const title = item.title || item.name || 'title';
             const year = (item.releaseDate || item.firstAirDate || '').substring(0, 4);
             const query = year ? `${title} ${year}` : title;
+            const playCtx = {
+                query,
+                title,
+                year: year || null,
+                tmdbId: item.id || null,
+                mediaType: item.mediaType,
+                season: item.mediaType === 'tv' ? 1 : null,
+                episode: item.mediaType === 'tv' ? 1 : null
+            };
+
+            let actions = button.parentElement?.querySelector('.jellyseerr-swarm-actions');
+            if (!actions) {
+                actions = document.createElement('div');
+                actions.className = 'jellyseerr-swarm-actions';
+                button.replaceWith(actions);
+                actions.appendChild(button);
+            }
+
             button.innerHTML = `${icons.request || ''}<span>Play</span>`;
             button.disabled = false;
             button.className = 'jellyseerr-request-button jellyseerr-button-request jellyseerr-button-swarmplay-play';
@@ -1508,16 +1529,35 @@
                     }
                     return;
                 }
-                // tmdbId is available for future id-capable indexers; Nyaa/TPB are title-only.
-                await JE.swarmShowReleasePicker({
-                    query,
-                    title,
-                    year: year || null,
-                    tmdbId: item.id || null,
-                    mediaType: item.mediaType,
-                    season: item.mediaType === 'tv' ? 1 : null,
-                    episode: item.mediaType === 'tv' ? 1 : null
-                });
+                await JE.swarmShowReleasePicker(playCtx);
+            };
+
+            let lucky = actions.querySelector('.jellyseerr-button-swarmplay-lucky');
+            if (!lucky) {
+                lucky = document.createElement('button');
+                lucky.type = 'button';
+                lucky.className = 'jellyseerr-request-button jellyseerr-button-swarmplay-lucky';
+                lucky.dataset.tmdbId = String(item.id || '');
+                lucky.dataset.mediaType = item.mediaType || '';
+                actions.appendChild(lucky);
+            }
+            lucky.innerHTML = `<span>Lucky</span>`;
+            lucky.disabled = false;
+            lucky.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof JE.playFeelingLucky !== 'function') {
+                    if (typeof JE.toast === 'function') {
+                        JE.toast('Swarmplay: lucky path not loaded', 4000);
+                    }
+                    return;
+                }
+                lucky.disabled = true;
+                try {
+                    await JE.playFeelingLucky(playCtx);
+                } finally {
+                    lucky.disabled = false;
+                }
             };
             return;
         }

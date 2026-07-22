@@ -155,6 +155,21 @@ def main() -> None:
     if "metadata_unreachable" not in api_js or "Dead pin" not in api_js:
         fail("api.js formatError must surface metadata_unreachable / dead-pin copy")
 
+
+    ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
+    lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
+    if "jellyseerr-button-swarmplay-lucky" not in ui_js:
+        fail("ui.js missing Lucky button (jellyseerr-button-swarmplay-lucky)")
+    if "playFeelingLucky" not in lucky_js or "JE.playFeelingLucky" not in lucky_js:
+        fail("lucky.js must export playFeelingLucky")
+    if "api.lucky" not in api_js:
+        fail("api.js must expose api.lucky → POST /lucky")
+    native_cpp = (ROOT / "torrent/native/src/session_stub.cpp").read_text(encoding="utf-8", errors="replace")
+    if "warm phase=tail" not in native_cpp or "warm_band_bytes" not in native_cpp:
+        fail("native must apply mature tail→head warm (warm_band_bytes + phase=tail)")
+    if "kWarmFloorBytes" not in native_cpp:
+        fail("native missing 32 MiB warm floor")
+
     check_magnet_sanitizer()
     print("PASS: offline_client_integrity_check")
 

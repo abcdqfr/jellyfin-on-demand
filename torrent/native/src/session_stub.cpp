@@ -58,7 +58,12 @@ constexpr char const* kDefaultTrackers[] = {
 struct Entry {
     lt::torrent_handle handle;
     std::string path;
-    std::vector<lt::piece_index_t> warm_pieces;
+    std::vector<lt::piece_index_t> tail_pieces;
+    std::vector<lt::piece_index_t> head_pieces;
+    std::vector<lt::piece_index_t> warm_pieces; /* tail ∪ head */
+    int file_index = 0;
+    int head_mib_hint = 32;
+    int warm_phase = 0; /* 0=tail, 1=head, 2=done */
 };
 
 lt::settings_pack make_session_settings() {
@@ -304,45 +309,163 @@ lt::torrent_handle add_or_get_locked(Session& session, std::string const& key,
     return session.session.add_torrent(params);
 }
 
-std::vector<lt::piece_index_t> apply_warm_priorities(
-    lt::torrent_handle const& handle, lt::torrent_info const& info,
-    int file_index, int tail_mib, int head_mib) {
+constexpr std::int64_t kMiB = 1024 * 1024;
+constexpr std::int64_t kWarmFloorBytes = 32 * kMiB;
+
+std::int64_t warm_band_bytes(std::int64_t file_length, int mib_hint) {
+    std::int64_t const pct = file_length / 20; /* 5% */
+    std::int64_t const floor_bytes = (mib_hint > 0)
+        ? std::max<std::int64_t>(std::int64_t(mib_hint) * kMiB, kWarmFloorBytes)
+        : kWarmFloorBytes;
+    return std::max(floor_bytes, pct);
+}
+
+bool pieces_complete(lt::torrent_handle const& handle,
+                     std::vector<lt::piece_index_t> const& pieces) {
+    if (pieces.empty()) return true;
+    return std::all_of(pieces.begin(), pieces.end(),
+        [&handle](lt::piece_index_t piece) { return handle.have_piece(piece); });
+}
+
+void set_piece_range_priority(
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>>& priorities,
+    int first_piece, int first, int last, lt::download_priority_t priority) {
+    if (first > last) return;
+    for (int piece = first; piece <= last; ++piece) {
+        priorities.emplace_back(lt::piece_index_t(first_piece + piece), priority);
+    }
+}
+
+void compute_warm_bands(lt::torrent_info const& info, int file_index,
+                        int tail_mib, int head_mib,
+                        int& first_piece, int& piece_count,
+                        int& tail_start, int& head_end,
+                        std::vector<lt::piece_index_t>& tail_pieces,
+                        std::vector<lt::piece_index_t>& head_pieces) {
     auto const& files = info.files();
     auto const index = lt::file_index_t(file_index);
     std::int64_t const file_length = files.file_size(index);
     std::int64_t const file_offset = files.file_offset(index);
     int const piece_length = info.piece_length();
-    int const piece_count = (file_length <= 0) ? 0
+    piece_count = (file_length <= 0) ? 0
         : static_cast<int>((file_length + piece_length - 1) / piece_length);
-    int const tail_pieces = std::min(piece_count,
-        std::max(0, tail_mib) * 1024 * 1024 / piece_length + 1);
-    int const head_pieces = std::min(piece_count,
-        std::max(0, head_mib) * 1024 * 1024 / piece_length + 1);
-    int const tail_start = piece_count - tail_pieces;
-    int const head_end = std::min(head_pieces - 1, tail_start - 1);
-    int const first_piece = static_cast<int>(file_offset / piece_length);
+    first_piece = static_cast<int>(file_offset / piece_length);
 
-    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
-    std::vector<lt::piece_index_t> warm;
-    auto add_range = [&](int first, int last, lt::download_priority_t priority,
-                         bool is_warm) {
-        for (int piece = first; piece <= last; ++piece) {
-            auto const global_piece = lt::piece_index_t(first_piece + piece);
-            priorities.emplace_back(global_piece, priority);
-            if (is_warm) warm.push_back(global_piece);
-        }
-    };
-    add_range(tail_start, piece_count - 1, lt::top_priority, true);
-    add_range(0, head_end, lt::download_priority_t(6), true);
-    add_range(head_end + 1, tail_start - 1, lt::default_priority, false);
-    handle.prioritize_pieces(priorities);
-    handle.set_flags(lt::torrent_flags::sequential_download);
-    return warm;
+    std::int64_t const tail_bytes = warm_band_bytes(file_length, tail_mib);
+    std::int64_t const head_bytes = warm_band_bytes(file_length, head_mib);
+    int const tail_n = std::min(piece_count,
+        static_cast<int>((tail_bytes + piece_length - 1) / piece_length));
+    int const head_n = std::min(piece_count,
+        static_cast<int>((head_bytes + piece_length - 1) / piece_length));
+    tail_start = piece_count - tail_n;
+    head_end = std::min(head_n - 1, tail_start - 1);
+
+    tail_pieces.clear();
+    head_pieces.clear();
+    for (int p = tail_start; p < piece_count; ++p) {
+        tail_pieces.push_back(lt::piece_index_t(first_piece + p));
+    }
+    for (int p = 0; p <= head_end; ++p) {
+        head_pieces.push_back(lt::piece_index_t(first_piece + p));
+    }
 }
 
-bool warm_complete(Entry const& entry) {
-    return std::all_of(entry.warm_pieces.begin(), entry.warm_pieces.end(),
-        [&entry](lt::piece_index_t piece) { return entry.handle.have_piece(piece); });
+void apply_tail_phase(lt::torrent_handle const& handle, lt::torrent_info const& info,
+                      int file_index, int first_piece, int piece_count,
+                      int tail_start) {
+    int const nfiles = info.files().num_files();
+    std::vector<lt::download_priority_t> file_pri(
+        static_cast<std::size_t>(nfiles), lt::dont_download);
+    if (file_index >= 0 && file_index < nfiles) {
+        file_pri[static_cast<std::size_t>(file_index)] = lt::default_priority;
+    }
+    handle.prioritize_files(file_pri);
+
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::dont_download);
+    set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
+    handle.prioritize_pieces(priorities);
+    handle.unset_flags(lt::torrent_flags::sequential_download);
+    std::fprintf(stderr, "[swarmplay] warm phase=tail pieces=%d..%d (file_index=%d)\n",
+        tail_start, piece_count - 1, file_index);
+}
+
+void apply_head_phase(lt::torrent_handle const& handle, int first_piece,
+                      int piece_count, int tail_start, int head_end) {
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::dont_download);
+    set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
+    set_piece_range_priority(priorities, first_piece, 0, head_end, lt::top_priority);
+    handle.prioritize_pieces(priorities);
+    handle.unset_flags(lt::torrent_flags::sequential_download);
+    std::fprintf(stderr, "[swarmplay] warm phase=head pieces=0..%d\n", head_end);
+}
+
+void apply_sequential_phase(lt::torrent_handle const& handle, int first_piece,
+                            int piece_count, int tail_start, int head_end) {
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+    set_piece_range_priority(priorities, first_piece, 0, piece_count - 1, lt::default_priority);
+    set_piece_range_priority(priorities, first_piece, tail_start, piece_count - 1, lt::top_priority);
+    set_piece_range_priority(priorities, first_piece, 0, head_end, lt::download_priority_t(6));
+    handle.prioritize_pieces(priorities);
+    handle.set_flags(lt::torrent_flags::sequential_download);
+    std::fprintf(stderr, "[swarmplay] warm phase=sequential (tail+head ready)\n");
+}
+
+void begin_warm(lt::torrent_handle const& handle, lt::torrent_info const& info,
+                int file_index, int tail_mib, int head_mib, Entry& entry) {
+    int first_piece = 0;
+    int piece_count = 0;
+    int tail_start = 0;
+    int head_end = -1;
+    compute_warm_bands(info, file_index, tail_mib, head_mib,
+        first_piece, piece_count, tail_start, head_end,
+        entry.tail_pieces, entry.head_pieces);
+    entry.file_index = file_index;
+    entry.head_mib_hint = head_mib > 0 ? head_mib : 32;
+    entry.warm_phase = 0;
+    entry.warm_pieces.clear();
+    entry.warm_pieces.insert(entry.warm_pieces.end(),
+        entry.tail_pieces.begin(), entry.tail_pieces.end());
+    entry.warm_pieces.insert(entry.warm_pieces.end(),
+        entry.head_pieces.begin(), entry.head_pieces.end());
+    apply_tail_phase(handle, info, file_index, first_piece, piece_count, tail_start);
+}
+
+void advance_warm(Entry& entry) {
+    auto const info = entry.handle.torrent_file();
+    if (!info) return;
+    if (entry.tail_pieces.empty() && entry.head_pieces.empty()) {
+        entry.warm_phase = 2;
+        return;
+    }
+
+    int first_piece = 0;
+    int piece_count = 0;
+    int tail_start = 0;
+    int head_end = -1;
+    std::vector<lt::piece_index_t> ignored_tail;
+    std::vector<lt::piece_index_t> ignored_head;
+    compute_warm_bands(*info, entry.file_index, 32, entry.head_mib_hint,
+        first_piece, piece_count, tail_start, head_end, ignored_tail, ignored_head);
+
+    if (entry.warm_phase == 0) {
+        if (!pieces_complete(entry.handle, entry.tail_pieces)) return;
+        entry.warm_phase = 1;
+        apply_head_phase(entry.handle, first_piece, piece_count, tail_start, head_end);
+    }
+    if (entry.warm_phase == 1) {
+        if (!pieces_complete(entry.handle, entry.head_pieces)) return;
+        entry.warm_phase = 2;
+        apply_sequential_phase(entry.handle, first_piece, piece_count, tail_start, head_end);
+    }
+}
+
+bool warm_complete(Entry& entry) {
+    advance_warm(entry);
+    return entry.warm_phase >= 2
+        && pieces_complete(entry.handle, entry.tail_pieces)
+        && pieces_complete(entry.handle, entry.head_pieces);
 }
 
 void set_ensure_error(swarm_ensure_result* out, int error) {
@@ -426,7 +549,7 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
     Entry entry;
     entry.handle = handle;
     entry.path = info->files().file_path(lt::file_index_t(file_index), save_path.string());
-    entry.warm_pieces = apply_warm_priorities(handle, *info, file_index, tail_mib, head_mib);
+    begin_warm(handle, *info, file_index, tail_mib, head_mib, entry);
     session.torrents[key] = std::move(entry);
     auto& stored = session.torrents[key];
     out->path = stored.path.c_str();

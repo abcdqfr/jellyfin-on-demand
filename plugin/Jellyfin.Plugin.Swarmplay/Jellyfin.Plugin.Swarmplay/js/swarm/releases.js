@@ -86,8 +86,8 @@
             Episode: isTv && filters.kind === 'episode' ? (Number(filters.episode) || 1) : null,
             MediaType: ctx.mediaType || null,
             DisplayName: title,
-            TailMib: 8,
-            HeadMib: 8
+            TailMib: 32,
+            HeadMib: 32
         });
         const ready = !!(bind && (bind.ready === true || bind.Ready === true));
         const path = bind?.path || bind?.Path;

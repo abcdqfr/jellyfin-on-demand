@@ -24,8 +24,8 @@ namespace Jellyfin.Plugin.Swarmplay.Swarm
         public string? MediaType { get; set; }
         /// <summary>Display name for the virtual Movie item (TMDB title).</summary>
         public string? DisplayName { get; set; }
-        public int TailMib { get; set; } = 8;
-        public int HeadMib { get; set; } = 8;
+        public int TailMib { get; set; } = 32;
+        public int HeadMib { get; set; } = 32;
         public string WarmOrder { get; set; } = "tail_then_head";
     }
 

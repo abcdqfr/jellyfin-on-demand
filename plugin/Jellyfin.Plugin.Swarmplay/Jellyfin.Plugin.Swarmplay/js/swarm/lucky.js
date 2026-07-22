@@ -1,29 +1,53 @@
 (function (JE) {
     'use strict';
 
-    /** @deprecated Prefer JE.swarmShowReleasePicker */
-    async function feelingLucky(query) {
-        const q = String(query || '').trim();
+    /**
+     * Rank #1 via POST /lucky (Torznab → play-bind). Pass a query string or
+     * { query, title, mediaType, season, episode }.
+     */
+    async function feelingLucky(queryOrCtx) {
+        const ctx = (queryOrCtx && typeof queryOrCtx === 'object')
+            ? queryOrCtx
+            : { query: queryOrCtx };
+        const title = String(ctx.title || ctx.query || '').trim();
+        const year = ctx.year ? String(ctx.year) : '';
+        const q = String(ctx.query || [title, year].filter(Boolean).join(' ')).trim();
         if (!q) return { ready: false, error: 'missing_query', message: 'Search query is empty.' };
-        const data = await JE.swarm.searchTorznab(q);
-        const top = (data.results || [])[0];
-        if (!top) {
-            return {
-                ready: false,
-                error: 'torznab_empty',
-                message: JE.swarm.formatError({ error: 'torznab_empty' })
-            };
-        }
-        const btih = top.btih || top.Btih;
-        return JE.swarm.playBind({
-            Btih: btih || '',
-            Magnet: top.magnet || top.Magnet || null,
-            FileIndex: 0,
-            MediaType: 'movie',
-            DisplayName: q,
-            TailMib: 8,
-            HeadMib: 8
+        return JE.swarm.lucky({
+            Query: q,
+            DisplayName: title || q,
+            MediaType: ctx.mediaType || 'movie',
+            Season: ctx.mediaType === 'tv' ? (Number(ctx.season) || 1) : null,
+            Episode: ctx.mediaType === 'tv' ? (Number(ctx.episode) || 1) : null,
+            TailMib: 32,
+            HeadMib: 32
         });
+    }
+
+    /** Lucky bind + real Jellyfin player (no release picker). */
+    async function playFeelingLucky(ctx) {
+        const title = (ctx && (ctx.title || ctx.query)) || 'title';
+        if (typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: lucky — warming top match for ${title}…`, 5000);
+        }
+        const bind = await feelingLucky(ctx || {});
+        const ready = !!(bind && (bind.ready === true || bind.Ready === true));
+        const path = bind?.path || bind?.Path;
+        if (!ready || !path) {
+            const why = (JE.swarm && JE.swarm.formatError)
+                ? JE.swarm.formatError(bind)
+                : (bind?.Message || bind?.message || bind?.Error || bind?.error || 'not ready');
+            if (typeof JE.toast === 'function') JE.toast(`Swarmplay: ${why}`, 7000);
+            return { ok: false, bind };
+        }
+        if (typeof JE.toast === 'function') JE.toast('Swarmplay: starting playback…', 3000);
+        const attempt = await attemptPlayback(bind, title);
+        const ok = !!(attempt && attempt.ok);
+        if (ok && typeof JE.toast === 'function') JE.toast(`Swarmplay: playing ${title}`, 4000);
+        else if (!ok && typeof JE.toast === 'function') {
+            JE.toast(`Swarmplay: warm, but no Jellyfin playback (${(attempt && attempt.message) || (attempt && attempt.reason) || 'unknown'})`, 9000);
+        }
+        return { ok, bind, attempt };
     }
 
     function streamUrl(bind) {
@@ -171,6 +195,7 @@
     }
 
     JE.feelingLucky = feelingLucky;
+    JE.playFeelingLucky = playFeelingLucky;
     JE.swarmAttemptPlayback = attemptPlayback;
     JE.swarmStreamUrl = streamUrl;
 })(window.JellyfinEnhanced);

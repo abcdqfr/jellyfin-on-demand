@@ -115,12 +115,16 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                 Magnet = MagnetSanitizer.BuildAsciiMagnet(top.Magnet, btih),
                 Btih = btih,
                 FileIndex = 0,
+                DisplayName = string.IsNullOrWhiteSpace(request?.DisplayName) ? query : request!.DisplayName,
+                MediaType = request?.MediaType,
+                Season = request?.Season,
+                Episode = request?.Episode,
                 TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
                     ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
-                    : 8,
+                    : 32,
                 HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
                     ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
-                    : 8
+                    : 32
             };
 
             return await PlayBind(ensureRequest, cancellationToken).ConfigureAwait(false);
@@ -364,10 +368,10 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
                     FileIndex = fileIndex,
                     TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
                         ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
-                        : 8,
+                        : 32,
                     HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
                         ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
-                        : 8
+                        : 32
                 },
                 cancellationToken).ConfigureAwait(false);
 
@@ -580,6 +584,10 @@ namespace Jellyfin.Plugin.Swarmplay.Controllers
         public sealed class SwarmLuckyRequest
         {
             public string? Query { get; set; }
+            public string? DisplayName { get; set; }
+            public string? MediaType { get; set; }
+            public int? Season { get; set; }
+            public int? Episode { get; set; }
         }
 
         public sealed class TorznabReleaseDto

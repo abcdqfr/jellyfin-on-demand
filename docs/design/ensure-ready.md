@@ -13,7 +13,7 @@ req:
   btih: string            # infohash (hex or magnet xt)
   file_index: int         # multi-file; 0 default
   warm:
-    tail_mib: number      # default ~5% of file or floor 8 MiB (I9 thesis)
+    tail_mib: number      # default ~5% of file or floor 32 MiB (I9 thesis)
     head_mib: number
     order: "tail_then_head"
   magnet?: string         # optional; if set, parse btih from it
@@ -45,7 +45,7 @@ Play may start when **any** of:
 
 **Draft defaults (tune with evidence):**
 
-- Floors: `max(8 MiB, 5% of file)` for each of tail and head (operator hat bet).
+- Floors: `max(32 MiB, 5% of file)` for each of tail and head (operator hat bet).
 - Warm deadline: 30–90s (config); then mode C if head has ≥ 256 KiB.
 - `ready: false` ⇒ JF should not start ffmpeg yet (plugin waits or shows spinner).
 
