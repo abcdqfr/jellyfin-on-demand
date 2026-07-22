@@ -5,7 +5,7 @@
 .PHONY: help build native package gate deploy start stop restart status up \
 	smoke verify uninstall
 
-VERSION ?= 0.1.6
+VERSION ?= 0.1.7
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 DOTNET ?= $(ROOT)/.tools/dotnet/dotnet
 export PATH := $(ROOT)/.tools/dotnet:$(PATH)

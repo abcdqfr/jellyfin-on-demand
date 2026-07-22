@@ -114,12 +114,12 @@
         }
 
         console.warn(logPrefix, 'playback attempt failed', attempt);
+        const detail = (attempt && attempt.message)
+            || (reason === 'no_jellyfin_player'
+                ? 'Jellyfin’s player is not available to this plugin — refusing a substitute player.'
+                : (reason || 'unknown'));
         if (typeof JE.toast === 'function') {
-            JE.toast(
-                `Swarmplay: warm ready but player did not start (${reason || 'unknown'}).`
-                + (url ? ' Stream URL built — check Desktop console.' : ''),
-                8000
-            );
+            JE.toast(`Swarmplay: warm, but no Jellyfin playback (${detail})`, 9000);
         }
     }
 

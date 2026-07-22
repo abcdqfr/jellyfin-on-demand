@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.7 — 2026-07-21
+
+### Removed
+- DIY HTML5 `<video>` overlay player (audio-only HEVC black screens, foreign controls). **Jellyfin’s player or fail** — no substitute UI.
+
 ## 0.1.6 — 2026-07-21
 
 ### Fixed

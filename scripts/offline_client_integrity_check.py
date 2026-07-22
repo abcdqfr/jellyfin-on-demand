@@ -98,9 +98,11 @@ def main() -> None:
     # Path-only fake items toast "playing" without a player — require Http stream path.
     lucky = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")
     if "/Swarmplay/swarm/stream" not in lucky:
-        fail("lucky.js must build /Swarmplay/swarm/stream URL for real playback")
-    if "swarmplay-player-overlay" not in lucky:
-        fail("lucky.js must overlay <video> when playbackManager is not on window (JF 10.11)")
+        fail("lucky.js must build /Swarmplay/swarm/stream URL for MediaSource Path")
+    if "playViaOverlay" in lucky or "<video controls" in lucky:
+        fail("lucky.js must NOT use a DIY <video> overlay — Jellyfin player or fail")
+    if "no_jellyfin_player" not in lucky:
+        fail("lucky.js must fail closed when Jellyfin playbackManager is unavailable")
     if "filterRelevant" not in (PLUGIN_JS / "swarm/ranker.js").read_text(encoding="utf-8", errors="replace"):
         fail("ranker.js must filterRelevant weak Torznab title matches")
     releases = (PLUGIN_JS / "swarm/releases.js").read_text(encoding="utf-8", errors="replace")
@@ -108,6 +110,8 @@ def main() -> None:
         fail("releases.js must toast warming after release selection")
     if "filterRelevant" not in releases:
         fail("releases.js must apply filterRelevant before listing")
+    if "refusing a substitute player" not in releases:
+        fail("releases.js must say we refuse a substitute player")
     if "data-f=\"kind\"" not in releases and "data-f='kind'" not in releases:
         fail("releases.js must offer Episode/Batch kind filter for series")
     if "data-f=\"group\"" not in releases and "data-f='group'" not in releases:
