@@ -1,6 +1,6 @@
 # ADR-007: MKV-aware extent gate (ported lessons from strmarr)
 
-**Status:** Proposed
+**Status:** Accepted (implemented 2026-07-22; native probe + unit tests + `session_stub.cpp` wiring; `scripts/ci_gate.sh` green)
 
 **Date:** 2026-07-22
 

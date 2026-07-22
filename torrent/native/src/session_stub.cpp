@@ -1,4 +1,5 @@
 #include "swarmplay_session.h"
+#include "mkv_probe.h"
 
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert.hpp>
@@ -55,6 +56,16 @@ constexpr char const* kDefaultTrackers[] = {
     "udp://exodus.desync.com:6969/announce",
 };
 
+/* ADR-007: MKV-aware extent gate probe state, cached per (torrent,
+ * file_index) `Entry` so parse_head/find_cues run at most once per key. */
+enum class MkvProbeState {
+    kNotStarted,
+    kHeadGrowing,
+    kTailGrowing,
+    kDone,      /* Structural parse succeeded (head, and cues or cue-less fallback). */
+    kSkipped,   /* Not an MKV, or parse_head never succeeded even at full file size. */
+};
+
 struct Entry {
     lt::torrent_handle handle;
     std::string path;
@@ -63,7 +74,18 @@ struct Entry {
     std::vector<lt::piece_index_t> warm_pieces; /* tail ∪ head */
     int file_index = 0;
     int head_mib_hint = 32;
+    int tail_mib_hint = 8;
     int warm_phase = 0; /* 0=tail, 1=head, 2=done */
+
+    /* ADR-007 probe result/cache -- computed once, then reused as the
+     * effective tail_mib_hint/head_mib_hint floors above. */
+    MkvProbeState probe_state = MkvProbeState::kNotStarted;
+    int head_probe_mib = 1;
+    std::int64_t head_required_bytes = 0;
+    int cue_probe_mib = 2;
+    std::int64_t tail_required_bytes = 0;
+    bool cue_found = false;
+    bool cue_less_fallback = false;
 };
 
 lt::settings_pack make_session_settings() {
@@ -383,6 +405,217 @@ void compute_warm_bands(lt::torrent_info const& info, int file_index,
     }
 }
 
+/* --- ADR-007: MKV-aware extent gate ------------------------------------
+ *
+ * `tail_mib`/`head_mib` passed into swarm_ensure are now *floors*, not fixed
+ * sizes: before begin_warm() sets up the real tail->head->sequential warm
+ * priorities, resolve_mkv_extents() runs a bounded, structurally-verified
+ * probe (parse_head/find_cues from mkv_probe.h) and grows the effective
+ * tail/head bands to whatever the container actually needs (head: parsed
+ * Tracks size, never less than the floor; tail: the window containing a
+ * real Cues element, capped at 16 MiB, cue-less fallback bounded at the
+ * same cap). Non-MKV files, or any MKV whose head never parses even at full
+ * file size, keep today's fixed-floor behavior unchanged.
+ *
+ * This runs synchronously to completion inline (an "inline sub-loop", per
+ * ADR-007's own Consequences section, rather than a fourth warm_phase state
+ * advanced across repeated swarm_ensure calls) because the probe windows
+ * are tiny relative to the tail/head floors themselves (1 MiB doubling for
+ * head, 2->16 MiB for tail) and complete in seconds on real media; it is
+ * still bounded by its own sub-deadline so a pathological file can never
+ * hang past the outer 180s kWarmBlockTimeout. */
+
+bool is_mkv_path(std::string const& path) {
+    if (path.size() < 4) return false;
+    std::string ext = path.substr(path.size() - 4);
+    for (char& c : ext) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return ext == ".mkv";
+}
+
+/* Reads [start, start+length) directly off disk. The growing torrent file
+ * already has real bytes for any piece range that `have_piece()` reports
+ * complete -- no new libtorrent read API needed (ADR-007 point 2). */
+bool read_file_span(std::string const& path, std::int64_t start, std::int64_t length,
+                    std::vector<std::uint8_t>& out) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) return false;
+    in.seekg(static_cast<std::streamoff>(start), std::ios::beg);
+    if (!in) return false;
+    out.resize(static_cast<std::size_t>(length));
+    in.read(reinterpret_cast<char*>(out.data()), static_cast<std::streamsize>(length));
+    std::streamsize const got = in.gcount();
+    if (got <= 0) return false;
+    out.resize(static_cast<std::size_t>(got));
+    return true;
+}
+
+/* Warms the first (from_tail=false) or last (from_tail=true) `byte_limit`
+ * bytes of `file_index` to piece-complete, releasing `mutex` while waiting.
+ * Returns false only on `deadline` timeout. Mirrors the existing
+ * force_piece_deadlines/pieces_complete pattern already used for the real
+ * tail/head warm bands. */
+bool warm_piece_range(std::unique_lock<std::mutex>& lock, lt::torrent_handle handle,
+                      lt::torrent_info const& info, int file_index,
+                      std::int64_t byte_limit, bool from_tail,
+                      std::chrono::steady_clock::time_point deadline) {
+    auto const& files = info.files();
+    auto const index = lt::file_index_t(file_index);
+    std::int64_t const file_length = files.file_size(index);
+    std::int64_t const file_offset = files.file_offset(index);
+    int const piece_length = info.piece_length();
+    if (file_length <= 0 || piece_length <= 0) return true;
+
+    int const first_piece = static_cast<int>(file_offset / piece_length);
+    int const piece_count = static_cast<int>((file_length + piece_length - 1) / piece_length);
+    std::int64_t const clamped = std::min(byte_limit, file_length);
+    int const window_pieces = std::min(piece_count,
+        static_cast<int>((clamped + piece_length - 1) / piece_length));
+
+    std::vector<lt::piece_index_t> pieces;
+    if (from_tail) {
+        int const start = piece_count - window_pieces;
+        for (int p = start; p < piece_count; ++p) pieces.push_back(lt::piece_index_t(first_piece + p));
+    } else {
+        for (int p = 0; p < window_pieces; ++p) pieces.push_back(lt::piece_index_t(first_piece + p));
+    }
+
+    int const nfiles = info.files().num_files();
+    std::vector<lt::download_priority_t> file_pri(
+        static_cast<std::size_t>(nfiles), lt::dont_download);
+    if (file_index >= 0 && file_index < nfiles) {
+        file_pri[static_cast<std::size_t>(file_index)] = lt::default_priority;
+    }
+    handle.prioritize_files(file_pri);
+    std::vector<std::pair<lt::piece_index_t, lt::download_priority_t>> priorities;
+    for (auto piece : pieces) priorities.emplace_back(piece, lt::top_priority);
+    handle.prioritize_pieces(priorities);
+    force_piece_deadlines(handle, pieces);
+
+    while (!pieces_complete(handle, pieces)) {
+        if (std::chrono::steady_clock::now() >= deadline) return false;
+        lock.unlock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        lock.lock();
+    }
+    return true;
+}
+
+constexpr std::int64_t kMinCueTailProbeBytes = 2 * kMiB;  /* Tensura miss: 1 MiB was not enough. */
+constexpr std::int64_t kMaxCueTailProbeBytes = 16 * kMiB; /* Never read/require more than this. */
+
+/* Runs the growing head/cue probe once for a freshly-created Entry and
+ * returns the resolved tail/head MiB floors to hand to begin_warm(). Caller
+ * must hold `lock`; it is released/reacquired internally while waiting on
+ * pieces. Never throws, never fails open, never widens past the caps above. */
+void resolve_mkv_extents(std::unique_lock<std::mutex>& lock, lt::torrent_handle handle,
+                         lt::torrent_info const& info, int file_index,
+                         std::string const& file_path, int tail_mib_floor,
+                         int head_mib_floor, Entry& entry,
+                         int& out_tail_mib, int& out_head_mib) {
+    out_tail_mib = tail_mib_floor;
+    out_head_mib = head_mib_floor;
+    entry.probe_state = MkvProbeState::kSkipped;
+
+    try {
+        std::int64_t const file_length =
+            info.files().file_size(lt::file_index_t(file_index));
+        if (file_length <= 0 || !is_mkv_path(file_path)) {
+            std::fprintf(stderr, "[swarmplay] mkv probe skipped (non-mkv file)\n");
+            return;
+        }
+
+        auto const probe_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(150);
+
+        /* Head: 1 MiB doubling until parse_head succeeds or file end. */
+        entry.probe_state = MkvProbeState::kHeadGrowing;
+        std::int64_t head_limit = std::min<std::int64_t>(kMiB, file_length);
+        swarmplay::mkv::HeadProbeResult head_result;
+        for (;;) {
+            entry.head_probe_mib = static_cast<int>((head_limit + kMiB - 1) / kMiB);
+            if (!warm_piece_range(lock, handle, info, file_index, head_limit,
+                                  /*from_tail=*/false, probe_deadline)) {
+                std::fprintf(stderr, "[swarmplay] mkv head probe timed out; using fixed floor\n");
+                return;
+            }
+            std::vector<std::uint8_t> buf;
+            if (!read_file_span(file_path, 0, head_limit, buf)) {
+                std::fprintf(stderr, "[swarmplay] mkv head probe read failed; using fixed floor\n");
+                return;
+            }
+            head_result = swarmplay::mkv::parse_head(buf.data(), buf.size());
+            if (head_result.ok) break;
+            if (head_limit >= file_length) {
+                std::fprintf(stderr,
+                    "[swarmplay] mkv head probe exhausted file (%lld bytes); using fixed floor\n",
+                    static_cast<long long>(file_length));
+                return;
+            }
+            head_limit = std::min(head_limit * 2, file_length);
+        }
+
+        std::int64_t const segment_offset = head_result.segment_offset;
+        entry.head_required_bytes = std::max<std::int64_t>(head_result.bytes_consumed, kWarmFloorBytes);
+        out_head_mib = static_cast<int>((entry.head_required_bytes + kMiB - 1) / kMiB);
+        std::fprintf(stderr,
+            "[swarmplay] mkv head parse OK bytes=%lld tracks=%d segment_offset=%lld head_mib=%d\n",
+            static_cast<long long>(head_result.bytes_consumed), head_result.num_tracks_found,
+            static_cast<long long>(segment_offset), out_head_mib);
+
+        /* Tail: 2 MiB doubling to a 16 MiB cap, hunting for a real Cues element. */
+        entry.probe_state = MkvProbeState::kTailGrowing;
+        std::int64_t tail_limit = std::min(kMinCueTailProbeBytes, file_length);
+        std::int64_t const tail_cap = std::min(kMaxCueTailProbeBytes, file_length);
+        bool cue_found = false;
+        for (;;) {
+            entry.cue_probe_mib = static_cast<int>((tail_limit + kMiB - 1) / kMiB);
+            if (!warm_piece_range(lock, handle, info, file_index, tail_limit,
+                                  /*from_tail=*/true, probe_deadline)) {
+                std::fprintf(stderr, "[swarmplay] mkv cue probe timed out; cue-less fallback\n");
+                break;
+            }
+            std::int64_t const start = file_length - tail_limit;
+            std::vector<std::uint8_t> buf;
+            if (!read_file_span(file_path, start, tail_limit, buf)) {
+                std::fprintf(stderr, "[swarmplay] mkv cue probe read failed; cue-less fallback\n");
+                break;
+            }
+            auto const cues = swarmplay::mkv::find_cues(buf.data(), buf.size(), start, segment_offset);
+            if (cues.found) {
+                cue_found = true;
+                entry.tail_required_bytes = tail_limit;
+                std::fprintf(stderr,
+                    "[swarmplay] mkv cues found window_mib=%d points=%zu\n",
+                    entry.cue_probe_mib, cues.points.size());
+                break;
+            }
+            if (tail_limit >= tail_cap) {
+                std::fprintf(stderr,
+                    "[swarmplay] mkv cues not found within %lld MiB cap; cue-less tail fallback\n",
+                    static_cast<long long>(tail_cap / kMiB));
+                break;
+            }
+            tail_limit = std::min(tail_limit * 2, tail_cap);
+        }
+
+        entry.cue_found = cue_found;
+        entry.cue_less_fallback = !cue_found;
+        if (!cue_found) {
+            entry.tail_required_bytes = tail_cap;
+        }
+        out_tail_mib = static_cast<int>((entry.tail_required_bytes + kMiB - 1) / kMiB);
+        entry.probe_state = MkvProbeState::kDone;
+    } catch (std::exception const& ex) {
+        std::fprintf(stderr, "[swarmplay] mkv probe exception: %s; using fixed floor\n", ex.what());
+        entry.probe_state = MkvProbeState::kSkipped;
+    } catch (...) {
+        std::fprintf(stderr, "[swarmplay] mkv probe unknown exception; using fixed floor\n");
+        entry.probe_state = MkvProbeState::kSkipped;
+    }
+
+    out_tail_mib = std::max(out_tail_mib, tail_mib_floor > 0 ? tail_mib_floor : 8);
+    out_head_mib = std::max(out_head_mib, head_mib_floor > 0 ? head_mib_floor : 8);
+}
+
 void apply_tail_phase(lt::torrent_handle const& handle, lt::torrent_info const& info,
                       int file_index, int first_piece, int piece_count,
                       int tail_start) {
@@ -460,7 +693,7 @@ void advance_warm(Entry& entry) {
     int head_end = -1;
     std::vector<lt::piece_index_t> ignored_tail;
     std::vector<lt::piece_index_t> ignored_head;
-    compute_warm_bands(*info, entry.file_index, 8, entry.head_mib_hint,
+    compute_warm_bands(*info, entry.file_index, entry.tail_mib_hint, entry.head_mib_hint,
         first_piece, piece_count, tail_start, head_end, ignored_tail, ignored_head);
 
     if (entry.warm_phase == 0) {
@@ -570,7 +803,18 @@ int swarm_ensure(const char* btih_or_magnet, int file_index, int tail_mib,
         Entry entry;
         entry.handle = handle;
         entry.path = info->files().file_path(lt::file_index_t(file_index), save_path.string());
-        begin_warm(handle, *info, file_index, tail_mib, head_mib, entry);
+        entry.file_index = file_index;
+
+        /* ADR-007: tail_mib/head_mib are floors now -- the MKV probe may
+         * grow them (head up to the parsed Tracks size; tail up to the
+         * 16 MiB cue cap) before the tail->head->sequential warm begins. */
+        int resolved_tail_mib = tail_mib;
+        int resolved_head_mib = head_mib;
+        resolve_mkv_extents(lock, handle, *info, file_index, entry.path,
+            tail_mib, head_mib, entry, resolved_tail_mib, resolved_head_mib);
+
+        begin_warm(handle, *info, file_index, resolved_tail_mib, resolved_head_mib, entry);
+        entry.tail_mib_hint = resolved_tail_mib > 0 ? resolved_tail_mib : 8;
         session.torrents[key] = std::move(entry);
     } else {
         existing->second.handle = handle;

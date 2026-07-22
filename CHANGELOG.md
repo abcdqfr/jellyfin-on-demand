@@ -2,11 +2,13 @@
 
 ## Unreleased
 
-### In progress
-- **0.2.1 — MKV-aware extent gate:** grow real Cues/head parse instead of blind fixed floors; ported forensics from strmarr's Tensura cold-gate incident ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md))
-
 ### Planned
 - **0.3** — Library promote / offline archival ([design](docs/design/library-promote-0.3.md))
+
+## 0.2.1 — 2026-07-22
+
+### Fixed
+- **MKV-aware extent gate:** replaced the blind fixed 8 MiB tail + 8 MiB head floor with a growing, structurally-verified native EBML probe (`torrent/native/src/mkv_probe.{h,cpp}`) — head grows 1 MiB → parsed `Tracks` size (floor 8 MiB), tail grows 2 MiB → 16 MiB hunting a real `Cues` element (multi-candidate backward search, bounded cue-less fallback if none parses); `tail_mib`/`head_mib` are now floors, not fixed sizes; probe result cached per (torrent, file_index), no re-parse once warm. Ports forensics from strmarr's Tensura cold-gate incident (real Cues past a naive small tail window, false-positive Cues-ID match inside the EBML header) ([ADR-007](docs/adr/007-mkv-aware-extent-gate.md))
 
 ## 0.2.0 — 2026-07-22
 

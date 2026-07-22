@@ -39,6 +39,13 @@ if [[ ! -f "$so" ]]; then
   die "missing $so — build torrent/native first"
 fi
 
+printf '== mkv probe unit tests ==\n'
+# ADR-007: pure EBML/Matroska probe tests — no libtorrent, no session. Build
+# (in case mkv_probe.{h,cpp}/mkv_probe_test.cpp changed) then run.
+cmake --build "$root/torrent/native/build" --target mkv_probe_test -j"$(nproc)" \
+  || die "mkv_probe_test build failed"
+"$root/torrent/native/build/mkv_probe_test" || die "mkv_probe_test failed"
+
 printf '== native local-seed smoke ==\n'
 python3 "$root/scripts/native_ensure_local_seed_smoke.py"
 
