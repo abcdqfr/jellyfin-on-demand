@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -366,7 +367,46 @@ def main() -> None:
         fail("native must block in ensure until extent gate (PreparePlay)")
 
     check_magnet_sanitizer()
-    print("PASS: offline_client_integrity_check")
+    
+    # Former product name must be absent (literally zero) from the working tree.
+    former = ("swarm" + "play").lower()
+    stream = ("stream" + "play").lower()
+    pat = re.compile(re.escape(former) + "|" + re.escape(stream), re.I)
+    skip = {".git", "node_modules", ".tools", "nuget", "dotnet-cli-home"}
+    leftovers = []
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        parts = set(Path(dirpath).relative_to(ROOT).parts)
+        if parts & skip:
+            dirnames[:] = []
+            continue
+        # skip binary build outputs by dirname
+        dirnames[:] = [d for d in dirnames if d not in skip]
+        for name in filenames:
+            fp = Path(dirpath) / name
+            rel = str(fp.relative_to(ROOT))
+            if pat.search(rel):
+                leftovers.append(rel)
+                continue
+            try:
+                data = fp.read_bytes()
+            except OSError:
+                continue
+            if b"\0" in data[:8192]:
+                continue
+            try:
+                text = data.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            if pat.search(text):
+                leftovers.append(rel)
+    if leftovers:
+        fail(
+            "former product name still present (want 0): "
+            + ", ".join(leftovers[:20])
+            + ("…" if len(leftovers) > 20 else "")
+        )
+
+print("PASS: offline_client_integrity_check")
 
 
 def build_ascii_magnet(magnet_or_btih: str | None, known_btih: str | None = None) -> str:
