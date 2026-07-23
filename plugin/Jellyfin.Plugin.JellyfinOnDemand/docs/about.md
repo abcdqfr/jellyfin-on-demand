@@ -1,8 +1,8 @@
-# About Jellyfin Enhanced
+# About Jellyfin on Demand
 
 ## Project Overview
 
-Jellyfin Enhanced is a comprehensive plugin that bundles advanced features and customizations for Jellyfin into one convenient package. Started as a userscript, it has evolved into a full-featured plugin that enhances the Jellyfin experience with keyboard shortcuts, visual enhancements, integrations, and much more.
+Jellyfin on Demand is a comprehensive plugin that bundles advanced features and customizations for Jellyfin into one convenient package. Started as a userscript, it has evolved into a full-featured plugin that enhances the Jellyfin experience with keyboard shortcuts, visual enhancements, integrations, and much more.
 
 
 ## Credits & Acknowledgments
@@ -20,10 +20,10 @@ Jellyfin Enhanced is a comprehensive plugin that bundles advanced features and c
 
 **[IAmParadox27](https://github.com/IAmParadox27/)**
 
-- Inspiration for transitioning Jellyfin Enhanced from a userscript to a plugin
+- Inspiration for transitioning Jellyfin on Demand from a userscript to a plugin
 - Creator of amazing Jellyfin plugins including [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) and [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages)
 
-**and all the amazing people who have contributed to Jellyfin Enhanced:**
+**and all the amazing people who have contributed to Jellyfin on Demand:**
 
 <div align="center">
   <a href="https://github.com/n00bcodr/Jellyfin-Enhanced/graphs/contributors">
@@ -40,7 +40,7 @@ Jellyfin Enhanced is a comprehensive plugin that bundles advanced features and c
 **Translators:**
 
 - Thank you to all community members who have contributed translations in 15+ languages
-- Your work makes Jellyfin Enhanced accessible to users worldwide
+- Your work makes Jellyfin on Demand accessible to users worldwide
 
 **Bug Reporters & Testers:**
 
@@ -57,27 +57,27 @@ Jellyfin Enhanced is a comprehensive plugin that bundles advanced features and c
 **[Seerr](https://github.com/seerr-team/seerr)**
 
 - Media request management system
-- Jellyfin Enhanced provides deep integration with Seerr
+- Jellyfin on Demand provides deep integration with Seerr
 
 **[Custom Tabs](https://github.com/IAmParadox27/jellyfin-plugin-custom-tabs)**
 
 - Custom navigation tabs for Jellyfin
-- Jellyfin Enhanced features can be embedded in custom tabs
+- Jellyfin on Demand features can be embedded in custom tabs
 
 **[Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages)**
 
 - Add custom pages to Jellyfin sidebar
-- Used by Jellyfin Enhanced for Calendar, Requests, Bookmarks, Hidden Content pages
+- Used by Jellyfin on Demand for Calendar, Requests, Bookmarks, Hidden Content pages
 
 **[File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)**
 
 - Safe file modifications for plugins
-- Highly recommended for Jellyfin Enhanced installation
+- Highly recommended for Jellyfin on Demand installation
 
 **[Kefin Tweaks](https://github.com/ranaldsgift/KefinTweaks)**
 
 - Watchlist and additional tweaks
-- Complements Jellyfin Enhanced features
+- Complements Jellyfin on Demand features
 
 
 ## Contributing
@@ -96,15 +96,15 @@ We welcome contributions from the community!
 
 **Get Started:**
 
-- [Report Issues and Feature Requests](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
-- [Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions)
+- [Report Issues and Feature Requests](https://github.com/abcdqfr/jellyfin-on-demand/issues)
+- [Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions)
 - [Contributing Translations](faq-support/contributing-translations.md)
 - [Troubleshooting Guide](installation/troubleshooting.md)
 - [Discord Community](https://discord.gg/EYNFf7y4CG)
 
 ## Support Me
 
-If Jellyfin Enhanced has enhanced your media experience, consider supporting me !
+If Jellyfin on Demand has enhanced your media experience, consider supporting me !
 
 <div align="center">
   <a href='https://ko-fi.com/G2G51TIZF0' target='_blank'><img height='6' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
@@ -115,7 +115,7 @@ If Jellyfin Enhanced has enhanced your media experience, consider supporting me 
 </div>
 <br>
 <div align="center">
-  <p><em>Your support helps me buy more drives and improve my hardware :) <br> and give me motivation to keep working on Jellyfin Enhanced!</em></p>
+  <p><em>Your support helps me buy more drives and improve my hardware :) <br> and give me motivation to keep working on Jellyfin on Demand!</em></p>
 </div>
 
 ---
@@ -124,11 +124,11 @@ If Jellyfin Enhanced has enhanced your media experience, consider supporting me 
 ## Statistics
 
 <div align="center">
-  <a href="https://star-history.com/#n00bcodr/Jellyfin-Enhanced&Date">
+  <a href="https://star-history.com/#abcdqfr/jellyfin-on-demand&Date">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date" />
     </picture>
   </a>
 </div>

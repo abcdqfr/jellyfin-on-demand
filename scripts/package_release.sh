@@ -38,9 +38,9 @@ esac
 
 cat > "$out/Jellyfin.Plugin.JellyfinOnDemand/meta.json" <<META
 {
-  "guid": "f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b",
-  "name": "JellyfinOnDemand",
-  "description": "BitTorrent play path for Jellyfin (JE fork)",
+  "guid": "935a72b9-7639-473b-bb54-4259f7a9695c",
+  "name": "Jellyfin on Demand",
+  "description": "On-demand discovery and playback for Jellyfin (JE-derived)",
   "overview": "magnet/Torznab → libtorrent → growing file → Play",
   "owner": "jellyfin-on-demand",
   "category": "General",

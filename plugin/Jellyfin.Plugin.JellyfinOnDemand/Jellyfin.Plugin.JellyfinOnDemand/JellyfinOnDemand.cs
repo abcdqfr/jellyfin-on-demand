@@ -23,13 +23,13 @@ using System.Runtime.Loader;
 
 namespace Jellyfin.Plugin.JellyfinOnDemand
 {
-    public class JellyfinEnhanced : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class JellyfinOnDemand : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         private readonly IApplicationPaths _applicationPaths;
         private readonly Logger _logger;
-        private const string PluginName = "Jellyfin Enhanced";
+        private const string PluginName = "Jellyfin on Demand";
 
-        public JellyfinEnhanced(IApplicationPaths applicationPaths, IServerConfigurationManager serverConfigurationManager, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
+        public JellyfinOnDemand(IApplicationPaths applicationPaths, IServerConfigurationManager serverConfigurationManager, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
             _applicationPaths = applicationPaths;
@@ -37,7 +37,8 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
             _logger.Info($"{PluginName} v{Version} initialized. Plugin logs will be written to: {_logger.CurrentLogFilePath}");
             // Set the User-Agent used by every Seerr/TMDB outbound HTTP call.
             // Cloudflare's Browser Integrity Check / Bot Fight Mode flags
-            // empty UA as bot �            Helpers.Jellyseerr.SeerrHttpHelper.UserAgent = $"JellyfinEnhanced/{Version}";
+            // empty UA as bot traffic.
+            Helpers.Jellyseerr.SeerrHttpHelper.UserAgent = $"JellyfinOnDemand/{Version}";
             CleanupOldScript();
             CheckPluginPages(applicationPaths, serverConfigurationManager, 1);
             BackfillMissingDefaultShortcuts();
@@ -122,8 +123,8 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
         }
 
         public override string Name => PluginName;
-        public override Guid Id => Guid.Parse("f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b");
-        public static JellyfinEnhanced? Instance { get; private set; }
+        public override Guid Id => Guid.Parse("935a72b9-7639-473b-bb54-4259f7a9695c");
+        public static JellyfinOnDemand? Instance { get; private set; }
 
         private string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
 
@@ -158,7 +159,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
                 var version = Version?.ToString() ?? "unknown";
                 try
                 {
-                    var location = typeof(JellyfinEnhanced).Assembly.Location;
+                    var location = typeof(JellyfinOnDemand).Assembly.Location;
                     if (!string.IsNullOrEmpty(location) && File.Exists(location))
                     {
                         var ticks = new FileInfo(location).LastWriteTimeUtc.Ticks;
@@ -207,12 +208,12 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
             base.UpdateConfiguration(configuration);
             try
             {
-                Controllers.JellyfinEnhancedController.ClearAllSeerrCachesOnConfigChange();
-                _logger.Info("Jellyfin Enhanced: configuration updated — Seerr caches cleared.");
+                Controllers.JellyfinOnDemandController.ClearAllSeerrCachesOnConfigChange();
+                _logger.Info("Jellyfin on Demand: configuration updated — Seerr caches cleared.");
             }
             catch (Exception ex)
             {
-                _logger.Warning($"Jellyfin Enhanced: failed to clear Seerr caches on config update: {ex.Message}");
+                _logger.Warning($"Jellyfin on Demand: failed to clear Seerr caches on config update: {ex.Message}");
             }
         }
         private void CleanupOldScript()
@@ -231,7 +232,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
 
                 if (regex.IsMatch(content))
                 {
-                    _logger.Info("Found old Jellyfin Enhanced script tag in index.html. Removing it now.");
+                    _logger.Info("Found old Jellyfin on Demand script tag in index.html. Removing it now.");
                     content = regex.Replace(content, string.Empty);
                     File.WriteAllText(indexPath, content);
                     _logger.Info("Successfully removed old script tag.");
@@ -264,7 +265,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
                 config.Add("pages", new JArray());
             }
 
-            var namespaceName = typeof(JellyfinEnhanced).Namespace;
+            var namespaceName = typeof(JellyfinOnDemand).Namespace;
 
             JObject? hssPageConfig = config.Value<JArray>("pages")!.FirstOrDefault(x =>
                 x.Value<string>("Id") == namespaceName) as JObject;
@@ -480,7 +481,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
                 new PluginPageInfo
                 {
                     Name = this.Name,
-                    DisplayName = "Jellyfin Enhanced",
+                    DisplayName = "Jellyfin on Demand",
                     EnableInMainMenu = true,
                     EmbeddedResourcePath = "Jellyfin.Plugin.JellyfinOnDemand.Configuration.configPage.html",
                     // MenuIcon was previously ignored - jellyfin-web hardcoded <Folder /> regardless of

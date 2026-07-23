@@ -15,8 +15,8 @@ Progress = **unit + integration tests** against [`PRODUCT.md`](PRODUCT.md) MVP.
 
 Working plugin tree:
 [`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/)
-([abcdqfr/Jellyfin.Plugin.JellyfinOnDemand](https://github.com/abcdqfr/Jellyfin.Plugin.JellyfinOnDemand),
-fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced)).
+([abcdqfr/jellyfin-on-demand](https://github.com/abcdqfr/jellyfin-on-demand),
+fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced); [ADR-011](docs/adr/011-product-identity.md)).
 Upstream reference clone remains in [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/).
 
 
@@ -157,7 +157,7 @@ roughly the same time it did before the blazing-ahead fix landed.
 
 ### 0.5.0 — Discover pane (Seerr-shaped browse, JE chrome rolled in)
 
-Living-room Discover home next to Enhanced Panel / Bookmarks. Reuses the
+Living-room Discover home next to On Demand Panel / Bookmarks. Reuses the
 jellyseerr poster cards already rolled into this JE fork (Play / Lucky /
 Library), backed by TMDB when Seerr is off. Attribution for JE chrome + MIT
 seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
@@ -186,8 +186,8 @@ seerr Discover patterns: [`ATTRIBUTION.md`](ATTRIBUTION.md).
 - [x] Fork JE → `plugin/Jellyfin.Plugin.JellyfinOnDemand/`
 - [x] **ADR-004:** one product; do not fork Seerr
 - [x] Offline: Seerr/*arr scripts unloaded; Swarm stubs; design docs (`docs/design/`)
-- [ ] `git init` this sibling root when you want parent history (optional; plugin is already its own git remote)
-- [ ] Rename C# project / plugin id from `JellyfinEnhanced` → `JellyfinOnDemand` (see `docs/design/rename-inventory.md`) — **needs Wi‑Fi build**
+- [x] Repo identity: `abcdqfr/jellyfin-on-demand` ([ADR-011](docs/adr/011-product-identity.md))
+- [x] Rename C# project / plugin id / display name / GUID → Jellyfin on Demand (see `docs/design/rename-inventory.md`, ADR-011)
 - [ ] Strip Seerr/*arr C# helpers/tasks (scripts already gated); retarget discovery chrome to Swarm APIs
 
 **Exit:** Plugin identity is Jellyfin on Demand; Seerr is not required at runtime; *arr UI gone or inert.

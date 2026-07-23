@@ -2,7 +2,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Jellyseerr Modal:';
+    const logPrefix = '🪼 Jellyfin on Demand: Jellyseerr Modal:';
     const modal = {};
 
     const escapeHtml = JE.escapeHtml;
@@ -291,4 +291,4 @@
     // Expose the modal module on the global JE object
     JE.jellyseerrModal = modal;
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

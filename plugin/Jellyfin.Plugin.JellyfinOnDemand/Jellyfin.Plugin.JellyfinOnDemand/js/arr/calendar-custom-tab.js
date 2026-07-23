@@ -15,19 +15,19 @@
 (function () {
   'use strict';
 
-  if (!window.JellyfinEnhanced?.pluginConfig?.CalendarPageEnabled) {
+  if (!window.JellyfinOnDemand?.pluginConfig?.CalendarPageEnabled) {
     return;
   }
 
-  var useCustomTabs = !!window.JellyfinEnhanced?.pluginConfig?.CalendarUseCustomTabs;
-  var useNativeTab = !!window.JellyfinEnhanced?.pluginConfig?.CalendarUseNativeTab;
+  var useCustomTabs = !!window.JellyfinOnDemand?.pluginConfig?.CalendarUseCustomTabs;
+  var useNativeTab = !!window.JellyfinOnDemand?.pluginConfig?.CalendarUseNativeTab;
 
   if (!useCustomTabs && !useNativeTab) {
     return;
   }
 
   if (useNativeTab) {
-    window.JellyfinEnhanced.nativeTabs.register('calendar', 'Calendar', function (panel) {
+    window.JellyfinOnDemand.nativeTabs.register('calendar', 'Calendar', function (panel) {
       var marker = document.createElement('div');
       marker.className = 'jellyfinenhanced calendar';
       panel.appendChild(marker);
@@ -61,7 +61,7 @@
     var attempts = 0;
     var check = setInterval(function () {
       if (++attempts > 300) { clearInterval(check); return; }
-      var JE = window.JE || window.JellyfinEnhanced;
+      var JE = window.JE || window.JellyfinOnDemand;
       if (JE?.calendarPage) {
         clearInterval(check);
         callback(JE);
@@ -101,7 +101,7 @@
   /**
    * Render calendar into the given container using a scoped child element.
    * @param {HTMLElement} container - The active .jellyfinenhanced.calendar element.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function renderCalendar(container, JE) {
     container.classList.remove('hide');
@@ -126,7 +126,7 @@
    * Persistent watcher -- observes document.body (via shared observer) for
    * DOM rebuilds and remounts the calendar when a new active container
    * appears. Suspends checks when not on the home page.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function watchForContainer(JE) {
     function tryMount() {

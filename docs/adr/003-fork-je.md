@@ -1,4 +1,4 @@
-# ADR-003 (jellyfin-on-demand): Fork Jellyfin Enhanced (O4b)
+# ADR-003 (jellyfin-on-demand): Fork Jellyfin on Demand (O4b)
 
 **Status:** Accepted
 
@@ -6,7 +6,7 @@
 
 ## Context
 
-Living-room discovery UX already exists in Jellyfin Enhanced (pane, proxy,
+Living-room discovery UX already exists in Jellyfin on Demand (pane, proxy,
 settings, TMDB-adjacent discovery). Building a greenfield companion plugin
 duplicates that shell. Jellyfin on Demand’s acquisition spine is Torznab/magnet +
 libtorrent, not Seerr/*arr — so the fork must gut that stack.
@@ -14,7 +14,7 @@ libtorrent, not Seerr/*arr — so the fork must gut that stack.
 ## Decision
 
 1. **O4b:** Fork [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced)
-   as [abcdqfr/Jellyfin.Plugin.JellyfinOnDemand](https://github.com/abcdqfr/Jellyfin.Plugin.JellyfinOnDemand).
+   as [abcdqfr/jellyfin-on-demand](https://github.com/abcdqfr/jellyfin-on-demand).
 2. Work from nested clone at `plugin/Jellyfin.Plugin.JellyfinOnDemand/` under the
    jellyfin-on-demand sibling root.
 3. Keep `third-party/jellyfin-enhanced/` as a pristine upstream reference.

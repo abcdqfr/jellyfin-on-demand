@@ -1,10 +1,10 @@
 # Spoiler Guard Settings
 
-Admin configuration for the **Spoiler Guard** section of the Jellyfin Enhanced plugin. All toggles here are server-wide policy — users opt into Spoiler Guard for individual shows / movies / collections per-user, but the admin decides what protection looks like once they do.
+Admin configuration for the **Spoiler Guard** section of the Jellyfin on Demand plugin. All toggles here are server-wide policy — users opt into Spoiler Guard for individual shows / movies / collections per-user, but the admin decides what protection looks like once they do.
 
 !!! info "Where to find it"
 
-    Jellyfin Dashboard → Plugins → **Jellyfin Enhanced** → scroll to the **Spoiler Guard** section.
+    Jellyfin Dashboard → Plugins → **Jellyfin on Demand** → scroll to the **Spoiler Guard** section.
 
 ---
 
@@ -135,7 +135,7 @@ A collapsible sub-section of per-field hide toggles. When the master switch is o
 
 ### Hide tags
 
-**Default: On.** Hides both the TMDB Tags array (phrases like "Death of a main character") AND the Jellyfin Enhanced card overlays (genre, quality, language, rating tags drawn over thumbnails) on cards for unwatched episodes of Spoiler Guard series.
+**Default: On.** Hides both the TMDB Tags array (phrases like "Death of a main character") AND the Jellyfin on Demand card overlays (genre, quality, language, rating tags drawn over thumbnails) on cards for unwatched episodes of Spoiler Guard series.
 
 ### Hide chapter names (keep timestamps)
 
@@ -149,7 +149,7 @@ For movies, this is a **progressive strip**: only chapters whose start position 
 
 ### Hide ratings
 
-**Default: On.** Hides **both** the community/TMDB rating and the critic rating — a 9.8/10 rating on a specific episode implies a major event ("the one where X dies"). Hidden by null so clients don't render "0/10", and the Jellyfin Enhanced card rating overlay is suppressed too on the **series, season, and unwatched-episode cards** of a guarded show (it won't fall back to the parent series' rating). Watched episodes keep their rating, and if you turn this toggle off — or a user unchecks the **Ratings** override — the overlay renders normally again.
+**Default: On.** Hides **both** the community/TMDB rating and the critic rating — a 9.8/10 rating on a specific episode implies a major event ("the one where X dies"). Hidden by null so clients don't render "0/10", and the Jellyfin on Demand card rating overlay is suppressed too on the **series, season, and unwatched-episode cards** of a guarded show (it won't fall back to the parent series' rating). Watched episodes keep their rating, and if you turn this toggle off — or a user unchecks the **Ratings** override — the overlay renders normally again.
 
 ### Hide air date
 
@@ -182,7 +182,7 @@ In both modes the character name (`Role`) is also stripped from any surviving Pe
 
 ## Per-user overrides
 
-The metadata toggles above set server-wide policy, but individual users can opt back **out** of any strip category for themselves. The JE user settings panel (gear icon → **Jellyfin Enhanced** → **Spoiler Guard**) has a **"Show me this even with Spoiler Guard on"** area with one checkbox per category: TV show descriptions, Episode descriptions, Episode titles, Chapter names, Cast list, Ratings, Air date, Taglines, Tags, and Reviews.
+The metadata toggles above set server-wide policy, but individual users can opt back **out** of any strip category for themselves. The JE user settings panel (gear icon → **Jellyfin on Demand** → **Spoiler Guard**) has a **"Show me this even with Spoiler Guard on"** area with one checkbox per category: TV show descriptions, Episode descriptions, Episode titles, Chapter names, Cast list, Ratings, Air date, Taglines, Tags, and Reviews.
 
 The gating is one-directional — the admin still decides what's available:
 
@@ -198,13 +198,13 @@ The same panel section also holds a per-user **"Don't ask me to confirm when tur
 
 Each user's Spoiler Guard preferences are stored in a per-user `spoilerblur.json` file on the server. If that file gets corrupted (truncated by a power loss mid-write, mangled by a backup tool, etc.), the plugin **backs the corrupt file up to `spoilerblur.json.corrupt-{timestamp}`**, resets the on-disk state to defaults, and records the event so the affected user knows to re-enable their items.
 
-This is automatic and doesn't need configuration. The corruption events are exposed through a diagnostic JSON endpoint — `GET /JellyfinEnhanced/spoiler-blur/health` — that an admin (or a user, for their own events) can query to check whether their Spoiler Guard preferences were reset after a corrupt-file backup, without shell access. A companion `DELETE /JellyfinEnhanced/spoiler-blur/health/{userId}` endpoint acknowledges (clears) an event. The scoping is per-user: non-admins see only their own corruption events, while admins see all so they can advise affected users. There is no in-UI banner yet — the surface is the endpoint, not a management-UI notification.
+This is automatic and doesn't need configuration. The corruption events are exposed through a diagnostic JSON endpoint — `GET /JellyfinOnDemand/spoiler-blur/health` — that an admin (or a user, for their own events) can query to check whether their Spoiler Guard preferences were reset after a corrupt-file backup, without shell access. A companion `DELETE /JellyfinOnDemand/spoiler-blur/health/{userId}` endpoint acknowledges (clears) an event. The scoping is per-user: non-admins see only their own corruption events, while admins see all so they can advise affected users. There is no in-UI banner yet — the surface is the endpoint, not a management-UI notification.
 
 ---
 
 ## What gets logged
 
-For diagnostics, the plugin logs (rate-limited) to `/config/log/JellyfinEnhanced_{date}.log`:
+For diagnostics, the plugin logs (rate-limited) to `/config/log/JellyfinOnDemand_{date}.log`:
 
 - Spoiler Guard auto-enable events: `SpoilerAutoEnable: enabled Spoiler Guard for series '<name>' (...) on first-play of S1E1 by user <id>`
 - Seerr pre-acquisition records: `Spoiler Guard pending recorded tv:<tmdbId> for <user>`

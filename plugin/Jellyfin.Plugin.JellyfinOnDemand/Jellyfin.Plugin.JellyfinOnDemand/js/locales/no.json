@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Kunne ikke lagre anmeldelsen. Prøv igjen.",
     "panel_settings_language": "Språkinnstillinger",
     "panel_settings_language_display": "Visningsspråk",
-    "panel_settings_language_display_desc": "Velg språk for Jellyfin Enhanced-grensesnittet. Endringer trer i kraft etter at siden er oppdatert.",
+    "panel_settings_language_display_desc": "Velg språk for Jellyfin on Demand-grensesnittet. Endringer trer i kraft etter at siden er oppdatert.",
     "panel_settings_language_clear_cache": "Tøm oversettelsesbuffer",
     "panel_settings_language_clear_cache_desc": "Fjerner alle bufrede oversettelser. Nyttig for å hente en nylig oppdatert oversettelse fra Github.",
     "toast_language_changed": "{{icon:language}} Språk endret! Oppdaterer siden…",

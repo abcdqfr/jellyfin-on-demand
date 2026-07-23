@@ -1,10 +1,10 @@
-# Jellyfin Enhanced
+# Jellyfin on Demand
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/n00bcodr/Jellyfin-Enhanced/main?logo=semantic-release&logoColor=white&label=Last%20Updated&labelColor=black&color=AA5CC3&cacheSeconds=3600" alt="Last Updated">
-  <img src="https://img.shields.io/github/commit-activity/w/n00bcodr/Jellyfin-Enhanced?logo=git&label=Commit%20Activity&labelColor=black&color=00A4DC&cacheSeconds=600" alt="Commit Activity">
+  <img src="https://img.shields.io/github/last-commit/abcdqfr/jellyfin-on-demand/main?logo=semantic-release&logoColor=white&label=Last%20Updated&labelColor=black&color=AA5CC3&cacheSeconds=3600" alt="Last Updated">
+  <img src="https://img.shields.io/github/commit-activity/w/abcdqfr/jellyfin-on-demand?logo=git&label=Commit%20Activity&labelColor=black&color=00A4DC&cacheSeconds=600" alt="Commit Activity">
   <img src="https://img.shields.io/badge/Jellyfin%20Version-10.11-AA5CC3?logo=jellyfin&logoColor=00A4DC&labelColor=black" alt="Jellyfin Version">
   <br><br>
-  <img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/n00bcodr/Jellyfin-Enhanced/latest/Jellyfin.Plugin.JellyfinEnhanced_10.11.0.zip?displayAssetName=false&label=10.11%20Downloads%40Latest&labelColor=black&color=AA5CC3&cacheSeconds=60">
+  <img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/abcdqfr/jellyfin-on-demand/latest/Jellyfin.Plugin.JellyfinOnDemand_10.11.0.zip?displayAssetName=false&label=10.11%20Downloads%40Latest&labelColor=black&color=AA5CC3&cacheSeconds=60">
   <br><br>
   <a href="https://discord.gg/EYNFf7y4CG"><img alt="Discord" src="https://img.shields.io/badge/Jellyfin%20Enhanced%20-%20Jellyfin%20Community?&logo=discord&logoColor=white&style=for-the-badge&label=Jellyfin%20Community&labelColor=5865F2&color=black"></a>
   <br><br>
@@ -14,7 +14,7 @@
 
 <br>
 
-The essential enhancement suite for Jellyfin, bundling advanced features and customizations into one convenient plugin.
+On-demand discovery and playback for Jellyfin. Derived from Jellyfin Enhanced — independent community project, not affiliated with Jellyfin or Jellyfin Enhanced.
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/c3fed9fe-63c4-4e26-b2b6-73c4817613aa"></video>
@@ -24,16 +24,16 @@ The essential enhancement suite for Jellyfin, bundling advanced features and cus
 
 ## 📚 Documentation
 
-**Complete documentation is available at: [https://n00bcodr.github.io/Jellyfin-Enhanced/](https://n00bcodr.github.io/Jellyfin-Enhanced/)**
+**Complete documentation is available at: [https://github.com/abcdqfr/jellyfin-on-demand/](https://github.com/abcdqfr/jellyfin-on-demand/)**
 
 Quick links:
-- [Installation Guide](https://n00bcodr.github.io/Jellyfin-Enhanced/installation/installation/)
-- [Features Overview](https://n00bcodr.github.io/Jellyfin-Enhanced/enhanced/enhanced-features/)
-- [Seerr Integration](https://n00bcodr.github.io/Jellyfin-Enhanced/seerr/seerr-features/)
-- [ARR Integration](https://n00bcodr.github.io/Jellyfin-Enhanced/arr/arr-features/)
-- [Spoiler Guard](https://n00bcodr.github.io/Jellyfin-Enhanced/spoiler-guard/spoiler-guard-features/)
-- [FAQ & Troubleshooting](https://n00bcodr.github.io/Jellyfin-Enhanced/faq-support/faq/)
-- [CSS Customization](https://n00bcodr.github.io/Jellyfin-Enhanced/advanced/css-customization/)
+- [Installation Guide](https://github.com/abcdqfr/jellyfin-on-demand/installation/installation/)
+- [Features Overview](https://github.com/abcdqfr/jellyfin-on-demand/enhanced/enhanced-features/)
+- [Seerr Integration](https://github.com/abcdqfr/jellyfin-on-demand/seerr/seerr-features/)
+- [ARR Integration](https://github.com/abcdqfr/jellyfin-on-demand/arr/arr-features/)
+- [Spoiler Guard](https://github.com/abcdqfr/jellyfin-on-demand/spoiler-guard/spoiler-guard-features/)
+- [FAQ & Troubleshooting](https://github.com/abcdqfr/jellyfin-on-demand/faq-support/faq/)
+- [CSS Customization](https://github.com/abcdqfr/jellyfin-on-demand/advanced/css-customization/)
 
 <br>
 
@@ -44,9 +44,9 @@ Quick links:
 1. In Jellyfin, go to **Dashboard** → **Plugins** → **Repositories**
 2. Click **➕** and add the repository:
    ```
-   https://raw.githubusercontent.com/n00bcodr/jellyfin-plugins/main/10.11/manifest.json
+   https://raw.githubusercontent.com/abcdqfr/jellyfin-on-demand/product/plugin/Jellyfin.Plugin.JellyfinOnDemand/manifest.json
    ```
-3. Go to **Catalog** tab, find **Jellyfin Enhanced**, and click **Install**
+3. Go to **Catalog** tab, find **Jellyfin on Demand**, and click **Install**
 4. **Restart** your Jellyfin server
 
 > [!IMPORTANT]
@@ -55,7 +55,7 @@ Quick links:
 > [!TIP]
 > **Highly Recommended:** Install the [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) to avoid permission issues on all installation types (Docker, Windows, Linux, etc.).
 
-For detailed installation instructions and troubleshooting, see the [Installation Guide](https://n00bcodr.github.io/Jellyfin-Enhanced/installation/installation/).
+For detailed installation instructions and troubleshooting, see the [Installation Guide](https://github.com/abcdqfr/jellyfin-on-demand/installation/installation/).
 
 <br>
 
@@ -105,7 +105,7 @@ For detailed installation instructions and troubleshooting, see the [Installatio
 - **Extensive CSS Options** - Customize every visual element
 - **Multi-language Support** - Available in 15+ languages
 
-[View all features →](https://n00bcodr.github.io/Jellyfin-Enhanced/enhanced/enhanced-features/)
+[View all features →](https://github.com/abcdqfr/jellyfin-on-demand/enhanced/enhanced-features/)
 
 <br>
 
@@ -157,7 +157,7 @@ For detailed installation instructions and troubleshooting, see the [Installatio
 
 ### Translations
 
-Help translate Jellyfin Enhanced into your language!
+Help translate Jellyfin on Demand into your language!
 
 <p align="center">
   <a href="https://hosted.weblate.org/engage/jellyfinenhanced/">
@@ -169,7 +169,7 @@ Translate directly in Weblate:
 
 - https://hosted.weblate.org/projects/jellyfinenhanced/
 
-1. Open the Jellyfin Enhanced project in Weblate
+1. Open the Jellyfin on Demand project in Weblate
 2. Pick your language (or request a new language)
 3. Translate strings in the Web UI
 4. Save and submit suggestions/changes
@@ -178,12 +178,12 @@ Weblate will sync translation changes back to this repository.
 
 Manual locale PRs are still possible for maintainers, but Weblate is the preferred workflow for all translators.
 
-[Translation Guide →](https://n00bcodr.github.io/Jellyfin-Enhanced/faq-support/contributing-translations/)
+[Translation Guide →](https://github.com/abcdqfr/jellyfin-on-demand/faq-support/contributing-translations/)
 
 ### Bug Reports & Feature Requests
 
-- [Report Issues](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
-- [Feature Requests](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions)
+- [Report Issues](https://github.com/abcdqfr/jellyfin-on-demand/issues)
+- [Feature Requests](https://github.com/abcdqfr/jellyfin-on-demand/discussions)
 - [Discord Community](https://discord.gg/EYNFf7y4CG)
 
 <br>
@@ -192,9 +192,9 @@ Manual locale PRs are still possible for maintainers, but Weblate is the preferr
 
 Need help? Check these resources:
 
-- [FAQ](https://n00bcodr.github.io/Jellyfin-Enhanced/faq-support/faq/)
-- [Troubleshooting Guide](https://n00bcodr.github.io/Jellyfin-Enhanced/installation/troubleshooting/)
-- [GitHub Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions)
+- [FAQ](https://github.com/abcdqfr/jellyfin-on-demand/faq-support/faq/)
+- [Troubleshooting Guide](https://github.com/abcdqfr/jellyfin-on-demand/installation/troubleshooting/)
+- [GitHub Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions)
 - [Discord Community](https://discord.gg/EYNFf7y4CG)
 
 <br>
@@ -218,11 +218,11 @@ Recommended plugins:
 
 ## ⭐ Star History
 
-<a href="https://star-history.com/#n00bcodr/Jellyfin-Enhanced&Date">
+<a href="https://star-history.com/#abcdqfr/jellyfin-on-demand&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=n00bcodr/Jellyfin-Enhanced&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=abcdqfr/jellyfin-on-demand&type=Date" />
  </picture>
 </a>
 
@@ -238,7 +238,7 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 <div align="center">
 
-### Enjoying Jellyfin Enhanced?
+### Enjoying Jellyfin on Demand?
 
 If this plugin has enhanced your Jellyfin experience, consider:
 ⭐ Starring the repository ⦁ 🐛 Reporting bugs or suggesting features ⦁ 🌍 Contributing translations ⦁ 💬 Joining <a href="https://discord.gg/EYNFf7y4CG">Discord community</a> ⦁ ☕ Supporting me on <a href="https://ko-fi.com/n00bcodr">Ko-Fi</a>

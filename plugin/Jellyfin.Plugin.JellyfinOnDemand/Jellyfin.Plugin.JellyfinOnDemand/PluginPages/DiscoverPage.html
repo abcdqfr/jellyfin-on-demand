@@ -17,7 +17,7 @@
   const errorEl = document.getElementById("je-error");
 
   const timer = setInterval(() => {
-    const JE = window.JellyfinEnhanced;
+    const JE = window.JellyfinOnDemand;
     if (JE && typeof JE.initializeDiscoverPage === "function") {
       clearInterval(timer);
       loadingEl.remove();

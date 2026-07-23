@@ -335,7 +335,7 @@
     "reviews_form_error_save": "保存评论失败。请重试。",
     "panel_settings_language": "语言设定",
     "panel_settings_language_display": "显示语言",
-    "panel_settings_language_display_desc": "选择 Jellyfin Enhanced 介面的显示语言。更改会在重新载入页面后生效。",
+    "panel_settings_language_display_desc": "选择 Jellyfin on Demand 介面的显示语言。更改会在重新载入页面后生效。",
     "panel_settings_language_clear_cache": "清除翻译快取",
     "panel_settings_language_clear_cache_desc": "移除所有已快取的翻译。可用于从 GitHub 取得最近更新的翻译。",
     "toast_language_changed": "{{icon:language}} 语言已更改！正在重新载入页面…",

@@ -54,7 +54,7 @@
             }
 
             // Use the same API pattern as the configuration page
-            const pluginId = 'f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b';
+            const pluginId = '935a72b9-7639-473b-bb54-4259f7a9695c';
             const config = await ApiClient.getPluginConfiguration(pluginId);
             const customLinksText = config.CustomPluginLinks || '';
             customPluginsCache = parseCustomPluginLinks(customLinksText);
@@ -95,7 +95,7 @@
         if (!pluginsSection) return;
 
         // Check if link already exists using data attribute (similar to KefinTweaks approach)
-        const existingLink = pluginsSection.querySelector(`[data-jellyfin-enhanced-plugin-id="${plugin.id}"]`);
+        const existingLink = pluginsSection.querySelector(`[data-jellyfin-on-demand-plugin-id="${plugin.id}"]`);
         if (existingLink) return;
 
         // Get current base URL
@@ -108,7 +108,7 @@
         link.tabIndex = 0;
         link.href = pluginUrl;
         // Use data attribute similar to KefinTweaks pattern
-        link.setAttribute('data-jellyfin-enhanced-plugin-id', plugin.id);
+        link.setAttribute('data-jellyfin-on-demand-plugin-id', plugin.id);
 
         // Create icon container
         const iconDiv = document.createElement('div');
@@ -193,7 +193,7 @@
             const currentPluginsCount = pluginsSection.querySelectorAll('a[href*="configurationpage"]').length;
 
             // Only clean up test links to avoid flickering
-            const existingTestLinks = pluginsSection.querySelectorAll('[data-jellyfin-enhanced-plugin-id^="test-"]');
+            const existingTestLinks = pluginsSection.querySelectorAll('[data-jellyfin-on-demand-plugin-id^="test-"]');
             existingTestLinks.forEach(link => link.remove());
 
             // Replace built-in plugin icons
@@ -201,13 +201,13 @@
                 {
                     selector: 'a[href*="Jellyfin%20Enhanced"]',
                     type: 'image',
-                    src: window.JellyfinEnhanced.cdn.url('jellyfish', 'logos/favicon.ico'),
-                    alt: 'Jellyfin Enhanced'
+                    src: window.JellyfinOnDemand.cdn.url('jellyfish', 'logos/favicon.ico'),
+                    alt: 'Jellyfin on Demand'
                 },
                 {
                     selector: 'a[href*="JavaScript%20Injector"]',
                     type: 'image',
-                    src: window.JellyfinEnhanced.cdn.url('dashboard-icons', 'svg/javascript.svg'),
+                    src: window.JellyfinOnDemand.cdn.url('dashboard-icons', 'svg/javascript.svg'),
                     alt: 'JavaScript'
                 },
                 {
@@ -248,7 +248,7 @@
                 {
                     selector: 'a[href*="Jellyfin%20Helper"]',
                     type: 'image',
-                    src: window.JellyfinEnhanced.cdn.url('jelly-helper', 'media/favicon.ico'),
+                    src: window.JellyfinOnDemand.cdn.url('jelly-helper', 'media/favicon.ico'),
                     alt: 'Jellyfin Helper'
                 }
             ];
@@ -310,7 +310,7 @@
             }
         };
 
-        const JE = window.JellyfinEnhanced;
+        const JE = window.JellyfinOnDemand;
         if (JE?.helpers?.onBodyMutation) {
             observer = JE.helpers.onBodyMutation('plugin-icons', callback);
         } else {
@@ -369,12 +369,12 @@
         tryInitialize();
     }
 
-    if (window.JellyfinEnhanced) {
-        window.JellyfinEnhanced.initializePluginIcons = initialize;
-        window.JellyfinEnhanced.stopPluginIconsMonitoring = stopMonitoring;
+    if (window.JellyfinOnDemand) {
+        window.JellyfinOnDemand.initializePluginIcons = initialize;
+        window.JellyfinOnDemand.stopPluginIconsMonitoring = stopMonitoring;
 
         // Expose API for refreshing custom plugins
-        window.JellyfinEnhanced.customPlugins = {
+        window.JellyfinOnDemand.customPlugins = {
             refresh: () => {
                 // Clear cache to force reload
                 customPluginsCache = null;

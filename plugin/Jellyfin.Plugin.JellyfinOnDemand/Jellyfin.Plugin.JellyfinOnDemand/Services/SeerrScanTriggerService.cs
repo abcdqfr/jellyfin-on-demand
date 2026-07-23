@@ -63,7 +63,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             // timer thread.
             try
             {
-                if (JellyfinEnhanced.Instance?.Configuration is not PluginConfiguration config) return;
+                if (JellyfinOnDemand.Instance?.Configuration is not PluginConfiguration config) return;
                 if (!config.TriggerSeerrScanOnItemAdded) return;
                 if (!config.JellyseerrEnabled) return;
 
@@ -121,7 +121,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             var results = new List<DispatchResult>();
             try
             {
-                if (JellyfinEnhanced.Instance?.Configuration is not PluginConfiguration config)
+                if (JellyfinOnDemand.Instance?.Configuration is not PluginConfiguration config)
                 {
                     _logger.Warning("[SeerrScan] Cannot dispatch: plugin configuration is null");
                     return results;

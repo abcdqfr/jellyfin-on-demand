@@ -10,10 +10,10 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
     {
         private readonly Logger _logger;
 
-        public string Name => "Jellyfin Enhanced Startup";
-        public string Key => "JellyfinEnhancedStartup";
-        public string Description => "Initializes Jellyfin Enhanced background services and performs necessary cleanups. The client script is injected at request time by the injection middleware.";
-        public string Category => "Jellyfin Enhanced";
+        public string Name => "Jellyfin on Demand Startup";
+        public string Key => "JellyfinOnDemandStartup";
+        public string Description => "Initializes Jellyfin on Demand background services and performs necessary cleanups. The client script is injected at request time by the injection middleware.";
+        public string Category => "Jellyfin on Demand";
 
         public StartupService(Logger logger)
         {
@@ -24,10 +24,10 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         {
             await Task.Run(() =>
             {
-                _logger.Info("Jellyfin Enhanced Startup Task run successfully.");
+                _logger.Info("Jellyfin on Demand Startup Task run successfully.");
                 EnsureScriptInjected();
                 // Seerr/*arr monitors quarantined (ADR-004); JellyfinOnDemand uses SwarmController.
-                _logger.Info("Jellyfin Enhanced Startup Task completed successfully.");
+                _logger.Info("Jellyfin on Demand Startup Task completed successfully.");
             }, cancellationToken);
         }
 
@@ -39,12 +39,12 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // rewrite is kept only as an explicit fallback for admins who disable the middleware.
         private void EnsureScriptInjected()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
 
             if (config != null && config.DisableScriptInjectionMiddleware)
             {
                 _logger.Info("Script injection middleware is disabled; using the legacy on-disk index.html fallback.");
-                JellyfinEnhanced.Instance?.InjectScript();
+                JellyfinOnDemand.Instance?.InjectScript();
                 return;
             }
 

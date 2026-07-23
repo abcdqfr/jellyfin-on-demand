@@ -12,7 +12,7 @@
 
     **This plugin is NOT affiliated with Seerr.** Seerr is an independent project.
 
-    **Please report plugin issues to the Jellyfin Enhanced repository, not to the Seerr team.**
+    **Please report plugin issues to the Jellyfin on Demand repository, not to the Seerr team.**
 
 ## Setup
 
@@ -45,7 +45,7 @@ This step is optional if you enable plugin-side auto import.
 
 ### Step 3: Configure Plugin
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Seerr Settings** tab
 3. Check **"Show Seerr Results in Search"**
 4. Enter your **Seerr URL(s)** (one per line)
@@ -64,7 +64,7 @@ Enable automatic import in the plugin if you do not want to manually import user
 
 When enabled, new Jellyfin users are automatically imported into Seerr the first time they use Seerr Search.
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Seerr Settings** tab
 3. In **User Import**, check **"Auto import Jellyfin users to Seerr"**
 4. Optional: expand **Blocked users** and select users to exclude
@@ -140,7 +140,7 @@ Display a dedicated page showing active downloads from *arr and requests from Se
 
 **Configuration:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Seerr Settings** tab (look for the section titled "Requests Page")
 3. Check **"Enable Requests Page"**
 4. Choose integration method:

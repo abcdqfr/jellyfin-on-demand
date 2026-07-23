@@ -3,7 +3,7 @@
     'use strict';
 
     const moreInfoModal = {};
-    const logPrefix = '🪼 Jellyfin Enhanced: Jellyseerr More Info:';
+    const logPrefix = '🪼 Jellyfin on Demand: Jellyseerr More Info:';
     const escapeHtml = JE.escapeHtml;
     const MediaStatus = JE.seerrStatus.MEDIA;
     const DisplayStatus = JE.seerrStatus.DISPLAY;
@@ -194,7 +194,7 @@ async function fetchRatings(tmdbId, mediaType) {
             : `/movie/${tmdbId}/ratingscombined`;
         const url = ApiClient.getUrl(`/JellyfinOnDemand/jellyseerr${endpoint}`);
         let response;
-        const JE = window.JellyfinEnhanced;
+        const JE = window.JellyfinOnDemand;
         if (JE && JE.requestManager) {
             const httpResponse = await JE.requestManager.fetchWithRetry(url, {
                 method: 'GET',
@@ -250,7 +250,7 @@ function sanitizeMediaInfo4kStatus(data) {
  * Fetch media details from Jellyseerr API via proxy.  */
 async function fetchMediaDetails(tmdbId, mediaType) {
     try {
-        const JE = window.JellyfinEnhanced;
+        const JE = window.JellyfinOnDemand;
         let data;
         if (JE && JE.jellyseerrAPI) {
             data = mediaType === 'movie'
@@ -1276,7 +1276,7 @@ function buildSingle4kButton(data) {
         e.preventDefault();
         e.stopPropagation();
         if (JE.pluginConfig.JellyseerrShowAdvanced) {
-            window.JellyfinEnhanced?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, true);
+            window.JellyfinOnDemand?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, true);
             return;
         }
         button.disabled = true;
@@ -1334,7 +1334,7 @@ function buildMovieActions(data, actionMount, chipMount, show4kOption) {
             e.preventDefault();
             e.stopPropagation();
             if (JE.pluginConfig.JellyseerrShowAdvanced) {
-                window.JellyfinEnhanced?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, false);
+                window.JellyfinOnDemand?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, false);
                 return;
             }
             mainButton.disabled = true;
@@ -1407,7 +1407,7 @@ function buildMovieActions(data, actionMount, chipMount, show4kOption) {
                 ev.stopPropagation();
                 if (JE.pluginConfig.JellyseerrShowAdvanced) {
                     close4k();
-                    window.JellyfinEnhanced?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, true);
+                    window.JellyfinOnDemand?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, true);
                     return;
                 }
                 option.disabled = true;
@@ -1452,7 +1452,7 @@ function buildMovieActions(data, actionMount, chipMount, show4kOption) {
             e.preventDefault();
             e.stopPropagation();
             if (JE.pluginConfig.JellyseerrShowAdvanced) {
-                window.JellyfinEnhanced?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, false);
+                window.JellyfinOnDemand?.jellyseerrUI?.showMovieRequestModal?.(data.id, data.title || data.name, data, false);
                 return;
             }
             requestButton.disabled = true;
@@ -1878,7 +1878,7 @@ function buildSpoilerToggleButton(data, mediaType) {
                 } else {
                     // Older spoilerBlur build — log so the missing confirm gate is
                     // visible rather than failing open silently.
-                    console.warn('🪼 Jellyfin Enhanced: spoiler-blur.confirmDisableSpoiler unavailable; disabling without prompt');
+                    console.warn('🪼 Jellyfin on Demand: spoiler-blur.confirmDisableSpoiler unavailable; disabling without prompt');
                 }
                 await JE.spoilerBlur.disableForTmdb(mediaType, tmdbId);
                 if (typeof JE.toast === 'function') JE.toast(JE.t('spoiler_blur_pending_disabled_toast'));
@@ -1887,7 +1887,7 @@ function buildSpoilerToggleButton(data, mediaType) {
                 if (typeof JE.toast === 'function') JE.toast(JE.t('spoiler_blur_pending_enabled_toast'));
             }
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: spoiler-blur pending toggle failed:', err);
+            console.warn('🪼 Jellyfin on Demand: spoiler-blur pending toggle failed:', err);
             if (typeof JE.toast === 'function') JE.toast(JE.t('spoiler_blur_pending_error_toast'));
         } finally {
             refreshLabel();
@@ -1909,7 +1909,7 @@ function appendSpoilerToggleIfApplicable(_actionMount, data, mediaType) {
         const spoilerBtn = buildSpoilerToggleButton(data, mediaType);
         if (spoilerBtn) secondary.appendChild(spoilerBtn);
     } catch (err) {
-        console.warn('🪼 Jellyfin Enhanced: failed to render spoiler toggle button:', err);
+        console.warn('🪼 Jellyfin on Demand: failed to render spoiler toggle button:', err);
     }
 }
 
@@ -3553,4 +3553,4 @@ function injectStyles() {
     // Expose the module on the global JE object
     JE.jellyseerrMoreInfo = moreInfoModal;
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

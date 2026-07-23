@@ -1,6 +1,6 @@
 # Features Guide
 
-Jellyfin Enhanced bundles dozens of features into one convenient plugin. This guide covers all available features and how to use them.
+Jellyfin on Demand bundles dozens of features into one convenient plugin. This guide covers all available features and how to use them.
 
 ---
 
@@ -127,7 +127,7 @@ Administrators can review (and optionally manage) what other users have hidden, 
 
 **Configuration:**
 
-In **Dashboard** → **Plugins** → **Jellyfin Enhanced** → **Pages** → **Hidden Content** → **Admin Controls**, the **Let admins view and manage other users' hidden content** toggle enables the whole feature (the user-filter dropdown and the Edit toggle). On by default; turn it off to keep hidden lists private.
+In **Dashboard** → **Plugins** → **Jellyfin on Demand** → **Pages** → **Hidden Content** → **Admin Controls**, the **Let admins view and manage other users' hidden content** toggle enables the whole feature (the user-filter dropdown and the Edit toggle). On by default; turn it off to keep hidden lists private.
 
 ---
 
@@ -402,7 +402,7 @@ Jellyfin users can write their own reviews for movies, series, seasons, and epis
 
 **Setup (admin):**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to the **Enhanced Settings** tab
 3. Enable **"Show User Reviews"**
 4. Optionally enable **"Show User Rating on Posters"** to display the average rating as a poster tag
@@ -431,7 +431,7 @@ Display user reviews from TMDB on item pages.
 - Expandable/collapsible reviews
 
 **Setup:**
-Enable **"Show TMDB Reviews"** in **Dashboard** → **Plugins** → **Jellyfin Enhanced** → **Elsewhere Settings** tab.
+Enable **"Show TMDB Reviews"** in **Dashboard** → **Plugins** → **Jellyfin on Demand** → **Elsewhere Settings** tab.
 
 See [Elsewhere Features](../elsewhere/elsewhere-features.md#tmdb-reviews) for full details.
 
@@ -569,7 +569,7 @@ Admins see a megaphone icon (📣) in the panel header. Click it to open the bro
 
 **Setup:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to the **Other Settings** tab
 3. Enable **"Active Streams Widget"**
 4. Optional: Enable **"Show to all users"** to make the widget visible to non-admin users
@@ -675,7 +675,7 @@ Extensive CSS customization options. See [CSS Customization Guide](../advanced/c
 - Rating Tag OSD CSS
 - People Tags CSS
 - ARR Tag Links CSS
-- Enhanced Panel CSS
+- On Demand Panel CSS
 
 
 ### 🖼️ Custom Branding
@@ -692,7 +692,7 @@ Upload your own logos, banners, and favicon.
 
 **Setup:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Find **Custom Branding** section
 4. Upload your custom images:
@@ -707,7 +707,7 @@ Upload your own logos, banners, and favicon.
 
 - Requires [file-transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)
 - Recommended image formats: PNG, SVG
-- Files stored in: `/plugins/configurations/Jellyfin.Plugin.JellyfinEnhanced/custom_branding/`
+- Files stored in: `/plugins/configurations/Jellyfin.Plugin.JellyfinOnDemand/custom_branding/`
 
 ### 🌍 Internationalization
 

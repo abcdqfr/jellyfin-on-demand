@@ -5,7 +5,7 @@
   </div>
 </div>
 <div id="je-error" style="display:none">
-  Jellyfin Enhanced not ready.
+  Jellyfin on Demand not ready.
 </div>
 <script>
 (function () {
@@ -31,7 +31,7 @@
     target.appendChild(newContainer);
   }
 
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
 
   const timer = setInterval(() => {
     // Both hiddenContentPage and hiddenContent must be initialized
@@ -45,7 +45,7 @@
       if (typeof JE.hiddenContentPage.renderPage === 'function') {
         JE.hiddenContentPage.renderPage();
       }
-      console.log('🪼 Jellyfin Enhanced: Hidden Content Page Loaded.');
+      console.log('🪼 Jellyfin on Demand: Hidden Content Page Loaded.');
       return;
     }
 

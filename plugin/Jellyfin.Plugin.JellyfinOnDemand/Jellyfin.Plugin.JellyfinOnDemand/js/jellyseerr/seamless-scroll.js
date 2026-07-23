@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Seamless Scroll:';
+    const logPrefix = '🪼 Jellyfin on Demand: Seamless Scroll:';
 
     // ============================================================================
     // CONFIGURATION
@@ -317,4 +317,4 @@
         CONFIG
     };
 
-})(window.JellyfinEnhanced || (window.JellyfinEnhanced = {}));
+})(window.JellyfinOnDemand || (window.JellyfinOnDemand = {}));

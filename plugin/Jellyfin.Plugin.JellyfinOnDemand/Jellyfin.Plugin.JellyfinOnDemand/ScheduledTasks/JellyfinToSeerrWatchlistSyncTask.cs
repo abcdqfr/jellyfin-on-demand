@@ -45,11 +45,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public string Name => "Sync Watchlist from Jellyfin to Seerr";
 
-        public string Key => "JellyfinEnhancedJellyfinToSeerrWatchlistSync";
+        public string Key => "JellyfinOnDemandJellyfinToSeerrWatchlistSync";
 
         public string Description => "Syncs items from each user's Jellyfin watchlist to their Seerr watchlist.\n\nConfigure the task triggers to run this task periodically for automatic syncing.";
 
-        public string Category => "Jellyfin Enhanced";
+        public string Category => "Jellyfin on Demand";
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
@@ -65,7 +65,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
 
             if (config == null || !config.SyncJellyfinWatchlistToSeerr || !config.JellyseerrEnabled)
             {

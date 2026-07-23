@@ -3,10 +3,10 @@
 (function () {
   "use strict";
 
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
   const sidebar = document.querySelector('.mainDrawer-scrollContainer');
   const pluginPagesExists = !!sidebar?.querySelector(
-    'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.DownloadsPage"]',
+    'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.DownloadsPage"]',
   );
 
   // State management
@@ -60,10 +60,10 @@
     };
   };
 
-  const SONARR_ICON_URL = window.JellyfinEnhanced.cdn.selfhst('svg/sonarr.svg');
-  const RADARR_ICON_URL = window.JellyfinEnhanced.cdn.selfhst('svg/radarr-light-hybrid-light.svg');
+  const SONARR_ICON_URL = window.JellyfinOnDemand.cdn.selfhst('svg/sonarr.svg');
+  const RADARR_ICON_URL = window.JellyfinOnDemand.cdn.selfhst('svg/radarr-light-hybrid-light.svg');
 
-  const logPrefix = '🪼 Jellyfin Enhanced: Requests Page:';
+  const logPrefix = '🪼 Jellyfin on Demand: Requests Page:';
 
   const issueMediaCache = new Map();
 
@@ -675,7 +675,7 @@
   // The inline fallback is a real escaper so XSS is blocked even if helpers.js
   // hasn't loaded yet (e.g. a load-order race on first init).
   const esc = (s) => {
-    if (window.JellyfinEnhanced?.helpers?.escHtml) return window.JellyfinEnhanced.helpers.escHtml(s);
+    if (window.JellyfinOnDemand?.helpers?.escHtml) return window.JellyfinOnDemand.helpers.escHtml(s);
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -691,8 +691,8 @@
       seenThisTick.add(key);
       if (_toastedDownloadsErrors.has(key)) return;
       _toastedDownloadsErrors.add(key);
-      if (typeof window.JellyfinEnhanced?.toast === "function") {
-        window.JellyfinEnhanced.toast(
+      if (typeof window.JellyfinOnDemand?.toast === "function") {
+        window.JellyfinOnDemand.toast(
           "⚠ " + esc(err.source || "Arr") + " queue \"" +
           esc(err.instanceName || "unknown") + "\" failed: " + esc(err.reason)
         );
@@ -1709,11 +1709,11 @@
 
         html += `
             <div class="je-requests-tabs">
-              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "all" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterRequests('all')">${labelAll}</button>
-              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "pending" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterRequests('pending')">${labelPending}</button>
-              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "processing" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterRequests('processing')">${labelProcessing}</button>
-              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "comingsoon" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterRequests('comingsoon')">${labelComingSoon}</button>
-              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "available" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterRequests('available')">${labelAvailable}</button>
+              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "all" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterRequests('all')">${labelAll}</button>
+              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "pending" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterRequests('pending')">${labelPending}</button>
+              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "processing" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterRequests('processing')">${labelProcessing}</button>
+              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "comingsoon" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterRequests('comingsoon')">${labelComingSoon}</button>
+              <button is="emby-button" type="button" class="je-requests-tab emby-button ${state.requestsFilter === "available" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterRequests('available')">${labelAvailable}</button>
             </div>
           `;
 
@@ -1753,9 +1753,9 @@
           if (state.requestsTotalPages > 1) {
             html += `
                         <div class="je-pagination">
-                            <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinEnhanced.downloadsPage.prevPage()" ${state.requestsPage <= 1 ? "disabled" : ""}><span class="material-icons">chevron_left</span></button>
+                            <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinOnDemand.downloadsPage.prevPage()" ${state.requestsPage <= 1 ? "disabled" : ""}><span class="material-icons">chevron_left</span></button>
                             <span>${state.requestsPage} / ${state.requestsTotalPages}</span>
-                            <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinEnhanced.downloadsPage.nextPage()" ${state.requestsPage >= state.requestsTotalPages ? "disabled" : ""}><span class="material-icons">chevron_right</span></button>
+                            <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinOnDemand.downloadsPage.nextPage()" ${state.requestsPage >= state.requestsTotalPages ? "disabled" : ""}><span class="material-icons">chevron_right</span></button>
                         </div>
                     `;
           }
@@ -1773,8 +1773,8 @@
       const labelResolved = (JE.t && JE.t('jellyseerr_issue_resolved')) || 'Resolved';
       html += `
         <div class="je-issues-tabs">
-          <button is="emby-button" type="button" class="je-issues-tab emby-button ${state.issuesFilter === "open" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterIssues('open')">${labelOpen}</button>
-          <button is="emby-button" type="button" class="je-issues-tab emby-button ${state.issuesFilter === "resolved" ? "active" : ""}" onclick="window.JellyfinEnhanced.downloadsPage.filterIssues('resolved')">${labelResolved}</button>
+          <button is="emby-button" type="button" class="je-issues-tab emby-button ${state.issuesFilter === "open" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterIssues('open')">${labelOpen}</button>
+          <button is="emby-button" type="button" class="je-issues-tab emby-button ${state.issuesFilter === "resolved" ? "active" : ""}" onclick="window.JellyfinOnDemand.downloadsPage.filterIssues('resolved')">${labelResolved}</button>
         </div>
       `;
 
@@ -1802,9 +1802,9 @@
         if (state.issuesTotalPages > 1) {
           html += `
             <div class="je-pagination">
-              <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinEnhanced.downloadsPage.prevIssuesPage()" ${state.issuesPage <= 1 ? "disabled" : ""}><span class="material-icons">chevron_left</span></button>
+              <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinOnDemand.downloadsPage.prevIssuesPage()" ${state.issuesPage <= 1 ? "disabled" : ""}><span class="material-icons">chevron_left</span></button>
               <span>${state.issuesPage} / ${state.issuesTotalPages}</span>
-              <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinEnhanced.downloadsPage.nextIssuesPage()" ${state.issuesPage >= state.issuesTotalPages ? "disabled" : ""}><span class="material-icons">chevron_right</span></button>
+              <button is="emby-button" type="button" class="emby-button" onclick="window.JellyfinOnDemand.downloadsPage.nextIssuesPage()" ${state.issuesPage >= state.issuesTotalPages ? "disabled" : ""}><span class="material-icons">chevron_right</span></button>
             </div>
           `;
         }
@@ -2233,7 +2233,7 @@
 
     // Hide plugin page link if it exists
     const pluginPageItem = sidebar?.querySelector(
-      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.DownloadsPage"]'
+      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.DownloadsPage"]'
     );
 
     if (pluginPageItem) {
@@ -2245,9 +2245,9 @@
       return;
     }
 
-    const jellyfinEnhancedSection = document.querySelector('.jellyfinEnhancedSection');
+    const jellyfinOnDemandSection = document.querySelector('.jellyfinOnDemandSection');
 
-    if (jellyfinEnhancedSection) {
+    if (jellyfinOnDemandSection) {
       const navItem = document.createElement("a");
       navItem.setAttribute('is', 'emby-linkbutton');
       navItem.className =
@@ -2263,10 +2263,10 @@
         showPage();
       });
 
-      jellyfinEnhancedSection.appendChild(navItem);
+      jellyfinOnDemandSection.appendChild(navItem);
       console.log(`${logPrefix} Navigation item injected`);
     } else {
-      console.log(`${logPrefix} jellyfinEnhancedSection not found, will wait for it`);
+      console.log(`${logPrefix} jellyfinOnDemandSection not found, will wait for it`);
     }
   }
 
@@ -2289,8 +2289,8 @@
       if (pluginPagesExists && currentConfig.DownloadsUsePluginPages) return;
 
       if (!document.querySelector('.je-nav-downloads-item')) {
-        const jellyfinEnhancedSection = document.querySelector('.jellyfinEnhancedSection');
-        if (jellyfinEnhancedSection) {
+        const jellyfinOnDemandSection = document.querySelector('.jellyfinOnDemandSection');
+        if (jellyfinOnDemandSection) {
           console.log(`${logPrefix} Sidebar rebuilt, re-injecting navigation`);
           injectNavigation();
         }

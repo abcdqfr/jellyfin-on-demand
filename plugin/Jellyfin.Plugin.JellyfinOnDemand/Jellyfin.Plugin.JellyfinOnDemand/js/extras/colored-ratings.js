@@ -10,7 +10,7 @@
         fallbackInterval: 1000,
         debounceDelay: 100,
         maxRetries: 3,
-        cssUrl: window.JellyfinEnhanced.cdn.url('je-css', 'ratings.css'),
+        cssUrl: window.JellyfinOnDemand.cdn.url('je-css', 'ratings.css'),
         cssId: 'jellyfin-ratings-style'
     };
 
@@ -21,7 +21,7 @@
     let processedElements = new WeakSet();
 
     function isFeatureEnabled() {
-        return Boolean(window?.JellyfinEnhanced?.pluginConfig?.ColoredRatingsEnabled);
+        return Boolean(window?.JellyfinOnDemand?.pluginConfig?.ColoredRatingsEnabled);
     }
 
     function injectCSS() {
@@ -35,7 +35,7 @@
             linkElement.href = CONFIG.cssUrl;
             document.head.appendChild(linkElement);
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Failed to inject ratings CSS', error);
+            console.error('🪼 Jellyfin on Demand: Failed to inject ratings CSS', error);
         }
     }
 
@@ -74,7 +74,7 @@
             });
 
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Error processing rating elements', error);
+            console.error('🪼 Jellyfin on Demand: Error processing rating elements', error);
         }
     }
 
@@ -106,7 +106,7 @@
         if (!window.MutationObserver) return false;
 
         try {
-            const JE = window.JellyfinEnhanced;
+            const JE = window.JellyfinOnDemand;
             const callback = (mutations) => {
                 let shouldProcess = false;
 
@@ -158,7 +158,7 @@
             return true;
 
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Failed to setup ratings observer', error);
+            console.error('🪼 Jellyfin on Demand: Failed to setup ratings observer', error);
             return false;
         }
     }
@@ -173,8 +173,8 @@
 
     function isOnVideoPage() {
         // Check if we're on the video player page
-        if (typeof window.JellyfinEnhanced?.isVideoPage === 'function') {
-            return window.JellyfinEnhanced.isVideoPage();
+        if (typeof window.JellyfinOnDemand?.isVideoPage === 'function') {
+            return window.JellyfinOnDemand.isVideoPage();
         }
         // Fallback check
         return window.location.hash.startsWith('#/video') || !!document.querySelector('.videoPlayerContainer');
@@ -257,7 +257,7 @@
 
     let lastUrl = location.href;
 
-    const JE = window.JellyfinEnhanced;
+    const JE = window.JellyfinOnDemand;
     if (JE?.helpers?.onBodyMutation) {
         urlObserverHandle = JE.helpers.onBodyMutation('colored-ratings-url-watcher', () => {
             const url = location.href;
@@ -281,11 +281,11 @@
     }
 
     window.addEventListener('beforeunload', cleanup);
-    if (window.JellyfinEnhanced) {
-        window.JellyfinEnhanced.initializeColoredRatings = initialize;
+    if (window.JellyfinOnDemand) {
+        window.JellyfinOnDemand.initializeColoredRatings = initialize;
         // Expose pause/resume functions for pausescreen.js to control
-        window.JellyfinEnhanced.pauseRatingsPolling = pausePolling;
-        window.JellyfinEnhanced.resumeRatingsPolling = resumePolling;
+        window.JellyfinOnDemand.pauseRatingsPolling = pausePolling;
+        window.JellyfinOnDemand.resumeRatingsPolling = resumePolling;
     }
 
 })();

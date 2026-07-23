@@ -4,7 +4,7 @@ Other projects by n00bcodr for Jellyfin customization and enhancement.
 
 ## Jellyfin Plugins
 
-### Jellyfin Enhanced
+### Jellyfin on Demand
 **Type:** Plugin
 **Repository:** [github.com/n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced)
 
@@ -28,14 +28,14 @@ The essential enhancement suite for Jellyfin, bundling advanced features and cus
 **Type:** Plugin
 **Repository:** [github.com/n00bcodr/JellyfinTweaks](https://github.com/n00bcodr/JellyfinTweaks)
 
-Additional tweaks and enhancements for Jellyfin that complement Jellyfin Enhanced.
+Additional tweaks and enhancements for Jellyfin that complement Jellyfin on Demand.
 
 **Features:**
 
 - Additional UI tweaks
 - Performance optimizations
 - Extra customization options
-- Complementary to Jellyfin Enhanced
+- Complementary to Jellyfin on Demand
 
 **Status:** ✅ Active Development
 
@@ -82,14 +82,14 @@ Standalone version of the Elsewhere feature for streaming provider lookup.
 
 **Use Cases:**
 
-- Use without full Jellyfin Enhanced plugin
+- Use without full Jellyfin on Demand plugin
 - Lighter alternative
 - Custom implementations
 - Testing and development
 
 **Status:** ❌ Inactive
 
-**Note:** Functionality is now a part of Jellyfin Enhanced plugin.
+**Note:** Functionality is now a part of Jellyfin on Demand plugin.
 
 ---
 
@@ -127,7 +127,7 @@ A beautiful, modern theme for Jellyfin with multiple color variants.
 
 **Status:** ✅ Active Development
 
-**Compatibility:** Works great with Jellyfin Enhanced!
+**Compatibility:** Works great with Jellyfin on Demand!
 
 ---
 
@@ -165,13 +165,13 @@ https://raw.githubusercontent.com/n00bcodr/jellyfin-plugins/main/10.11/manifest.
 
 | Plugin | Jellyfin 10.11 | Jellyfin 10.10 | Notes |
 |--------|----------------|----------------|-------|
-| Jellyfin Enhanced | ✅ | ❌ | Use 10.11 manifest |
+| Jellyfin on Demand | ✅ | ❌ | Use 10.11 manifest |
 | Jellyfin Tweaks | ✅ | ✅ | |
 | JS Injector | ✅ | ✅ |  |
 
 ### Theme Compatibility
 
-| Theme | Jellyfin Enhanced | Notes |
+| Theme | Jellyfin on Demand | Notes |
 |-------|-------------------|-------|
 | Jellyfish | ✅ Recommended | Designed to work together |
 | Other Themes | ✅ Compatible | May need adjustments |
@@ -182,11 +182,11 @@ https://raw.githubusercontent.com/n00bcodr/jellyfin-plugins/main/10.11/manifest.
 
 ### Getting Help
 
-**For Jellyfin Enhanced:**
+**For Jellyfin on Demand:**
 
-- [GitHub Issues](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
+- [GitHub Issues](https://github.com/abcdqfr/jellyfin-on-demand/issues)
 - [Discord Community](https://discord.gg/EYNFf7y4CG)
-- [Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions)
+- [Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions)
 
 **For Jellyfin Tweaks:**
 

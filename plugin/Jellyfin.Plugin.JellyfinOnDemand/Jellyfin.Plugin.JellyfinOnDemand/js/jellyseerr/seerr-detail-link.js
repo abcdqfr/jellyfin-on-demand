@@ -3,7 +3,7 @@
     'use strict';
 
     JE.initializeSeerrDetailLinkScript = function () {
-        const logPrefix = '🪼 Jellyfin Enhanced: Seerr Detail Link:';
+        const logPrefix = '🪼 Jellyfin on Demand: Seerr Detail Link:';
 
         if (!JE?.pluginConfig?.JellyseerrEnabled || !JE?.pluginConfig?.JellyseerrShowDetailPageLink) {
             console.log(`${logPrefix} Disabled in plugin settings.`);
@@ -171,4 +171,4 @@
 
         console.log(`${logPrefix} Initialized successfully`);
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

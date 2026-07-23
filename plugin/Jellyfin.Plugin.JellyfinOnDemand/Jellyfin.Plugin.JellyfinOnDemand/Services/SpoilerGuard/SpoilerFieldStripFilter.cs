@@ -132,7 +132,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             // unchanged so non-matching routes pay zero overhead.
             if (!IsTargetRoute(context)) return next();
 
-            var cfg = JellyfinEnhanced.Instance?.Configuration;
+            var cfg = JellyfinOnDemand.Instance?.Configuration;
             if (cfg?.SpoilerBlurEnabled != true) return next();
             // Do NOT short-circuit on AnyStripToggleOn. The pipeline's
             // cache-bust pass (MutateImageTagsForCacheBust) must run on

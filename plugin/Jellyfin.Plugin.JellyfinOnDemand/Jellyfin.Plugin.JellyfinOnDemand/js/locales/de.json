@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Bewertung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "panel_settings_language": "Spracheinstellungen",
     "panel_settings_language_display": "Anzeigesprache",
-    "panel_settings_language_display_desc": "Wählen Sie die Sprache für die Jellyfin Enhanced-Oberfläche. Änderungen werden nach Seitenaktualisierung wirksam.",
+    "panel_settings_language_display_desc": "Wählen Sie die Sprache für die Jellyfin on Demand-Oberfläche. Änderungen werden nach Seitenaktualisierung wirksam.",
     "panel_settings_language_clear_cache": "Übersetzungscache leeren",
     "panel_settings_language_clear_cache_desc": "Entfernt alle zwischengespeicherten Übersetzungen. Nützlich zum Abrufen einer kürzlich aktualisierten Übersetzung von Github.",
     "toast_language_changed": "{{icon:language}} Sprache geändert! Seite wird neu geladen…",

@@ -503,4 +503,4 @@
     JE.swarmHideWarmOverlay = hideWarmOverlay;
     JE.swarmSetBatchSession = setBatchSession;
     JE.swarmStreamUrl = streamUrl;
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

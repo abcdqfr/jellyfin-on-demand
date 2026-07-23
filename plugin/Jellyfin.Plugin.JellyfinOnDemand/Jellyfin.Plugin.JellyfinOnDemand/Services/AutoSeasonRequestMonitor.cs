@@ -42,7 +42,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         public void Initialize()
         {
             // Only initialize if the auto-season-request feature is enabled in plugin configuration.
-            var config = JellyfinEnhanced.Instance?.Configuration as Configuration.PluginConfiguration;
+            var config = JellyfinOnDemand.Instance?.Configuration as Configuration.PluginConfiguration;
             if (config == null)
             {
                 _logger.Warning("[Auto-Season-Request] Configuration is null - skipping auto-season-request monitoring initialization");
@@ -70,7 +70,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             try
             {
                 // Check if auto-season-request is enabled
-                var config = JellyfinEnhanced.Instance?.Configuration as PluginConfiguration;
+                var config = JellyfinOnDemand.Instance?.Configuration as PluginConfiguration;
                 if (config == null)
                 {
                     return;
@@ -158,7 +158,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             try
             {
                 // Check if auto-season-request is enabled
-                var config = JellyfinEnhanced.Instance?.Configuration as PluginConfiguration;
+                var config = JellyfinOnDemand.Instance?.Configuration as PluginConfiguration;
                 if (config == null || !config.AutoSeasonRequestEnabled || !config.JellyseerrEnabled)
                 {
                     return;

@@ -1,6 +1,6 @@
 # Enhanced Settings — User configuration
 
-## Enhanced Panel
+## On Demand Panel
 
 ![Enhanced panel — Settings tab overview](../images/enhanced-panel-settings.png)
 
@@ -12,7 +12,7 @@ Access user-configured settings via the Enhanced panel:
 
 **Open Panel:**
 
-- Click **Jellyfin Enhanced** in sidebar
+- Click **Jellyfin on Demand** in sidebar
 - Press `?` keyboard shortcut
 
 

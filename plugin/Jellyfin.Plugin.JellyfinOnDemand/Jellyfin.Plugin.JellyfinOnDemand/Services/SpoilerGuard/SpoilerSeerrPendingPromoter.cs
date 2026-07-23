@@ -205,7 +205,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         {
             try
             {
-                var cfg = JellyfinEnhanced.Instance?.Configuration;
+                var cfg = JellyfinOnDemand.Instance?.Configuration;
                 if (cfg?.SpoilerBlurEnabled != true) return;
 
                 var item = e?.Item;

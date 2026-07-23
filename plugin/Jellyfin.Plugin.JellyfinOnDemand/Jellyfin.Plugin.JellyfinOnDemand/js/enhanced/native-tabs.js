@@ -62,7 +62,7 @@
         if (!isOnHomePage()) {
             if (!wasOffHomePage) {
                 wasOffHomePage = true;
-                console.debug('🪼 Jellyfin Enhanced: [native-tabs] not on home page (hash=' + window.location.hash + '), skipping');
+                console.debug('🪼 Jellyfin on Demand: [native-tabs] not on home page (hash=' + window.location.hash + '), skipping');
             }
             return;
         }
@@ -71,7 +71,7 @@
         var slider = document.querySelector('.emby-tabs-slider');
         var root = getTabsRoot();
         if (!slider || !root) {
-            console.debug('🪼 Jellyfin Enhanced: [native-tabs] waiting for DOM - .emby-tabs-slider ' +
+            console.debug('🪼 Jellyfin on Demand: [native-tabs] waiting for DOM - .emby-tabs-slider ' +
                 (slider ? 'found' : 'MISSING') + ', tab panel root ' + (root ? 'found' : 'MISSING'));
             return;
         }
@@ -100,7 +100,7 @@
 
                 slider.appendChild(btn);
                 window.CustomElements?.upgradeSubtree?.(slider);
-                console.log('🪼 Jellyfin Enhanced: [native-tabs] added tab button "' + entry.title + '" at data-index=' + entry.index);
+                console.log('🪼 Jellyfin on Demand: [native-tabs] added tab button "' + entry.title + '" at data-index=' + entry.index);
             }
 
             if (!document.getElementById('je-native-tab-panel-' + entry.id)) {
@@ -110,7 +110,7 @@
                 panel.setAttribute('data-index', String(entry.index));
                 root.appendChild(panel);
                 entry.onMount(panel);
-                console.log('🪼 Jellyfin Enhanced: [native-tabs] added tab panel "' + entry.title + '" at data-index=' + entry.index);
+                console.log('🪼 Jellyfin on Demand: [native-tabs] added tab panel "' + entry.title + '" at data-index=' + entry.index);
             }
 
             ensureDiscoverable(entry);
@@ -195,7 +195,7 @@
         });
 
         group.insertBefore(link, separator);
-        console.log('🪼 Jellyfin Enhanced: [native-tabs] tab button for "' + entry.title + '" is hidden (experimental layout), added header-tray fallback link');
+        console.log('🪼 Jellyfin on Demand: [native-tabs] tab button for "' + entry.title + '" is hidden (experimental layout), added header-tray fallback link');
     }
 
     /** If the URL asks for one of our tab indices (Jellyfin's own `?tab=N` convention) but it isn't active yet, activate it. */
@@ -234,7 +234,7 @@
         register: function (id, title, onMount, icon) {
             if (entries.some(function (e) { return e.id === id; })) return;
             entries.push({ id: id, title: title, onMount: onMount, icon: icon });
-            console.log('🪼 Jellyfin Enhanced: [native-tabs] registered "' + title + '" (id=' + id + ')');
+            console.log('🪼 Jellyfin on Demand: [native-tabs] registered "' + title + '" (id=' + id + ')');
             scheduleInject();
         },
         unregister: function (id) {
@@ -247,4 +247,4 @@
     JE.helpers.onBodyMutation('native-tabs', scheduleInject);
     window.addEventListener('hashchange', scheduleInject);
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

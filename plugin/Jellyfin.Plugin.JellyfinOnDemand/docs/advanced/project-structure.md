@@ -4,10 +4,10 @@ The plugin architecture uses a single entry point (`plugin.js`) that dynamically
 
 ### File Structure
 
-All client-side scripts are now located in the `Jellyfin.Plugin.JellyfinEnhanced/js/` directory. Server-side Spoiler Guard components live under `Services/SpoilerGuard/`.
+All client-side scripts are now located in the `Jellyfin.Plugin.JellyfinOnDemand/js/` directory. Server-side Spoiler Guard components live under `Services/SpoilerGuard/`.
 
 ```text
-Jellyfin.Plugin.JellyfinEnhanced/
+Jellyfin.Plugin.JellyfinOnDemand/
 ├── EventHandlers/
 │   ├── SpoilerAutoEnableEvents.cs
 │   └── UserTopologyEvents.cs
@@ -121,7 +121,7 @@ Jellyfin.Plugin.JellyfinEnhanced/
 
 * **`plugin.js`**: The main entry point. It loads the plugin configuration and translations, then dynamically injects all other component scripts.
 
-* **`/enhanced/`**: Contains the core components of the "Jellyfin Enhanced" feature set.
+* **`/enhanced/`**: Contains the core components of the "Jellyfin on Demand" feature set.
     * **`bookmarks.js`**: Manages video bookmarks/timestamps during playback. Handles bookmark creation (via `B` key), displays visual markers on the video timeline, and provides quick navigation to saved timestamps.
     * **`bookmarks-library.js`**: Provides a comprehensive bookmark management interface accessible via Custom Tabs. Allows users to view all bookmarks across movies and TV shows, cleanup orphaned bookmarks, detect duplicates, and adjust time offsets for synced bookmarks.
     * **`config.js`**: Manages all settings, both from the plugin backend and the user's local storage. It initializes and holds shared variables and configurations that other components access.
@@ -134,7 +134,7 @@ Jellyfin.Plugin.JellyfinEnhanced/
     * **`playback.js`**: Centralizes all functions that directly control the video player, such as changing speed, seeking, cycling through tracks, and auto-skip logic.
     * **`spoiler-blur.js`**: Client-side companion for Spoiler Guard. Renders the per-show / per-movie / per-collection toggle button, keeps an in-memory cache of the user's opt-in list and override prefs, and performs the soft image refresh after toggles and watched-state changes. The actual blur / strip happens server-side.
     * **`subtitles.js`**: Isolates all logic related to subtitle styling, including presets and the function that applies styles to the video player.
-    * **`themer.js`**: Handles theme detection and applies appropriate styling to the Enhanced Panel based on the active Jellyfin theme.
+    * **`themer.js`**: Handles theme detection and applies appropriate styling to the On Demand Panel based on the active Jellyfin theme.
     * **`ui.js`**: Responsible for creating, injecting, and managing all visual elements like the main settings panel, toast notifications, and various buttons.
 
 * **`/elsewhere/`**: Contains scripts for discovering media on other streaming services and reviews.

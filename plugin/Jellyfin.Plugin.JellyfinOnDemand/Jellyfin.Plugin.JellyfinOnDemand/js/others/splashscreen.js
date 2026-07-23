@@ -50,7 +50,7 @@
             document.documentElement.classList.add('je-splash-booting');
             (document.head || document.documentElement).appendChild(style);
         } catch (error) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to install preemptive styles', error);
+            console.warn('🪼 Jellyfin on Demand: Failed to install preemptive styles', error);
         }
     }
 
@@ -78,9 +78,9 @@
                 }
             `;
             document.head.appendChild(permanentBlockStyle);
-            console.log('🪼 Jellyfin Enhanced: Permanent splash block installed');
+            console.log('🪼 Jellyfin on Demand: Permanent splash block installed');
         } catch (error) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to install permanent block', error);
+            console.warn('🪼 Jellyfin on Demand: Failed to install permanent block', error);
         }
     }
 
@@ -91,7 +91,7 @@
         const mediaBarElements = document.querySelectorAll('#page-loader, .bar-loading:not(.je-loading)');
         mediaBarElements.forEach(element => {
             if (element && element.parentNode) {
-                console.log('🪼 Jellyfin Enhanced: Removing media-bar splash element');
+                console.log('🪼 Jellyfin on Demand: Removing media-bar splash element');
                 element.remove();
             }
         });
@@ -111,7 +111,7 @@
                     if (node instanceof HTMLElement) {
                         if (node.id === 'page-loader' ||
                             (node.classList.contains('bar-loading') && !node.classList.contains('je-loading'))) {
-                            console.log('🪼 Jellyfin Enhanced: Blocking media-bar splash attempt');
+                            console.log('🪼 Jellyfin on Demand: Blocking media-bar splash attempt');
                             node.remove();
                         }
                     }
@@ -199,7 +199,7 @@
                 }, CONFIG.removalDuration);
 
                 if (reason) {
-                    console.log(`🪼 Jellyfin Enhanced: Splash screen hidden → ${reason}`);
+                    console.log(`🪼 Jellyfin on Demand: Splash screen hidden → ${reason}`);
                 }
             }, CONFIG.fadeOutDuration);
         };
@@ -294,7 +294,7 @@
         styleElement.textContent = css;
         document.head.appendChild(styleElement);
 
-        const pluginConfig = window.JellyfinEnhanced?.pluginConfig || {};
+        const pluginConfig = window.JellyfinOnDemand?.pluginConfig || {};
         const imageUrl = pluginConfig.SplashScreenImageUrl || '/web/assets/img/banner-light.png';
 
         splashElement = document.createElement('div');
@@ -414,11 +414,11 @@
      * Initializes the splash screen
      */
     function initializeSplashScreen() {
-        const pluginConfig = window.JellyfinEnhanced?.pluginConfig || {};
+        const pluginConfig = window.JellyfinOnDemand?.pluginConfig || {};
 
         if (!pluginConfig.EnableCustomSplashScreen) {
             cleanup();
-            console.log('🪼 Jellyfin Enhanced: Custom splash screen disabled');
+            console.log('🪼 Jellyfin on Demand: Custom splash screen disabled');
             return;
         }
 
@@ -436,7 +436,7 @@
 
         createSplashScreen();
 
-        console.log('🪼 Jellyfin Enhanced: Splash screen initialized');
+        console.log('🪼 Jellyfin on Demand: Splash screen initialized');
     }
 
     /**
@@ -450,10 +450,10 @@
     installPreemptiveStyles();
 
     // Export functions to global namespace
-    window.JellyfinEnhanced = window.JellyfinEnhanced || {};
-    window.JellyfinEnhanced.initializeSplashScreen = initializeSplashScreen;
-    window.JellyfinEnhanced.hideSplashScreen = publicHideSplashScreen;
+    window.JellyfinOnDemand = window.JellyfinOnDemand || {};
+    window.JellyfinOnDemand.initializeSplashScreen = initializeSplashScreen;
+    window.JellyfinOnDemand.hideSplashScreen = publicHideSplashScreen;
 
-    console.log('🪼 Jellyfin Enhanced: Splash screen module loaded.');
+    console.log('🪼 Jellyfin on Demand: Splash screen module loaded.');
 
 })();

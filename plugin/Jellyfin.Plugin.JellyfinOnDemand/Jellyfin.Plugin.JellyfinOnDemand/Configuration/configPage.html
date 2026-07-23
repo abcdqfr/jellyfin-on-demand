@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Jellyfin Enhanced</title>
+    <title>Jellyfin on Demand</title>
 </head>
 <body style="background: black;">
-<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox,emby-select" data-role="page" id="JellyfinEnhancedPage">
+<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox,emby-select" data-role="page" id="JellyfinOnDemandPage">
     <script>
         var link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -47,8 +47,8 @@
             <div class="je-sticky-header">
                 <div class="sectionTitleContainer">
                     <div class="je-header-title-row">
-                        <h2 class="sectionTitle">Jellyfin Enhanced</h2>
-                        <a is="emby-linkbutton" class="raised raised-mini emby-button je-help-link" target="_blank" href="https://github.com/n00bcodr/Jellyfin-Enhanced" title="Help" aria-label="Docs and Help">
+                        <h2 class="sectionTitle">Jellyfin on Demand</h2>
+                        <a is="emby-linkbutton" class="raised raised-mini emby-button je-help-link" target="_blank" href="https://github.com/abcdqfr/jellyfin-on-demand" title="Help" aria-label="Docs and Help">
                             <span class="je-help-link-label">Help</span>
                         </a>
                         <button id="toggleDescriptionsBtn" type="button" class="raised raised-mini emby-button je-desc-toggle" title="Show or hide setting descriptions" aria-label="Show or hide setting descriptions" aria-pressed="true">
@@ -93,7 +93,7 @@
                 </div>
             </div>
 
-            <form id="JellyfinEnhancedForm">
+            <form id="JellyfinOnDemandForm">
 
                 <div id="overview" class="jellyfin-tab-content active">
                     <div class="je-info-banner je-fieldset-wide je-overview-intro">
@@ -443,7 +443,7 @@
 
                                     <div class="checkboxContainer"><label><input id="spoilerStripTags" is="emby-checkbox" type="checkbox"/><span>Hide tags</span></label></div>
                                     <div class="je-setting-description" data-desc-for="spoilerStripTags">
-                                        <div class="fieldDescription">Hides plot-bearing tags (phrases like "Death of a main character") and the genre / quality / language / rating chips Jellyfin Enhanced draws on top of cards. Recommended on.</div>
+                                        <div class="fieldDescription">Hides plot-bearing tags (phrases like "Death of a main character") and the genre / quality / language / rating chips Jellyfin on Demand draws on top of cards. Recommended on.</div>
                                     </div>
 
                                     <div class="checkboxContainer"><label><input id="spoilerStripChapters" is="emby-checkbox" type="checkbox"/><span>Hide chapter names (keep timestamps)</span></label></div>
@@ -657,7 +657,7 @@
                                 <input id="HelpPanelAutocloseDelay" is="emby-input" name="HelpPanelAutocloseDelay" type="number"/>
                             </div>
                             <div class="je-setting-description" data-desc-for="HelpPanelAutocloseDelay">
-                                <div class="fieldDescription">How long the Jellyfin Enhanced shortcuts/settings panel (opened with the <kbd>?</kbd> key) stays open without interaction before auto-closing. Default: 15000 ms (15 seconds).</div>
+                                <div class="fieldDescription">How long the Jellyfin on Demand shortcuts/settings panel (opened with the <kbd>?</kbd> key) stays open without interaction before auto-closing. Default: 15000 ms (15 seconds).</div>
                             </div>
                             <div class="je-timing-test-row">
                                 <button id="jeTestShortcutsPanel" type="button" class="emby-button raised raised-mini je-timing-test-btn" aria-label="Preview shortcuts panel autoclose">
@@ -670,7 +670,7 @@
                                 <input id="ToastDuration" is="emby-input" name="ToastDuration" type="number"/>
                             </div>
                             <div class="je-setting-description" data-desc-for="ToastDuration">
-                                <div class="fieldDescription">How long Jellyfin Enhanced's pop-up toast messages (e.g. &ldquo;Shuffle enabled&rdquo;, &ldquo;Bookmark saved&rdquo;) stay on-screen before fading out. Default: 3000 ms (3 seconds).</div>
+                                <div class="fieldDescription">How long Jellyfin on Demand's pop-up toast messages (e.g. &ldquo;Shuffle enabled&rdquo;, &ldquo;Bookmark saved&rdquo;) stay on-screen before fading out. Default: 3000 ms (3 seconds).</div>
                             </div>
                             <div class="je-timing-test-row">
                                 <button id="jeTestToast" type="button" class="emby-button raised raised-mini je-timing-test-btn" aria-label="Preview toast notification">
@@ -731,7 +731,7 @@
                             </div>
                             <div class="je-setting-description je-customtabs-automanage" data-desc-for="bookmarksAutoCreateCustomTab" data-gated-by="bookmarksUseCustomTabs,bookmarksEnabled">
                                 <div class="fieldDescription je-field-desc-md">
-                                    Jellyfin Enhanced will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Bookmarks" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
+                                    Jellyfin on Demand will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Bookmarks" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
                                 </div>
                             </div>
 
@@ -807,7 +807,7 @@
                             </div>
                             <div class="je-setting-description je-customtabs-automanage" data-desc-for="hiddenContentAutoCreateCustomTab" data-gated-by="hiddenContentUseCustomTabs,hiddenContentEnabled">
                                 <div class="fieldDescription je-field-desc-md">
-                                    Jellyfin Enhanced will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Hidden Content" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
+                                    Jellyfin on Demand will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Hidden Content" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
                                 </div>
                             </div>
 
@@ -1003,7 +1003,7 @@
                             </div>
                             <div class="je-setting-description je-customtabs-automanage" data-desc-for="downloadsAutoCreateCustomTab" data-gated-by="downloadsUseCustomTabs,downloadsPageEnabled">
                                 <div class="fieldDescription je-field-desc-md">
-                                    Jellyfin Enhanced will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Requests" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
+                                    Jellyfin on Demand will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs for Requests" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
                                 </div>
                             </div>
 
@@ -1093,7 +1093,7 @@
                             </div>
                             <div class="je-setting-description je-customtabs-automanage" data-desc-for="calendarAutoCreateCustomTab" data-gated-by="calendarUseCustomTabs,calendarPageEnabled">
                                 <div class="fieldDescription je-field-desc-md">
-                                    Jellyfin Enhanced will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
+                                    Jellyfin on Demand will create the matching Custom Tabs entry on save. Turning off "Use Custom Tabs" removes the entry; turning it back on re-creates it. Leave unchecked to manage the Custom Tabs entry yourself.
                                 </div>
                             </div>
 
@@ -1319,9 +1319,9 @@
                             <div class="je-purple-banner">
                                 <i class="material-icons je-purple-icon">favorite</i>
                                 <div style="font-size: 0.9em;">
-                                    <b>Jellyfin Enhanced is not affiliated with Seerr.</b><br/>
+                                    <b>Jellyfin on Demand is not affiliated with Seerr.</b><br/>
                                     Seerr is an independent project. This plugin only uses Seerr's public API to integrate request and discovery features into Jellyfin.<br/>
-                                    Please report plugin issues to the <a class="sectionTitle" href="https://github.com/n00bcodr/Jellyfin-Enhanced/issues" target="_blank">Jellyfin Enhanced issue tracker</a>, not the Seerr team.
+                                    Please report plugin issues to the <a class="sectionTitle" href="https://github.com/abcdqfr/jellyfin-on-demand/issues" target="_blank">Jellyfin on Demand issue tracker</a>, not the Seerr team.
                                 </div>
                             </div>
                         </div>
@@ -1602,7 +1602,7 @@
                             <div class="checkboxContainer"><label><input id="addRequestedMediaToWatchlist" is="emby-checkbox" type="checkbox"/><span>Add requested media to Watchlist</span></label></div>
                             <div class="je-setting-description" data-desc-for="addRequestedMediaToWatchlist">
                                 <div class="fieldDescription je-field-desc-xl">
-                                    When enabled, any media requested through Seerr Search via Jellyfin Enhanced will automatically be added to the requesting user's Watchlist.<br/><br/>
+                                    When enabled, any media requested through Seerr Search via Jellyfin on Demand will automatically be added to the requesting user's Watchlist.<br/><br/>
                                     <strong>Note:</strong> Requires <a class="je-bold-link" href="https://github.com/ranaldsgift/KefinTweaks" target="_blank">KefinTweaks</a> to be installed to actually view the watchlisted items.
                                     <span class="je-installed-badge" data-plugin="kefintweaks"><i class="material-icons" aria-hidden="true">check_circle</i>KefinTweaks detected</span>
                                 </div>
@@ -1727,7 +1727,7 @@
                     <div class="je-info-banner je-fieldset-wide je-tab-intro">
                         <i class="material-icons je-info-icon">download_for_offline</i>
                         <div>
-                            Connect Jellyfin Enhanced to your <strong>Sonarr</strong>, <strong>Radarr</strong>, and <strong>Bazarr</strong> instances.<br/>Each service gets its own box below — add as many Sonarr/Radarr instances as you want (one per quality profile / library), plus a single Bazarr endpoint. Each instance can be enabled, disabled, or removed independently.
+                            Connect Jellyfin on Demand to your <strong>Sonarr</strong>, <strong>Radarr</strong>, and <strong>Bazarr</strong> instances.<br/>Each service gets its own box below — add as many Sonarr/Radarr instances as you want (one per quality profile / library), plus a single Bazarr endpoint. Each instance can be enabled, disabled, or removed independently.
                         </div>
                     </div>
 
@@ -2018,7 +2018,7 @@
                                 <img alt="Colored Ratings Example" class="je-screenshot-img" data-je-cdn="je-docs-img/ratings.png"/>
                                 </a>
                                 </details>
-                                If you notice missing or incorrect ratings, please submit a PR to <a class="sectionTitle" href="https://github.com/n00bcodr/Jellyfin-Enhanced/" target="_blank">Jellyfin-Enhanced</a>.
+                                If you notice missing or incorrect ratings, please submit a PR to <a class="sectionTitle" href="https://github.com/abcdqfr/jellyfin-on-demand" target="_blank">jellyfin-on-demand</a>.
                             </div>
                             </div>
                             <div class="checkboxContainer"><label><input id="themeSelectorEnabled" is="emby-checkbox" type="checkbox"/><span>Theme Selector (Jellyfish)</span></label></div>
@@ -2077,7 +2077,7 @@
                                 <div class="je-note-banner">
                                 <i class="material-icons je-note-icon">note</i>
                                 <div>
-                                    Currently replaces icons for (if installed): Jellyfin Enhanced, JavaScript Injector, Intro Skipper, Reports, JellySleep, Home Screen Sections, and File Transformation.
+                                    Currently replaces icons for (if installed): Jellyfin on Demand, JavaScript Injector, Intro Skipper, Reports, JellySleep, Home Screen Sections, and File Transformation.
                                 </div>
                                 </div>
                             </div>
@@ -2350,10 +2350,10 @@
                                 <i class="material-icons je-info-icon">info</i>
                                 <div>
                                 <strong>This will save the current configuration and apply all the above settings to every user on this server.</strong><br/>
-                                <strong>Note:</strong> Users can individually customize their own settings by opening the Enhanced Panel:<br/>
+                                <strong>Note:</strong> Users can individually customize their own settings by opening the On Demand Panel:<br/>
                                 • Press <code>?</code> key (default shortcut)<br/>
                                 • Long Press on user profile picture in the top-right corner<br/>
-                                • Through "Jellyfin Enhanced" link from the side bar<br/>
+                                • Through "Jellyfin on Demand" link from the side bar<br/>
                                 • Access via playback controls menu during video playback (only on mobile devices)
                             </div>
                                 </div>
@@ -2373,7 +2373,7 @@
                                 <button is="emby-button" type="button" id="add-shortcut-btn" class="emby-button raised">Add</button>
                                 <button is="emby-button" type="button" id="disable-shortcut-btn" class="emby-button raised button-cancel" title="Disables this shortcut for every user on the server">Disable</button>
                             </div>
-                            <div class="fieldDescription je-field-desc-mt">Select a shortcut above and click <b>Disable</b> to turn it off server-wide (the key field is ignored). Users can still re-enable it for themselves from their own Enhanced Panel.</div>
+                            <div class="fieldDescription je-field-desc-mt">Select a shortcut above and click <b>Disable</b> to turn it off server-wide (the key field is ignored). Users can still re-enable it for themselves from their own On Demand Panel.</div>
                             <div id="shortcut-error-comment" style="display: none; color: #ff6b6b; margin-top:5px;"></div>
 
                             <h4 style="margin-top:20px;">Current Overrides</h4>
@@ -2388,14 +2388,14 @@
                             <i class="material-icons je-legend-icon" aria-hidden="true">menu_book</i>
                             Documentation
                         </span>
-                        <a target="_blank" rel="noopener" href="https://n00bcodr.github.io/Jellyfin-Enhanced/" class="je-docs-open-link" aria-label="Open documentation in new tab">
+                        <a target="_blank" rel="noopener" href="https://github.com/abcdqfr/jellyfin-on-demand" class="je-docs-open-link" aria-label="Open documentation in new tab">
                             <i class="material-icons" aria-hidden="true">open_in_new</i>
                             Open in new tab
                         </a>
                     </div>
                     <iframe id="docsFrame"
                             class="je-docs-iframe"
-                            title="Jellyfin Enhanced Documentation"
+                            title="Jellyfin on Demand Documentation"
                             src="about:blank"
                             loading="lazy"
                             referrerpolicy="no-referrer"
@@ -2417,10 +2417,10 @@
     </div>
 <script type="text/javascript">
         (() => {
-            const pluginId = 'f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b';
+            const pluginId = '935a72b9-7639-473b-bb54-4259f7a9695c';
 
-            const page = document.querySelector('#JellyfinEnhancedPage');
-            const form = document.querySelector('#JellyfinEnhancedForm');
+            const page = document.querySelector('#JellyfinOnDemandPage');
+            const form = document.querySelector('#JellyfinOnDemandForm');
 
             // Point every CDN-backed image on this page at the local plugin CDN route.
             // Images carry a data-je-cdn="<source>/<path>" attribute instead of a hardcoded
@@ -2552,7 +2552,7 @@
             // <iframe src> attribute so we can lazy-load on first Docs
             // activation (saves the GitHub Pages fetch for admins who
             // never open this tab).
-            const DOCS_URL = 'https://n00bcodr.github.io/Jellyfin-Enhanced/';
+            const DOCS_URL = 'https://github.com/abcdqfr/jellyfin-on-demand';
 
             // Per-tab scroll memory. When the admin switches tabs we save the
             // current scrollY under the outgoing tab's id, and when they come
@@ -2660,7 +2660,7 @@
                     activateTab(tabId);
                     // Store active tab in sessionStorage to persist across refreshes
                     try {
-                        sessionStorage.setItem('jellyfinEnhancedActiveTab', tabId);
+                        sessionStorage.setItem('jellyfinOnDemandActiveTab', tabId);
                     } catch (e) {
                         // Ignore if sessionStorage is not available
                     }
@@ -2677,10 +2677,10 @@
 
             // Restore tab from sessionStorage on page load
             try {
-                let savedTab = sessionStorage.getItem('jellyfinEnhancedActiveTab');
+                let savedTab = sessionStorage.getItem('jellyfinOnDemandActiveTab');
                 if (savedTab && LEGACY_TAB_MAP[savedTab]) {
                     savedTab = LEGACY_TAB_MAP[savedTab];
-                    sessionStorage.setItem('jellyfinEnhancedActiveTab', savedTab);
+                    sessionStorage.setItem('jellyfinOnDemandActiveTab', savedTab);
                 }
                 if (savedTab && document.getElementById(savedTab)) {
                     activateTab(savedTab);
@@ -2689,7 +2689,7 @@
                     // probably a tab that was later renamed or a stray value. Clear it
                     // so the user stops silently getting ignored on every page load.
                     console.info('[JE] discarding unknown saved tab: ' + savedTab);
-                    sessionStorage.removeItem('jellyfinEnhancedActiveTab');
+                    sessionStorage.removeItem('jellyfinOnDemandActiveTab');
                 }
             } catch (e) {
                 // sessionStorage unavailable (private mode / quota / security) — skip restore.
@@ -2965,7 +2965,7 @@
                 savedDetailsStates.clear();
                 let savedTab = 'overview';
                 try {
-                    savedTab = sessionStorage.getItem('jellyfinEnhancedActiveTab') || 'overview';
+                    savedTab = sessionStorage.getItem('jellyfinOnDemandActiveTab') || 'overview';
                     if (LEGACY_TAB_MAP[savedTab]) savedTab = LEGACY_TAB_MAP[savedTab];
                     if (!document.getElementById(savedTab)) savedTab = 'overview';
                 } catch (e) {
@@ -3232,7 +3232,7 @@
 
             const defaultConfig = defaultShortcuts.find(s => s.Name === selectedName);
             if (defaultConfig) {
-                // An empty Key is the same "disabled" sentinel the per-user Enhanced Panel
+                // An empty Key is the same "disabled" sentinel the per-user On Demand Panel
                 // uses — it can never match a real keypress, so the shortcut just no-ops.
                 shortcutOverrides.push({ ...defaultConfig, Key: '' });
                 renderOverrides();
@@ -3605,7 +3605,7 @@
                 customTabsCompatState = ok ? 'ok' : 'incompatible';
                 if (!ok) {
                     console.warn('[JE] Custom Tabs config schema not recognized; auto-manage toggles hidden.');
-                    setProbeWarning('customtabs', "Custom Tabs config has an unrecognized shape. Auto-create toggles disabled until Jellyfin Enhanced supports the new schema.");
+                    setProbeWarning('customtabs', "Custom Tabs config has an unrecognized shape. Auto-create toggles disabled until Jellyfin on Demand supports the new schema.");
                 } else {
                     setProbeWarning('customtabs', null);
                 }
@@ -3679,7 +3679,7 @@
                     return {
                         ok: false,
                         status: 'failed',
-                        detail: 'Custom Tabs configuration shape no longer matches what Jellyfin Enhanced knows how to write — auto-manage skipped to avoid corrupting it.',
+                        detail: 'Custom Tabs configuration shape no longer matches what Jellyfin on Demand knows how to write — auto-manage skipped to avoid corrupting it.',
                         ownedUpdates: []
                     };
                 }
@@ -4286,7 +4286,7 @@
                 refreshQualityCatAdminArrows(container);
                 _qualityCatRenderOK = true;
             } catch (err) {
-                console.error('Jellyfin Enhanced: renderQualityCatOrderAdmin failed; will skip *Order save', err);
+                console.error('Jellyfin on Demand: renderQualityCatOrderAdmin failed; will skip *Order save', err);
             }
         }
 
@@ -4862,7 +4862,7 @@
                     }
                 }
                 if (invalid.length > 0) {
-                    console.warn('Jellyfin Enhanced: dropping invalid Seerr URL(s) on save (must start with http:// or https://):', invalid);
+                    console.warn('Jellyfin on Demand: dropping invalid Seerr URL(s) on save (must start with http:// or https://):', invalid);
                     if (typeof Dashboard !== 'undefined' && Dashboard.alert) {
                         Dashboard.alert({
                             title: 'Invalid Seerr URL(s)',
@@ -5156,7 +5156,7 @@
                     ok: false,
                     status: 'partial',
                     detail: (syncResult.detail ? syncResult.detail + ' — ' : '') +
-                            "Custom Tabs has the new entry, but Jellyfin Enhanced could not save its ownership record. " +
+                            "Custom Tabs has the new entry, but Jellyfin on Demand could not save its ownership record. " +
                             "JE will not be able to clean this entry up on a later toggle change. " +
                             "To restore JE management: open the Custom Tabs plugin, delete the JE-managed entry there, then save this page again — JE will recreate it and record ownership properly."
                 });
@@ -5239,7 +5239,7 @@
                     try {
                         Dashboard.alert({
                             title: 'Custom Tabs sync issue',
-                            message: 'Your Jellyfin Enhanced settings were saved, but the Custom Tabs entry could not be updated.\n\n' +
+                            message: 'Your Jellyfin on Demand settings were saved, but the Custom Tabs entry could not be updated.\n\n' +
                                      (syncResult.detail || 'See browser console for details.')
                         });
                     } catch (alertErr) { console.warn('[JE] Dashboard.alert threw:', alertErr); }
@@ -5250,7 +5250,7 @@
                 try {
                     Dashboard.alert({
                         title: 'Save failed',
-                        message: 'Could not save Jellyfin Enhanced settings. Check the browser console and server logs, then try again.'
+                        message: 'Could not save Jellyfin on Demand settings. Check the browser console and server logs, then try again.'
                     });
                 } catch (alertErr) { console.warn('[JE] Dashboard.alert threw:', alertErr); }
             } finally {
@@ -5651,7 +5651,7 @@
 
                 // Check GitHub for any new locale files added since the last plugin release (1 request)
                 try {
-                    const ghResp = await fetch('https://api.github.com/repos/n00bcodr/Jellyfin-Enhanced/contents/Jellyfin.Plugin.JellyfinEnhanced/js/locales');
+                    const ghResp = await fetch('https://api.github.com/repos/abcdqfr/jellyfin-on-demand/contents/plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js/locales');
                     if (ghResp.ok) {
                         const files = await ghResp.json();
                         const serverSet = new Set(localeCodes.map(c => c.toLowerCase()));
@@ -5692,7 +5692,7 @@
                     defaultLanguageSelect.appendChild(option);
                 });
             } catch (err) {
-                console.warn('Jellyfin Enhanced: Failed to load language options:', err);
+                console.warn('Jellyfin on Demand: Failed to load language options:', err);
             }
         })();
 
@@ -5707,9 +5707,9 @@
         // gate banners would stay up until the next form save + reload even
         // though hasAnyArrService() is already true.
         (function wireRequestsBannerReactive() {
-            var formEl = document.getElementById('JellyfinEnhancedForm');
+            var formEl = document.getElementById('JellyfinOnDemandForm');
             if (!formEl) {
-                console.error('[JE] #JellyfinEnhancedForm missing — reactive dep updates disabled');
+                console.error('[JE] #JellyfinOnDemandForm missing — reactive dep updates disabled');
                 return;
             }
             function relevant(target) {
@@ -7881,7 +7881,7 @@
          */
         function syncBlockedUsersToHiddenInput() {
             if (!_blockedUsersLoaded) {
-                console.warn('Jellyfin Enhanced: skipping blocklist sync — user list failed to load. Existing config preserved.');
+                console.warn('Jellyfin on Demand: skipping blocklist sync — user list failed to load. Existing config preserved.');
                 return;
             }
             const checkboxes = document.querySelectorAll('.blockedUserCheckbox:checked');
@@ -8518,10 +8518,10 @@
 
                 // Test the links by temporarily adding them to the sidebar
                 // Trigger the plugin icons script to refresh with test data
-                if (window.JellyfinEnhanced && window.JellyfinEnhanced.customPlugins) {
+                if (window.JellyfinOnDemand && window.JellyfinOnDemand.customPlugins) {
                     // Temporarily store test data
                     window.testCustomPluginLinks = validLinks;
-                    window.JellyfinEnhanced.customPlugins.refresh();
+                    window.JellyfinOnDemand.customPlugins.refresh();
                 }
             });
         }

@@ -33,7 +33,7 @@ ver="${ver:-0.1.1.0}"
 # meta may be 0.1.1.0; logs print 0.1.1.0 or 0.1.1
 ver_short="$(printf '%s' "$ver" | sed -E 's/(\.0)+$//')"
 
-if ! sudo grep -qE "Jellyfin Enhanced v${ver}|Jellyfin Enhanced v${ver_short}|Loaded plugin: Jellyfin Enhanced ${ver}|Loaded plugin: Jellyfin Enhanced ${ver_short}|Jellyfin\\.Plugin\\.JellyfinOnDemand" "$log"; then
+if ! sudo grep -qE "Jellyfin on Demand v${ver}|Jellyfin on Demand v${ver_short}|Loaded plugin: Jellyfin on Demand ${ver}|Loaded plugin: Jellyfin on Demand ${ver_short}|Jellyfin\\.Plugin\\.JellyfinOnDemand" "$log"; then
   sudo tail -40 "$log" >&2 || true
   die "plugin not seen in $log"
 fi

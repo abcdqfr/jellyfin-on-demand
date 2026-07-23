@@ -1,6 +1,6 @@
 /**
  * JellyfinOnDemand Discover pane — Seerr Discover–shaped home (trending / popular /
- * upcoming / genre sliders) mounted next to Enhanced Panel + Bookmarks.
+ * upcoming / genre sliders) mounted next to On Demand Panel + Bookmarks.
  *
  * Cards reuse JE.jellyseerrUI.createJellyseerrCard so Play / Lucky / Library
  * behave identically to search results. That card chrome is JE's former
@@ -417,7 +417,7 @@
         if (!discoveryEnabled()) return;
         if (document.querySelector(`.${NAV_CLASS}`)) return;
 
-        const section = document.querySelector('.jellyfinEnhancedSection');
+        const section = document.querySelector('.jellyfinOnDemandSection');
         if (!section) return;
 
         const navItem = document.createElement('a');
@@ -441,11 +441,11 @@
         });
 
         // Place Discover first in the JellyfinOnDemand section (before Bookmarks / Calendar / …),
-        // right under Enhanced Panel — Seerr's primary browse surface.
+        // right under On Demand Panel — Seerr's primary browse surface.
         const first = section.querySelector('.navMenuOption');
         if (first && first.nextSibling) {
-            // After Enhanced Panel link if present
-            const enhanced = section.querySelector('#jellyfinEnhancedSettingsLink');
+            // After On Demand Panel link if present
+            const enhanced = section.querySelector('#jellyfinOnDemandSettingsLink');
             if (enhanced && enhanced.nextSibling) {
                 section.insertBefore(navItem, enhanced.nextSibling);
             } else {
@@ -553,4 +553,4 @@
         injectSearchLandingLink(); // only strips leftover links
         console.log(`${logPrefix} initialized`);
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

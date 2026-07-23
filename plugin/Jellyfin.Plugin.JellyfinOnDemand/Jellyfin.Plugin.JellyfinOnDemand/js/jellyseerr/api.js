@@ -2,7 +2,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Seerr API:';
+    const logPrefix = '🪼 Jellyfin on Demand: Seerr API:';
     const api = {};
 
     // Cache for user status (shared across all modules).
@@ -752,7 +752,7 @@
 
     // Returns { movie, tv } quota with nextResetAt, or null when disabled / on failure.
     api.fetchUserQuota = async function(options = {}) {
-        if (window.JellyfinEnhanced?.pluginConfig?.JellyseerrShowQuotaInfo === false) {
+        if (window.JellyfinOnDemand?.pluginConfig?.JellyseerrShowQuotaInfo === false) {
             return null;
         }
         try {
@@ -803,7 +803,7 @@
     api.addToWatchlist = async function(tmdbId, mediaType) {
         try {
             // Check if watchlist feature is enabled in plugin config
-            const JE = window.JellyfinEnhanced;
+            const JE = window.JellyfinOnDemand;
             if (!JE || !JE.pluginConfig) {
                 console.debug(`${logPrefix} Plugin config not loaded yet`);
                 return false;
@@ -1044,4 +1044,4 @@
     // Expose the API module on the global JE object
     JE.jellyseerrAPI = api;
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

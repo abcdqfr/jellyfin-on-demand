@@ -1,10 +1,10 @@
-site_name: Jellyfin Enhanced
-site_url: https://n00bcodr.github.io/Jellyfin-Enhanced/
-repo_name: n00bcodr/Jellyfin-Enhanced
-repo_url: https://github.com/n00bcodr/Jellyfin-Enhanced
-site_description: The essential enhancement suite for Jellyfin, bundling advanced features and customizations into one convenient plugin.
-site_author: n00bcodr
-copyright: Copyright &copy;2026 n00bcodr. Made with 💜 for Jellyfin and the community
+site_name: Jellyfin on Demand
+site_url: https://github.com/abcdqfr/jellyfin-on-demand
+repo_name: abcdqfr/jellyfin-on-demand
+repo_url: https://github.com/abcdqfr/jellyfin-on-demand
+site_description: On-demand discovery and playback for Jellyfin — derived from Jellyfin Enhanced.
+site_author: abcdqfr
+copyright: Copyright &copy;2026 abcdqfr. Derived from Jellyfin Enhanced (GPL-3.0). Not affiliated with Jellyfin.
 
 theme:
   name: material
@@ -47,11 +47,11 @@ extra:
   404_page: true
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/n00bcodr/Jellyfin-Enhanced
+      link: https://github.com/abcdqfr/jellyfin-on-demand
       name: GitHub Repository
     - icon: fontawesome/brands/discord
       link: https://discord.gg/EYNFf7y4CG
-      name: Jellyfin Community Discord - Jellyfin Enhanced Channel
+      name: Jellyfin Community Discord - Jellyfin on Demand Channel
 
 plugins:
   - search:

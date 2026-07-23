@@ -3,7 +3,7 @@
     'use strict';
 
     const ui = {};
-    const logPrefix = '🪼 Jellyfin Enhanced: Seerr UI:';
+    const logPrefix = '🪼 Jellyfin on Demand: Seerr UI:';
     const escapeHtml = JE.escapeHtml;
     const MediaStatus = JE.seerrStatus.MEDIA;
     const DisplayStatus = JE.seerrStatus.DISPLAY;
@@ -2874,4 +2874,4 @@
     ui.addMainStyles();
     ui.addSeasonModalStyles();
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

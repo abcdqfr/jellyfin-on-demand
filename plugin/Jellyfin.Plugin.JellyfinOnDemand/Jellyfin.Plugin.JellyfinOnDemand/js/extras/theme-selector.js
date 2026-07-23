@@ -25,7 +25,7 @@
 
     // Served locally via the plugin CDN route (jellyfish/colors/<theme>.css) instead of
     // jsDelivr; trailing slash is preserved so `${THEME_BASE_URL}${filename}` still works.
-    const THEME_BASE_URL = window.JellyfinEnhanced.cdn.url('jellyfish', 'colors/');
+    const THEME_BASE_URL = window.JellyfinOnDemand.cdn.url('jellyfish', 'colors/');
     const RANDOM_THEME_DEFAULT = false;
     const CSS_STYLE_ID = 'jellyfin-theme-selector-css';
     const SELECTOR_ID = 'jellyfin-theme-selector';
@@ -43,7 +43,7 @@
             const value = localStorage.getItem(getStorageKey(userId, key));
             return value === null ? defaultValue : value;
         } catch (e) {
-            console.error('🪼 Jellyfin Enhanced: Theme selector storage read error', e);
+            console.error('🪼 Jellyfin on Demand: Theme selector storage read error', e);
             return defaultValue;
         }
     };
@@ -53,7 +53,7 @@
             localStorage.setItem(getStorageKey(userId, key), value);
             return true;
         } catch (e) {
-            console.error('🪼 Jellyfin Enhanced: Theme selector storage write error', e);
+            console.error('🪼 Jellyfin on Demand: Theme selector storage write error', e);
             return false;
         }
     };
@@ -432,7 +432,7 @@
             }, DEBOUNCE_DELAY);
         };
 
-        const JE = window.JellyfinEnhanced;
+        const JE = window.JellyfinOnDemand;
         if (JE?.helpers?.onBodyMutation) {
             observerInstance = JE.helpers.onBodyMutation('theme-selector', callback);
         } else {
@@ -442,8 +442,8 @@
         }
     };
 
-    if (window.JellyfinEnhanced) {
-        window.JellyfinEnhanced.initializeThemeSelector = initialize;
+    if (window.JellyfinOnDemand) {
+        window.JellyfinOnDemand.initializeThemeSelector = initialize;
     }
 
 })();

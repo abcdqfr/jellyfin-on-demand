@@ -334,7 +334,7 @@
     "reviews_form_error_save": "Nie udało się zapisać recenzji. Spróbuj ponownie.",
     "panel_settings_language": "Ustawienia języka",
     "panel_settings_language_display": "Język wyświetlania",
-    "panel_settings_language_display_desc": "Wybierz język interfejsu Jellyfin Enhanced. Zmiany wchodzą w życie po odświeżeniu strony.",
+    "panel_settings_language_display_desc": "Wybierz język interfejsu Jellyfin on Demand. Zmiany wchodzą w życie po odświeżeniu strony.",
     "panel_settings_language_clear_cache": "Wyczyść pamięć podręczną tłumaczeń",
     "panel_settings_language_clear_cache_desc": "Usuwa wszystkie zapisane tłumaczenia. Przydatne do pobrania niedawno zaktualizowanego tłumaczenia z Github.",
     "toast_language_changed": "{{icon:language}} Język zmieniony! Odświeżanie strony…",

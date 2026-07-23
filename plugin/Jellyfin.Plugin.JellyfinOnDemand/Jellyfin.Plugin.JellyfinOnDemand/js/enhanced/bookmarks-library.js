@@ -7,7 +7,7 @@
   'use strict';
 
   if (!JE?.pluginConfig?.BookmarksEnabled) {
-    console.log('🪼 Jellyfin Enhanced: Bookmarks library feature is disabled');
+    console.log('🪼 Jellyfin on Demand: Bookmarks library feature is disabled');
     return;
   }
 
@@ -883,7 +883,7 @@
   `;
   document.head.appendChild(style);
 
-  const logPrefix = '🪼 Jellyfin Enhanced: Bookmarks Library:';
+  const logPrefix = '🪼 Jellyfin on Demand: Bookmarks Library:';
   let isRendering = false;
   let lastRenderTs = 0;
   let lastMountedContainer = null;
@@ -904,7 +904,7 @@
     const config = JE?.pluginConfig || {};
     if (!config.BookmarksUsePluginPages) return false;
     const sb = document.querySelector('.mainDrawer-scrollContainer');
-    return !!sb?.querySelector('a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.BookmarksPage"]');
+    return !!sb?.querySelector('a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.BookmarksPage"]');
   }
 
   // ============================================================
@@ -1127,7 +1127,7 @@
     // Hide plugin page link if it exists
     const sb = document.querySelector('.mainDrawer-scrollContainer');
     const pluginPageItem = sb?.querySelector(
-      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.BookmarksPage"]'
+      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.BookmarksPage"]'
     );
     if (pluginPageItem) {
       pluginPageItem.style.setProperty('display', 'none', 'important');
@@ -1135,8 +1135,8 @@
 
     if (document.querySelector('.je-nav-bookmarks-item')) return;
 
-    const jellyfinEnhancedSection = document.querySelector('.jellyfinEnhancedSection');
-    if (jellyfinEnhancedSection) {
+    const jellyfinOnDemandSection = document.querySelector('.jellyfinOnDemandSection');
+    if (jellyfinOnDemandSection) {
       const navItem = document.createElement('a');
       navItem.setAttribute('is', 'emby-linkbutton');
       navItem.className = 'navMenuOption lnkMediaFolder emby-button je-nav-bookmarks-item';
@@ -1159,13 +1159,13 @@
       });
 
       // Insert after hidden-content, or after calendar, or at end
-      const hiddenNav = jellyfinEnhancedSection.querySelector('.je-nav-hidden-content-item');
-      const calendarNav = jellyfinEnhancedSection.querySelector('.je-nav-calendar-item');
+      const hiddenNav = jellyfinOnDemandSection.querySelector('.je-nav-hidden-content-item');
+      const calendarNav = jellyfinOnDemandSection.querySelector('.je-nav-calendar-item');
       const insertAfter = hiddenNav || calendarNav;
       if (insertAfter && insertAfter.nextSibling) {
-        jellyfinEnhancedSection.insertBefore(navItem, insertAfter.nextSibling);
+        jellyfinOnDemandSection.insertBefore(navItem, insertAfter.nextSibling);
       } else {
-        jellyfinEnhancedSection.appendChild(navItem);
+        jellyfinOnDemandSection.appendChild(navItem);
       }
       console.log(`${logPrefix} Navigation item injected`);
     }
@@ -1182,7 +1182,7 @@
 
     const observer = new MutationObserver(() => {
       if (isPluginPagesActive()) return;
-      if (!document.querySelector('.je-nav-bookmarks-item') && document.querySelector('.jellyfinEnhancedSection')) {
+      if (!document.querySelector('.je-nav-bookmarks-item') && document.querySelector('.jellyfinOnDemandSection')) {
         injectNavigation();
       }
     });
@@ -1196,13 +1196,13 @@
   function getJE() {
     // Try common globals first
     if (window.JE) return window.JE;
-    if (window.JellyfinEnhanced) return window.JellyfinEnhanced;
+    if (window.JellyfinOnDemand) return window.JellyfinOnDemand;
 
     // Then parent/top frames (CustomTabs may run in a child frame)
     if (window.parent?.JE) return window.parent.JE;
-    if (window.parent?.JellyfinEnhanced) return window.parent.JellyfinEnhanced;
+    if (window.parent?.JellyfinOnDemand) return window.parent.JellyfinOnDemand;
     if (window.top?.JE) return window.top.JE;
-    if (window.top?.JellyfinEnhanced) return window.top.JellyfinEnhanced;
+    if (window.top?.JellyfinOnDemand) return window.top.JellyfinOnDemand;
 
     return null;
   }
@@ -1978,13 +1978,13 @@
         response = JSON.parse(response);
       }
 
-      console.log(`🪼 Jellyfin Enhanced: Bookmarks Library: API Response:`, response);
+      console.log(`🪼 Jellyfin on Demand: Bookmarks Library: API Response:`, response);
 
       const items = response?.Items || [];
-      console.log(`🪼 Jellyfin Enhanced: Bookmarks Library: Fetched ${items.length} total items of type ${itemTypes}`);
+      console.log(`🪼 Jellyfin on Demand: Bookmarks Library: Fetched ${items.length} total items of type ${itemTypes}`);
 
       if (!Array.isArray(items) || items.length === 0) {
-        console.warn(`🪼 Jellyfin Enhanced: Bookmarks Library: No items found or items is not an array`);
+        console.warn(`🪼 Jellyfin on Demand: Bookmarks Library: No items found or items is not an array`);
         return null;
       }
 
@@ -2009,7 +2009,7 @@
         return false;
       });
 
-      console.log(`🪼 Jellyfin Enhanced: Bookmarks Library: Found ${matches.length} matches for ${tmdbId ? 'TMDB:'+tmdbId : 'TVDB:'+tvdbId}`, matches);
+      console.log(`🪼 Jellyfin on Demand: Bookmarks Library: Found ${matches.length} matches for ${tmdbId ? 'TMDB:'+tmdbId : 'TVDB:'+tvdbId}`, matches);
       return matches.length > 0 ? matches : null;
     } catch (e) {
       console.error('Failed to search for replacement:', e);
@@ -2662,4 +2662,4 @@
     init();
   }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

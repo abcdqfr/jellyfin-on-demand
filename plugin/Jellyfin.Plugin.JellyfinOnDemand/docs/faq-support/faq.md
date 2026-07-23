@@ -4,13 +4,13 @@
 
 <!-- todo: make these collapsible  -->
 
-### What is Jellyfin Enhanced?
+### What is Jellyfin on Demand?
 
-Jellyfin Enhanced is a comprehensive plugin that bundles advanced features and customizations for Jellyfin. It adds keyboard shortcuts, visual enhancements, Seerr integration, custom pause screens, quality tags, and much more — all in one convenient package.
+Jellyfin on Demand is a comprehensive plugin that bundles advanced features and customizations for Jellyfin. It adds keyboard shortcuts, visual enhancements, Seerr integration, custom pause screens, quality tags, and much more — all in one convenient package.
 
 ### Can I customize the keyboard shortcuts?
 
-Yes! Open the Jellyfin Enhanced panel by clicking the menu item in the sidebar or pressing `?`, then go to the **Shortcuts** tab. Click on any key to set a custom shortcut. Changes save automatically.
+Yes! Open the Jellyfin on Demand panel by clicking the menu item in the sidebar or pressing `?`, then go to the **Shortcuts** tab. Click on any key to set a custom shortcut. Changes save automatically.
 
 ### Does this work on mobile apps?
 
@@ -40,7 +40,7 @@ The userscript has been discontinued as the plugin functionality has grown signi
 
 | Plugin | Jellyfin 10.11 | Jellyfin 10.10 | Notes |
 |--------|----------------|----------------|-------|
-| Jellyfin Enhanced | ✅ | ❌ | Use 10.11 manifest |
+| Jellyfin on Demand | ✅ | ❌ | Use 10.11 manifest |
 
 ### Plugin not appearing after installation?
 
@@ -76,7 +76,7 @@ Auto-skip requires the [Intro Skipper plugin](https://github.com/intro-skipper/i
 
 3. Run intro detection on your library
 
-4. Enable auto-skip in Jellyfin Enhanced settings
+4. Enable auto-skip in Jellyfin on Demand settings
 
 5. Intro segments must be detected for your media
 
@@ -125,7 +125,7 @@ Auto-skip requires the [Intro Skipper plugin](https://github.com/intro-skipper/i
 
 Option A (automatic, recommended):
 
-1. In Jellyfin, go to Dashboard -> Plugins -> Jellyfin Enhanced -> Seerr Settings
+1. In Jellyfin, go to Dashboard -> Plugins -> Jellyfin on Demand -> Seerr Settings
 
 2. Enable "Auto import Jellyfin users to Seerr"
 
@@ -226,7 +226,7 @@ Option B (manual in Seerr):
 
 - Check bookmark file exists on server
 
-- Look in `/config/data/users/{userId}/jellyfin-enhanced/bookmarks.json`
+- Look in `/config/data/users/{userId}/jellyfin-on-demand/bookmarks.json`
 
 - Check browser console for errors
 
@@ -347,7 +347,7 @@ See [CSS Customization Guide](../advanced/css-customization.md) for complete CSS
 
 **Steps:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 
 2. Navigate to **Other Settings** tab
 
@@ -409,7 +409,7 @@ Yes, via Enhanced panel settings:
 
 2. Go to Console tab
 
-3. Filter by `🪼Jellyfin Enhanced`
+3. Filter by `🪼Jellyfin on Demand`
 
 4. Look for errors (red text)
 
@@ -421,7 +421,7 @@ Yes, via Enhanced panel settings:
 
 1. Press ++f12++ → `Network` tab
 
-2. Filter by `JellyfinEnhanced`
+2. Filter by `JellyfinOnDemand`
 
 3. Look for failed requests (red)
 
@@ -433,9 +433,9 @@ Yes, via Enhanced panel settings:
 
 1. Go to **Dashboard** → **Logs**
 
-2. Look for `JellyfinEnhanced` entries
+2. Look for `JellyfinOnDemand` entries
 
-3. Check log files: `JellyfinEnhanced_yyyy-mm-dd.log`
+3. Check log files: `JellyfinOnDemand_yyyy-mm-dd.log`
 
 4. Copy relevant errors
 
@@ -465,7 +465,7 @@ Yes, via Enhanced panel settings:
 |-------|----------|
 | `Access to the path '/jellyfin/jellyfin-web/index.html' is denied.` | Install [file-transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) or follow [Docker workaround](../installation/troubleshooting.md#docker) |
 | `Access to the path 'C:\Program Files\Jellyfin\Server\jellyfin-web\index.html' is denied.` | Grant "NETWORK SERVICE" Read/Write permissions to Jellyfin folder |
-| Plugin installed but scripts don't load | Run "Jellyfin Enhanced Startup" scheduled task, verify trigger exists |
+| Plugin installed but scripts don't load | Run "Jellyfin on Demand Startup" scheduled task, verify trigger exists |
 | Reviews/Elsewhere/Seerr icons not working | TMDB API may be blocked in your region, see [Seerr troubleshooting](https://docs.seerr.dev/troubleshooting#tmdb-failed-to-retrievefetch-xxx) |
 | Seerr search not working | Enable "Jellyfin Sign-In" in Seerr. Then either enable plugin auto import and run "Import Users Now", or import users manually in Seerr. Also verify user is not in blocked users list. |
 | Tags not appearing | Enable in settings, clear cache, verify metadata exists |
@@ -552,8 +552,8 @@ Yes, via Enhanced panel settings:
 
 **Official Channels:**
 
-- [GitHub Issues](https://github.com/n00bcodr/Jellyfin-Enhanced/issues) - Bug reports and feature requests
-- [GitHub Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions) - General questions and discussion
+- [GitHub Issues](https://github.com/abcdqfr/jellyfin-on-demand/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions) - General questions and discussion
 - [Discord Community](https://discord.gg/EYNFf7y4CG) - Real-time chat and support
 
 **Before Asking:**
@@ -596,6 +596,6 @@ Yes, via Enhanced panel settings:
 
 If your question isn't answered here:
 
-1. Search [GitHub Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions)
+1. Search [GitHub Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions)
 2. Ask in [Discord Community](https://discord.gg/EYNFf7y4CG)
-3. Create a [GitHub Issue](https://github.com/n00bcodr/Jellyfin-Enhanced/issues/new)
+3. Create a [GitHub Issue](https://github.com/abcdqfr/jellyfin-on-demand/issues/new)

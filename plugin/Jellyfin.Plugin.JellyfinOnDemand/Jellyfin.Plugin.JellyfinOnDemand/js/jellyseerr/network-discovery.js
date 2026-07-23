@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Network Discovery:';
+    const logPrefix = '🪼 Jellyfin on Demand: Network Discovery:';
     const MODULE_NAME = 'network';
 
     // Cache for network ID mappings (studioName -> TMDB networkId)
@@ -843,4 +843,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

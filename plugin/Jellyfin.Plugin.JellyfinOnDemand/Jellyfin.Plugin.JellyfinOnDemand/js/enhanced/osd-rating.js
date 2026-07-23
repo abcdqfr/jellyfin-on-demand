@@ -3,7 +3,7 @@
 (function(JE) {
   'use strict';
 
-  const logPrefix = '🪼 Jellyfin Enhanced: OSD Rating:';
+  const logPrefix = '🪼 Jellyfin on Demand: OSD Rating:';
   const CONTAINER_ID = 'je-osd-rating-container';
   // Hot cache (per session) so each item is fetched once
   const ratingCache = new Map();
@@ -216,4 +216,4 @@
     } catch (e) { console.warn(`${logPrefix} Init failed`, e); }
   };
 
-})(window.JellyfinEnhanced = window.JellyfinEnhanced || {});
+})(window.JellyfinOnDemand = window.JellyfinOnDemand || {});

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 {
     /// <summary>
-    /// Injects the Jellyfin Enhanced client &lt;script&gt; tag into jellyfin-web's
+    /// Injects the Jellyfin on Demand client &lt;script&gt; tag into jellyfin-web's
     /// index.html at request time, via ASP.NET middleware registered through
     /// <see cref="Microsoft.AspNetCore.Hosting.IStartupFilter"/>.
     ///
@@ -67,7 +67,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
                 return;
             }
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || config.DisableScriptInjectionMiddleware)
             {
                 await nextMw().ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
                 // The config guard above (config != null) already implies the plugin
                 // instance is non-null; the enclosing try/catch covers the impossible
                 // case where it isn't.
-                var plugin = JellyfinEnhanced.Instance!;
+                var plugin = JellyfinOnDemand.Instance!;
                 // Idempotency guard keyed on the controller endpoint, so we never
                 // double-inject alongside a legacy on-disk tag.
                 var alreadyInjected = html.IndexOf("/JellyfinOnDemand/script", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -137,7 +137,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 
                     if (System.Threading.Interlocked.Exchange(ref _loggedOnce, 1) == 0)
                     {
-                        _logger.Info("Jellyfin Enhanced: injected the client script via request-time middleware (IStartupFilter).");
+                        _logger.Info("Jellyfin on Demand: injected the client script via request-time middleware (IStartupFilter).");
                     }
                 }
             }

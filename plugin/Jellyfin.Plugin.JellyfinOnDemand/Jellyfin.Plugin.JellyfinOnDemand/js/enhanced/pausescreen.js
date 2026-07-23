@@ -9,7 +9,7 @@
   JE.initializePauseScreen = function() {
     // Only run if the feature is enabled in the user's settings
     if (!JE.currentSettings.pauseScreenEnabled) {
-        console.log('🪼 Jellyfin Enhanced: Custom Pause Screen is disabled.');
+        console.log('🪼 Jellyfin on Demand: Custom Pause Screen is disabled.');
         return;
     }
       class JellyfinPauseScreen {
@@ -55,7 +55,7 @@
         init() {
           const credentials = this.getCredentials();
           if (!credentials) {
-            console.error("🪼 Jellyfin Enhanced: Jellyfin credentials not found");
+            console.error("🪼 Jellyfin on Demand: Jellyfin credentials not found");
             return;
           }
           this.userId = credentials.userId;
@@ -454,7 +454,7 @@
                 e.stopPropagation(); // stop Jellyfin binding
                 this.hideOverlay();
                 if (this.currentVideo && this.currentVideo.paused) {
-                    this.currentVideo.play().catch(err => console.warn("🪼 Jellyfin Enhanced: Play() blocked:", err));
+                    this.currentVideo.play().catch(err => console.warn("🪼 Jellyfin on Demand: Play() blocked:", err));
                 }
               }
               // Keep Tab inside
@@ -696,7 +696,7 @@
                 await this.displayItemInfo(record.item, record.domain, itemId);
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                console.error("🪼 Jellyfin Enhanced: Error fetching item info:", err);
+                console.error("🪼 Jellyfin on Demand: Error fetching item info:", err);
                 this.overlayPlot.textContent = JE.t('pausescreen_fetch_error');
                 }
             }
@@ -914,7 +914,7 @@
       }
       // Boot
       new JellyfinPauseScreen();
-        console.log('🪼 Jellyfin Enhanced: Custom Pause Screen initialized.');
+        console.log('🪼 Jellyfin on Demand: Custom Pause Screen initialized.');
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

@@ -3,12 +3,12 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Rating Tags:';
+    const logPrefix = '🪼 Jellyfin on Demand: Rating Tags:';
     const containerClass = 'rating-overlay-container';
     const tagClass = 'rating-tag';
     const TAGGED_ATTR = 'jeRatingTagged';
-    const CACHE_KEY = 'JellyfinEnhanced-ratingTagsCache';
-    const CACHE_TIMESTAMP_KEY = 'JellyfinEnhanced-ratingTagsCacheTimestamp';
+    const CACHE_KEY = 'JellyfinOnDemand-ratingTagsCache';
+    const CACHE_TIMESTAMP_KEY = 'JellyfinOnDemand-ratingTagsCacheTimestamp';
     const ENABLE_LOCAL_STORAGE_FALLBACK =
         JE.pluginConfig?.TagCacheServerMode === false ||
         JE.pluginConfig?.EnableTagsLocalStorageFallback === true;
@@ -281,11 +281,11 @@
         const rightVal = isLeft ? 'auto' : '6px';
         const needsTopRightOffset = isTop && !isLeft; // top-right
 
-        const existing = document.getElementById('jellyfin-enhanced-rating-tags-css');
+        const existing = document.getElementById('jellyfin-on-demand-rating-tags-css');
         if (existing) existing.remove();
 
         const style = document.createElement('style');
-        style.id = 'jellyfin-enhanced-rating-tags-css';
+        style.id = 'jellyfin-on-demand-rating-tags-css';
         style.textContent = `
             .${containerClass} {
                 position: absolute;
@@ -569,4 +569,4 @@
         }
     };
 
-})(window.JellyfinEnhanced = window.JellyfinEnhanced || {});
+})(window.JellyfinOnDemand = window.JellyfinOnDemand || {});

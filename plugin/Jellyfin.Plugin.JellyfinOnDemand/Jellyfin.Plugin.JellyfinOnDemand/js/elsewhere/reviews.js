@@ -6,11 +6,11 @@
         const tmdbReviewsEnabled = JE.pluginConfig.ShowReviews && JE.pluginConfig.TmdbEnabled;
         const userReviewsEnabled = JE.pluginConfig.ShowUserReviews;
         if (!tmdbReviewsEnabled && !userReviewsEnabled) {
-            console.log('🪼 Jellyfin Enhanced: Reviews feature disabled.');
+            console.log('🪼 Jellyfin on Demand: Reviews feature disabled.');
             return;
         }
 
-        const logPrefix = '🪼 Jellyfin Enhanced: Reviews:';
+        const logPrefix = '🪼 Jellyfin on Demand: Reviews:';
 
         // Suppress the reviews panel when the item has Spoiler Guard enabled by the
         // user AND the admin has SpoilerStripReviews on — TMDB and user reviews
@@ -793,8 +793,8 @@
                 // Persist user's expand/collapse choice for future pages
                 reviewsSection.addEventListener('toggle', function () {
                     try {
-                        if (!window.JellyfinEnhanced) return;
-                        const JE = window.JellyfinEnhanced;
+                        if (!window.JellyfinOnDemand) return;
+                        const JE = window.JellyfinOnDemand;
                         JE.currentSettings = JE.currentSettings || JE.loadSettings?.() || {};
                         JE.currentSettings.reviewsExpandedByDefault = reviewsSection.open;
                         if (typeof JE.saveUserSettings === 'function') {
@@ -1216,5 +1216,5 @@
             immediate: true // Process current page immediately on load
         });
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);
 

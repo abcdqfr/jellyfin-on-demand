@@ -35,7 +35,7 @@ Upload your own logos, banners, and favicon to personalize your Jellyfin instanc
 
 **Configuration:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Find **Custom Branding** section
 4. Upload your custom images:
@@ -57,7 +57,7 @@ Upload your own logos, banners, and favicon to personalize your Jellyfin instanc
 
 Files stored in:
 ```text
-/plugins/configurations/Jellyfin.Plugin.JellyfinEnhanced/custom_branding/
+/plugins/configurations/Jellyfin.Plugin.JellyfinOnDemand/custom_branding/
 ```
 
 This location survives Jellyfin server and web updates.
@@ -74,7 +74,7 @@ Enable or disable icons in toasts, settings panel, and other UI elements.
 
 **Enable:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Check **"Use Icons"**
 4. Click **Save**
@@ -121,7 +121,7 @@ Replace default activity icons with Material Design icons with custom colors.
 
 **Enable:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Check **"Enable Colored Activity Icons"**
 4. Click **Save**
@@ -190,7 +190,7 @@ PluginName|URL
 
 **Example:**
 ```text
-Jellyfin Enhanced|/web/configurationpage?name=JellyfinEnhanced
+Jellyfin on Demand|/web/configurationpage?name=JellyfinOnDemand
 Custom Plugin|https://example.com/config
 ```
 
@@ -237,7 +237,7 @@ Choose from multiple Jellyfin theme color variants.
 
 #### Admin Configuration
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to the **Other Settings** tab
 3. Enable **"Active Streams Widget"**
 4. Optional: Enable **"Show to all users"**
@@ -276,7 +276,7 @@ Control how long the help panel stays open before automatically closing.
 
 **Configure:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Find **Timeout Settings** section
 4. Set **Help Panel Autoclose Delay** (milliseconds)
@@ -318,7 +318,7 @@ Add Letterboxd external links to movie item detail pages.
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Check **"Enable Letterboxd Links"**
 4. Optional: Check **"Show Letterboxd Link as Text"** for text instead of icon
@@ -354,7 +354,7 @@ Hide specific items from your Jellyfin library without deleting them.
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Enhanced Settings** tab
 3. Find **Hidden Content** section
 4. Check **"Enable Hidden Content"**
@@ -375,7 +375,7 @@ Hide specific items from your Jellyfin library without deleting them.
 
 **Manage Hidden Items:**
 
-**Via Enhanced Panel:**
+**Via On Demand Panel:**
 
 1. Open Enhanced panel (press `?`)
 2. Go to Hidden Content section
@@ -398,7 +398,7 @@ Custom splash screen that appears while Jellyfin is loading.
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Other Settings** tab
 3. Check **"Enable Custom Splash Screen"**
 4. Enter **Splash Screen Image URL**
@@ -451,7 +451,7 @@ Set a default language for all users.
 
 **Configuration:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Find **Default UI Language** setting
 3. Select language from dropdown
 4. Leave empty for system default
@@ -486,7 +486,7 @@ Force all clients to clear their localStorage.
 
 **How:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Find **Clear Local Storage** button
 3. Click to set timestamp
 4. All clients clear storage on next load
@@ -535,4 +535,4 @@ If you encounter issues:
 1. Check [FAQ](../faq-support/faq.md) for common solutions
 2. Verify settings are correct
 3. Check browser console for errors
-4. Report issues on [GitHub](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
+4. Report issues on [GitHub](https://github.com/abcdqfr/jellyfin-on-demand/issues)

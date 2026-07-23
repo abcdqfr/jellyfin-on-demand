@@ -5,10 +5,10 @@
 (function () {
   "use strict";
 
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
   const sidebar = document.querySelector('.mainDrawer-scrollContainer');
   const pluginPagesExists = !!sidebar?.querySelector(
-    'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.HiddenContentPage"]'
+    'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.HiddenContentPage"]'
   );
 
   // ============================================================
@@ -37,7 +37,7 @@
     adminLoadToken: 0,           // increments per fetch so stale responses are ignored
   };
 
-  const logPrefix = '🪼 Jellyfin Enhanced: Hidden Content Page:';
+  const logPrefix = '🪼 Jellyfin on Demand: Hidden Content Page:';
 
   function scopeBadgeText(scope) {
     const s = (scope || '').toLowerCase();
@@ -2352,7 +2352,7 @@
     if (config.HiddenContentUseNativeTab) return;
 
     const pluginPageItem = sidebar?.querySelector(
-      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinEnhanced.HiddenContentPage"]'
+      'a[is="emby-linkbutton"][data-itemid="Jellyfin.Plugin.JellyfinOnDemand.HiddenContentPage"]'
     );
 
     if (pluginPageItem) {
@@ -2361,9 +2361,9 @@
 
     if (document.querySelector(".je-nav-hidden-content-item")) return;
 
-    const jellyfinEnhancedSection = document.querySelector('.jellyfinEnhancedSection');
+    const jellyfinOnDemandSection = document.querySelector('.jellyfinOnDemandSection');
 
-    if (jellyfinEnhancedSection) {
+    if (jellyfinOnDemandSection) {
       const navItem = document.createElement("a");
       navItem.setAttribute('is', 'emby-linkbutton');
       navItem.className =
@@ -2385,17 +2385,17 @@
         showPage();
       });
 
-      const calendarNavItem = jellyfinEnhancedSection.querySelector('.je-nav-calendar-item');
+      const calendarNavItem = jellyfinOnDemandSection.querySelector('.je-nav-calendar-item');
       if (calendarNavItem && calendarNavItem.nextSibling) {
-        jellyfinEnhancedSection.insertBefore(navItem, calendarNavItem.nextSibling);
+        jellyfinOnDemandSection.insertBefore(navItem, calendarNavItem.nextSibling);
       } else if (calendarNavItem) {
-        jellyfinEnhancedSection.appendChild(navItem);
+        jellyfinOnDemandSection.appendChild(navItem);
       } else {
-        jellyfinEnhancedSection.appendChild(navItem);
+        jellyfinOnDemandSection.appendChild(navItem);
       }
       console.log(`${logPrefix} Navigation item injected`);
     } else {
-      console.log(`${logPrefix} jellyfinEnhancedSection not found, will wait for it`);
+      console.log(`${logPrefix} jellyfinOnDemandSection not found, will wait for it`);
     }
   }
 
@@ -2417,8 +2417,8 @@
       if (pluginPagesExists && currentConfig.HiddenContentUsePluginPages) return;
 
       if (!document.querySelector('.je-nav-hidden-content-item')) {
-        const jellyfinEnhancedSection = document.querySelector('.jellyfinEnhancedSection');
-        if (jellyfinEnhancedSection) {
+        const jellyfinOnDemandSection = document.querySelector('.jellyfinOnDemandSection');
+        if (jellyfinOnDemandSection) {
           console.log(`${logPrefix} Sidebar rebuilt, re-injecting navigation`);
           injectNavigation();
         }

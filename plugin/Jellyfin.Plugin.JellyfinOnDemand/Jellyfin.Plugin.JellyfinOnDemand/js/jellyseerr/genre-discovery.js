@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Genre Discovery:';
+    const logPrefix = '🪼 Jellyfin on Demand: Genre Discovery:';
     const MODULE_NAME = 'genre';
 
     const genreInfoCache = new Map();
@@ -770,4 +770,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

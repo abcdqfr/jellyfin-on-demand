@@ -2,7 +2,7 @@
 (function (JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Issue Reporter:';
+    const logPrefix = '🪼 Jellyfin on Demand: Issue Reporter:';
     const issueReporter = {};
     const escapeHtml = JE.escapeHtml;
 
@@ -1105,4 +1105,4 @@
     // Expose the module on the global JE object
     JE.jellyseerrIssueReporter = issueReporter;
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

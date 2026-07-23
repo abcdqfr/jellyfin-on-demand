@@ -324,4 +324,4 @@
 
     JE.swarm = api;
     console.log(`${logPrefix} swarm API loaded`);
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

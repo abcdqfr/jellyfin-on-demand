@@ -32,7 +32,7 @@ The ARR integration provides convenient links to your Sonarr, Radarr, and Bazarr
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to ***arr Settings** tab
 3. Check **"Enable *arr Links"**
 4. Add one or more Sonarr and/or Radarr instances (see [Multi-Instance Support](#multi-instance-support) below)
@@ -126,7 +126,7 @@ Display synced *arr tags as clickable links on item detail pages.
 
 **Configuration:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to ***arr Settings** tab
 3. Check **"Enable *arr Tags Sync"**
 4. Enter **Sonarr API Key**
@@ -227,7 +227,7 @@ View upcoming releases from Sonarr and Radarr in a calendar interface.
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to ***arr Settings** tab
 3. Check **"Enable Calendar Page"**
 4. Choose integration method:
@@ -298,7 +298,7 @@ Monitor active downloads from Sonarr and Radarr in a dedicated page.
 
 ### Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to ***arr Settings** tab
 3. Check **"Enable Requests Page"** (under "Requests Page (Downloads)")
 4. Choose integration method (Plugin Pages or Custom Tabs)

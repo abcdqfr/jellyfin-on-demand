@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Collection Discovery:';
+    const logPrefix = '🪼 Jellyfin on Demand: Collection Discovery:';
 
     const processedPages = new Set();
     const boxsetInfoCache = new Map();
@@ -322,4 +322,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Request Manager:';
+    const logPrefix = '🪼 Jellyfin on Demand: Request Manager:';
 
     // Configuration
     const CONFIG = {
@@ -435,4 +435,4 @@
         CONFIG
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

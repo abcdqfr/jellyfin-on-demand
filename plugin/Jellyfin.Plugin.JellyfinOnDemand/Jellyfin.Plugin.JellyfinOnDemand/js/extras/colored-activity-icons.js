@@ -366,7 +366,7 @@
                 if (!match) return;
 
                 // Mark as processed to avoid re-processing
-                const dataAttr = 'data-jellyfin-enhanced-activity-icon';
+                const dataAttr = 'data-jellyfin-on-demand-activity-icon';
                 if (avatar.hasAttribute(dataAttr)) {
                     const existing = avatar.querySelector('.material-icons');
                     if (existing?.textContent === match.icon &&
@@ -418,7 +418,7 @@
             }
         };
 
-        const JE = window.JellyfinEnhanced;
+        const JE = window.JellyfinOnDemand;
         if (JE?.helpers?.onBodyMutation) {
             observer = JE.helpers.onBodyMutation('colored-activity-icons', callback);
         } else {
@@ -451,9 +451,9 @@
         });
     }
 
-    if (window.JellyfinEnhanced) {
-        window.JellyfinEnhanced.initializeActivityIcons = initialize;
-        window.JellyfinEnhanced.stopActivityIconsMonitoring = stopMonitoring;
+    if (window.JellyfinOnDemand) {
+        window.JellyfinOnDemand.initializeActivityIcons = initialize;
+        window.JellyfinOnDemand.stopActivityIconsMonitoring = stopMonitoring;
     }
 
 })();

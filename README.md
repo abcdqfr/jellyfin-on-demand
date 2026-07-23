@@ -1,11 +1,18 @@
-# jellyfin-on-demand
+# Jellyfin on Demand
 
-Living-room Jellyfin pane → magnet/Torznab → in-process libtorrent →
-tail→head warm → growing file on a **virtual item** → Play.
+On-demand discovery and playback for Jellyfin: living-room pane →
+magnet/Torznab → in-process libtorrent → tail→head warm → growing file on a
+**virtual item** → Play.
+
+Independent community project — **not affiliated** with Jellyfin, Jellyfin
+Enhanced, or Seerr. Code ancestry: fork of Jellyfin Enhanced
+([ADR-011](docs/adr/011-product-identity.md)).
 
 No *arr. No Seerr/Jellyseerr **runtime**. No Go/anacrolix engine.
-(JE's former Seerr *client chrome* is rolled into this Jellyfin on Demand plugin and
-retargeted — see [`ATTRIBUTION.md`](ATTRIBUTION.md).)
+(JE's former Seerr *client chrome* is rolled into this plugin and retargeted —
+see [`ATTRIBUTION.md`](ATTRIBUTION.md).)
+
+Public repo: [abcdqfr/jellyfin-on-demand](https://github.com/abcdqfr/jellyfin-on-demand).
 
 **Status:** active product tree. Local integration is the commit gate
 ([ADR-005](docs/adr/005-local-integration-commit-gate.md)).

@@ -770,4 +770,4 @@
         isVideoPath,
         isJunkPath
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

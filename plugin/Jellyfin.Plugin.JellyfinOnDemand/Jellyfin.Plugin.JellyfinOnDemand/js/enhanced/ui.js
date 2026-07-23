@@ -1,10 +1,10 @@
 /**
- * @file Manages all UI components for the Jellyfin Enhanced plugin.
+ * @file Manages all UI components for the Jellyfin on Demand plugin.
  */
 (function(JE) {
     'use strict';
 
-    const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
+    const GITHUB_REPO = 'abcdqfr/jellyfin-on-demand';
 
     const escapeHtml = JE.escapeHtml;
 
@@ -15,13 +15,13 @@
         try {
             result = JE.t(key);
         } catch (err) {
-            console.warn(`🪼 Jellyfin Enhanced: JE.t('${key}') threw, using fallback:`, err);
+            console.warn(`🪼 Jellyfin on Demand: JE.t('${key}') threw, using fallback:`, err);
             result = null;
         }
         if (!result || result === key) {
             if (!_tFallbackWarned.has(key)) {
                 _tFallbackWarned.add(key);
-                console.warn(`🪼 Jellyfin Enhanced: missing translation key '${key}', using inline fallback`);
+                console.warn(`🪼 Jellyfin on Demand: missing translation key '${key}', using inline fallback`);
             }
             return fallback || key;
         }
@@ -53,7 +53,7 @@
         const blurValue = themeVars.blur || '30px';
 
         const t = document.createElement('div');
-        t.className = 'jellyfin-enhanced-toast';
+        t.className = 'jellyfin-on-demand-toast';
         Object.assign(t.style, {
             position: 'fixed',
             bottom: '20px',
@@ -92,7 +92,7 @@
             if (!response.ok) throw new Error('Failed to fetch release data');
             release = await response.json();
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Failed to fetch release notes:', error);
+            console.error('🪼 Jellyfin on Demand: Failed to fetch release notes:', error);
             JE.toast(JE.icon(JE.IconName.ERROR) + ' Could not load release notes.');
             return;
         }
@@ -249,7 +249,7 @@
      * Injects custom CSS for plugin features.
      */
     JE.injectGlobalStyles = () => {
-        const styleId = 'jellyfin-enhanced-styles';
+        const styleId = 'jellyfin-on-demand-styles';
         if (document.getElementById(styleId)) return;
         const style = document.createElement('style');
         style.id = styleId;
@@ -260,17 +260,17 @@
             /* Remove menu items render like native action-sheet items; only dim them while the removal is in flight. */
             .actionSheetMenuItem[data-id="remove-continue-watching"]:disabled,
             .actionSheetMenuItem[data-id="je-multiselect-remove"]:disabled { opacity: 0.6; cursor: default; }
-            .layout-mobile #jellyfin-enhanced-panel { width: 95vw; max-width: 95vw; }
-            .layout-mobile #jellyfin-enhanced-panel .shortcuts-container { flex-direction: column; }
-            .layout-mobile #jellyfin-enhanced-panel #settings-content { width: auto !important; }
-            .layout-mobile #jellyfin-enhanced-panel .panel-main-content { padding: 0 15px; }
-            .layout-mobile #jellyfin-enhanced-panel .panel-footer { flex-direction: row; gap: 16px; }
-            .layout-mobile #jellyfin-enhanced-panel .close-helptext { display: none; }
-            .layout-mobile #jellyfin-enhanced-panel .footer-buttons { flex-direction: column; align-items: flex-end !important; width: 100%; gap: 10px; }
-            .layout-mobile #jellyfin-enhanced-panel .footer-buttons > * { justify-content: center; }
+            .layout-mobile #jellyfin-on-demand-panel { width: 95vw; max-width: 95vw; }
+            .layout-mobile #jellyfin-on-demand-panel .shortcuts-container { flex-direction: column; }
+            .layout-mobile #jellyfin-on-demand-panel #settings-content { width: auto !important; }
+            .layout-mobile #jellyfin-on-demand-panel .panel-main-content { padding: 0 15px; }
+            .layout-mobile #jellyfin-on-demand-panel .panel-footer { flex-direction: row; gap: 16px; }
+            .layout-mobile #jellyfin-on-demand-panel .close-helptext { display: none; }
+            .layout-mobile #jellyfin-on-demand-panel .footer-buttons { flex-direction: column; align-items: flex-end !important; width: 100%; gap: 10px; }
+            .layout-mobile #jellyfin-on-demand-panel .footer-buttons > * { justify-content: center; }
             @keyframes longPressGlow { from { box-shadow: 0 0 5px 2px var(--primary-accent-color, #fff); } to { box-shadow: 0 0 8px 15px transparent; } }
             .headerUserButton.long-press-active { animation: longPressGlow 750ms ease-out; }
-            #jellyfin-enhanced-panel kbd {
+            #jellyfin-on-demand-panel kbd {
                 background-color: rgba(255,255,255,0.1);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 4px;
@@ -359,8 +359,8 @@
                Quality Tags toggle. Visual treatment mirrors the rest of the
                panel: subtle borders, accent on hover, material-icon arrows
                that match other JE icon buttons. */
-            #jellyfin-enhanced-panel .je-quality-cat-wrap { margin: 8px 0 0 30px; }
-            #jellyfin-enhanced-panel .je-quality-cat-expander {
+            #jellyfin-on-demand-panel .je-quality-cat-wrap { margin: 8px 0 0 30px; }
+            #jellyfin-on-demand-panel .je-quality-cat-expander {
                 background: transparent;
                 border: none;
                 color: rgba(255,255,255,0.7);
@@ -373,32 +373,32 @@
                 gap: 4px;
                 transition: color 0.15s;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-expander:hover { color: #fff; }
-            #jellyfin-enhanced-panel .je-cat-chevron {
+            #jellyfin-on-demand-panel .je-quality-cat-expander:hover { color: #fff; }
+            #jellyfin-on-demand-panel .je-cat-chevron {
                 font-size: 18px !important;
                 transition: transform 0.2s ease;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-expander[aria-expanded="true"] .je-cat-chevron {
+            #jellyfin-on-demand-panel .je-quality-cat-expander[aria-expanded="true"] .je-cat-chevron {
                 transform: rotate(90deg);
                 color: var(--primary-accent-color, #00a4dc);
             }
-            #jellyfin-enhanced-panel .je-quality-cat-list {
+            #jellyfin-on-demand-panel .je-quality-cat-list {
                 margin: 6px 0 0 30px;
                 padding: 8px 10px;
                 background: rgba(0,0,0,0.18);
                 border: 1px solid rgba(255,255,255,0.08);
                 border-radius: 6px;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-row {
+            #jellyfin-on-demand-panel .je-quality-cat-row {
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 padding: 4px 2px;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-row + .je-quality-cat-row {
+            #jellyfin-on-demand-panel .je-quality-cat-row + .je-quality-cat-row {
                 border-top: 1px solid rgba(255,255,255,0.06);
             }
-            #jellyfin-enhanced-panel .je-quality-cat-label-wrap {
+            #jellyfin-on-demand-panel .je-quality-cat-label-wrap {
                 flex: 1;
                 display: flex;
                 align-items: center;
@@ -406,14 +406,14 @@
                 cursor: pointer;
                 min-width: 0;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-label-wrap input[type="checkbox"] {
+            #jellyfin-on-demand-panel .je-quality-cat-label-wrap input[type="checkbox"] {
                 width: 16px;
                 height: 16px;
                 flex-shrink: 0;
                 cursor: pointer;
             }
-            #jellyfin-enhanced-panel .je-quality-cat-label { font-size: 13px; }
-            #jellyfin-enhanced-panel .je-cat-btn {
+            #jellyfin-on-demand-panel .je-quality-cat-label { font-size: 13px; }
+            #jellyfin-on-demand-panel .je-cat-btn {
                 background: rgba(255,255,255,0.04);
                 border: 1px solid rgba(255,255,255,0.15);
                 color: rgba(255,255,255,0.85);
@@ -426,13 +426,13 @@
                 justify-content: center;
                 transition: background 0.15s, border-color 0.15s, color 0.15s;
             }
-            #jellyfin-enhanced-panel .je-cat-btn .material-icons { font-size: 16px !important; }
-            #jellyfin-enhanced-panel .je-cat-btn:not([disabled]):hover {
+            #jellyfin-on-demand-panel .je-cat-btn .material-icons { font-size: 16px !important; }
+            #jellyfin-on-demand-panel .je-cat-btn:not([disabled]):hover {
                 background: rgba(255,255,255,0.1);
                 border-color: var(--primary-accent-color, rgba(255,255,255,0.35));
                 color: #fff;
             }
-            #jellyfin-enhanced-panel .je-cat-btn[disabled] {
+            #jellyfin-on-demand-panel .je-cat-btn[disabled] {
                 opacity: 0.35;
                 cursor: not-allowed;
             }
@@ -441,61 +441,61 @@
     };
 
     /**
-     * Adds the "Jellyfin Enhanced" menu button to the sidebar.
+     * Adds the "Jellyfin on Demand" menu button to the sidebar.
      */
     JE.addPluginMenuButton = () => {
         const addMenuButton = (sidebar) => {
-            let jellyfinEnhancedSection = sidebar.querySelector('.jellyfinEnhancedSection');
+            let jellyfinOnDemandSection = sidebar.querySelector('.jellyfinOnDemandSection');
 
-            if (!jellyfinEnhancedSection) {
-                jellyfinEnhancedSection = document.createElement('div');
-                jellyfinEnhancedSection.className = 'jellyfinEnhancedSection';
-                jellyfinEnhancedSection.innerHTML = '<h3 class="sidebarHeader">Jellyfin Enhanced</h3>';
+            if (!jellyfinOnDemandSection) {
+                jellyfinOnDemandSection = document.createElement('div');
+                jellyfinOnDemandSection.className = 'jellyfinOnDemandSection';
+                jellyfinOnDemandSection.innerHTML = '<h3 class="sidebarHeader">Jellyfin on Demand</h3>';
 
                 // Insert just above Media section
                 const mediaSection = sidebar.querySelector('.libraryMenuOptions');
                 if (mediaSection) {
-                    sidebar.insertBefore(jellyfinEnhancedSection, mediaSection);
+                    sidebar.insertBefore(jellyfinOnDemandSection, mediaSection);
                 } else {
-                    sidebar.appendChild(jellyfinEnhancedSection);
+                    sidebar.appendChild(jellyfinOnDemandSection);
                 }
             }
 
-            if (!jellyfinEnhancedSection.querySelector('#jellyfinEnhancedSettingsLink')) {
-                const jellyfinEnhancedLink = document.createElement('a');
-                jellyfinEnhancedLink.setAttribute('is', 'emby-linkbutton');
-                jellyfinEnhancedLink.className = 'lnkMediaFolder navMenuOption emby-button';
-                jellyfinEnhancedLink.href = '#';
-                jellyfinEnhancedLink.id = 'jellyfinEnhancedSettingsLink';
-                jellyfinEnhancedLink.innerHTML = `
+            if (!jellyfinOnDemandSection.querySelector('#jellyfinOnDemandSettingsLink')) {
+                const jellyfinOnDemandLink = document.createElement('a');
+                jellyfinOnDemandLink.setAttribute('is', 'emby-linkbutton');
+                jellyfinOnDemandLink.className = 'lnkMediaFolder navMenuOption emby-button';
+                jellyfinOnDemandLink.href = '#';
+                jellyfinOnDemandLink.id = 'jellyfinOnDemandSettingsLink';
+                jellyfinOnDemandLink.innerHTML = `
                     <span class="material-icons navMenuOptionIcon" aria-hidden="true">tune</span>
-                    <span class="sectionName navMenuOptionText">Enhanced Panel</span>
+                    <span class="sectionName navMenuOptionText">On Demand Panel</span>
                 `;
 
-                jellyfinEnhancedLink.addEventListener('click', (e) => {
+                jellyfinOnDemandLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     JE.showEnhancedPanel();
                 });
 
-                jellyfinEnhancedSection.appendChild(jellyfinEnhancedLink);
+                jellyfinOnDemandSection.appendChild(jellyfinOnDemandLink);
             }
         };
 
         JE.helpers.onBodyMutation('ui-menu-button', () => {
             // getSidebarContainer() falls back to the new MUI drawer (mobile only)
             // when the legacy sidebar is hidden under Jellyfin 12's experimental
-            // layout. Every other module that looks for `.jellyfinEnhancedSection`
+            // layout. Every other module that looks for `.jellyfinOnDemandSection`
             // queries it unscoped, so creating it here - wherever it ends up - is
             // the only choke point that needs to know about the new drawer.
             const sidebar = JE.helpers.getSidebarContainer();
-            if (sidebar && !sidebar.querySelector('#jellyfinEnhancedSettingsLink')) {
+            if (sidebar && !sidebar.querySelector('#jellyfinOnDemandSettingsLink')) {
                 addMenuButton(sidebar);
             }
         });
     };
 
     /**
-     * Injects the "Jellyfin Enhanced" settings button into the video player OSD.
+     * Injects the "Jellyfin on Demand" settings button into the video player OSD.
      */
     JE.addOsdSettingsButton = () => {
         if (document.getElementById('enhancedSettingsBtn')) return;
@@ -508,7 +508,7 @@
         enhancedSettingsBtn.id = 'enhancedSettingsBtn';
         enhancedSettingsBtn.setAttribute('is', 'paper-icon-button-light');
         enhancedSettingsBtn.className = 'autoSize paper-icon-button-light';
-        enhancedSettingsBtn.title = 'Jellyfin Enhanced';
+        enhancedSettingsBtn.title = 'Jellyfin on Demand';
         enhancedSettingsBtn.innerHTML = '<span class="largePaperIconButton material-icons" aria-hidden="true">tune</span>';
 
         enhancedSettingsBtn.onclick = (e) => {
@@ -520,7 +520,7 @@
     };
 
     /**
-     * Injects the "Jellyfin Enhanced" link into the user preferences menu (mypreferencesmenu.html).
+     * Injects the "Jellyfin on Demand" link into the user preferences menu (mypreferencesmenu.html).
      * Adds it as the last item in the first vertical section (after Controls).
      */
     let userPrefsLinkObserver = null;
@@ -531,11 +531,11 @@
             if (!menuContainer) return false;
 
             // Check if link already exists
-            if (document.querySelector('#jellyfinEnhancedUserPrefsLink')) return true;
+            if (document.querySelector('#jellyfinOnDemandUserPrefsLink')) return true;
 
             // Create the link element matching Jellyfin's structure
             const enhancedLink = document.createElement('a');
-            enhancedLink.id = 'jellyfinEnhancedUserPrefsLink';
+            enhancedLink.id = 'jellyfinOnDemandUserPrefsLink';
             enhancedLink.setAttribute('is', 'emby-linkbutton');
             enhancedLink.setAttribute('data-ripple', 'false');
             enhancedLink.href = '#';
@@ -548,7 +548,7 @@
                 <div class="listItem">
                     <span class="material-icons listItemIcon listItemIcon-transparent tune" aria-hidden="true"></span>
                     <div class="listItemBody">
-                        <div class="listItemBodyText">Advanced Settings (Jellyfin Enhanced)</div>
+                        <div class="listItemBodyText">Advanced Settings (Jellyfin on Demand)</div>
                     </div>
                 </div>
             `;
@@ -600,7 +600,7 @@
                 // Update the userConfig with fresh data
                 if (settingsResponse) {
                     JE.userConfig = JE.userConfig || {};
-                    JE.userConfig.settings = window.JellyfinEnhanced.toCamelCase(settingsResponse);
+                    JE.userConfig.settings = window.JellyfinOnDemand.toCamelCase(settingsResponse);
 
                     // Reload current settings
                     if (typeof JE.loadSettings === 'function') {
@@ -608,7 +608,7 @@
                     }
                 }
             } catch (e) {
-                console.warn("🪼 Jellyfin Enhanced: Could not refresh settings for panel display:", e);
+                console.warn("🪼 Jellyfin on Demand: Could not refresh settings for panel display:", e);
             }
         }
 
@@ -617,7 +617,7 @@
             JE.initializeShortcuts();
         }
 
-        const panelId = 'jellyfin-enhanced-panel';
+        const panelId = 'jellyfin-on-demand-panel';
         const existing = document.getElementById(panelId);
         if (existing) {
             existing.remove();
@@ -671,7 +671,7 @@
 
         // Ensure activeShortcuts is initialized before building the panel
         if (!JE.state.activeShortcuts || Object.keys(JE.state.activeShortcuts).length === 0) {
-            console.warn('🪼 Jellyfin Enhanced: activeShortcuts not initialized, initializing now...');
+            console.warn('🪼 Jellyfin on Demand: activeShortcuts not initialized, initializing now...');
             if (typeof JE.initializeShortcuts === 'function') {
                 JE.initializeShortcuts();
             }
@@ -756,17 +756,17 @@
 
         help.innerHTML = `
             <style>
-                #jellyfin-enhanced-panel .tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
-                #jellyfin-enhanced-panel .tab-button { font-family: inherit; flex: 1; padding: 14px; text-align: center; cursor: pointer; background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 600; transition: all 0.2s; border-bottom: 2px solid transparent; background: ${panelBgColor}; }
-                #jellyfin-enhanced-panel .tab-button:hover { background: ${panelBgColor}; color: #fff; }
-                #jellyfin-enhanced-panel .tab-button.active { color: #fff; border-bottom-color: ${primaryAccentColor}; background: ${headerFooterBg}; }
-                #jellyfin-enhanced-panel .tab-content { display: none; }
-                #jellyfin-enhanced-panel .tab-content.active { display: block; }
+                #jellyfin-on-demand-panel .tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+                #jellyfin-on-demand-panel .tab-button { font-family: inherit; flex: 1; padding: 14px; text-align: center; cursor: pointer; background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 600; transition: all 0.2s; border-bottom: 2px solid transparent; background: ${panelBgColor}; }
+                #jellyfin-on-demand-panel .tab-button:hover { background: ${panelBgColor}; color: #fff; }
+                #jellyfin-on-demand-panel .tab-button.active { color: #fff; border-bottom-color: ${primaryAccentColor}; background: ${headerFooterBg}; }
+                #jellyfin-on-demand-panel .tab-content { display: none; }
+                #jellyfin-on-demand-panel .tab-content.active { display: block; }
                 @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
                 .shake-error { animation: shake 0.5s ease-in-out; }
             </style>
             <div style="padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg};">
-                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: ${primaryAccentColor}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${JE.icon(JE.IconName.JELLYFISH)} Jellyfin Enhanced</div>
+                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: ${primaryAccentColor}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${JE.icon(JE.IconName.JELLYFISH)} Jellyfin on Demand</div>
                 <div style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.8);">${escapeHtml(JE.t('panel_version', { version: JE.pluginVersion }))}</div>
             </div>
             <div class="tabs">
@@ -2064,7 +2064,7 @@
                     } catch (err) {
                         // Log even though the toast covers the visible case, so a dev
                         // triaging "panel isn't saving" sees the real error.
-                        console.error('🪼 Jellyfin Enhanced [SpoilerBlur] saveSbPrefs failed:', err);
+                        console.error('🪼 Jellyfin on Demand [SpoilerBlur] saveSbPrefs failed:', err);
                         // Revert the visual state of the box the user just clicked
                         // so they can see the change didn't stick.
                         if (changedBox) changedBox.checked = previousChecked;
@@ -2105,7 +2105,7 @@
                                 : (loaded[k] !== false); // checked = inherit; unchecked = opt-out(false)
                         });
                     } catch (syncErr) {
-                        console.warn('🪼 Jellyfin Enhanced [SpoilerBlur] pref re-sync failed:', syncErr);
+                        console.warn('🪼 Jellyfin on Demand [SpoilerBlur] pref re-sync failed:', syncErr);
                     }
                 })();
             }
@@ -2182,7 +2182,7 @@
             const localStorageLang = localStorage.getItem(languageKey);
             const savedLanguage = JE.currentSettings.displayLanguage || localStorageLang || '';
 
-            console.log('🪼 Jellyfin Enhanced: Current language setting:', {
+            console.log('🪼 Jellyfin on Demand: Current language setting:', {
                 fromSettings: JE.currentSettings.displayLanguage,
                 fromLocalStorage: localStorageLang,
                 willUse: savedLanguage
@@ -2207,7 +2207,7 @@
 
                     // Check GitHub for any new locale files added since the last plugin release (1 request)
                     try {
-                        const ghResp = await fetch('https://api.github.com/repos/n00bcodr/Jellyfin-Enhanced/contents/Jellyfin.Plugin.JellyfinEnhanced/js/locales');
+                        const ghResp = await fetch('https://api.github.com/repos/abcdqfr/jellyfin-on-demand/contents/plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js/locales');
                         if (ghResp.ok) {
                             const files = await ghResp.json();
                             const serverSet = new Set(localeCodes.map(c => c.toLowerCase()));
@@ -2251,7 +2251,7 @@
                         displayLanguageSelect.appendChild(option);
                     });
                 } catch (err) {
-                    console.warn('🪼 Jellyfin Enhanced: Failed to load language options:', err);
+                    console.warn('🪼 Jellyfin on Demand: Failed to load language options:', err);
                 }
 
                 // Normalize saved language code with region support (e.g., zh-HK) when available
@@ -2271,7 +2271,7 @@
                 if (normalizedLanguage) {
                     displayLanguageSelect.value = normalizedLanguage;
                 }
-                console.log('🪼 Jellyfin Enhanced: Set language dropdown to:', savedLanguage || 'Auto', 'Normalized to:', normalizedLanguage, 'Select element value is now:', displayLanguageSelect.value);
+                console.log('🪼 Jellyfin on Demand: Set language dropdown to:', savedLanguage || 'Auto', 'Normalized to:', normalizedLanguage, 'Select element value is now:', displayLanguageSelect.value);
             })();
 
             // Save language on change
@@ -2449,4 +2449,4 @@
         setupPresetHandlers('font-family-presets-container', JE.fontFamilyPresets, 'font-family');
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

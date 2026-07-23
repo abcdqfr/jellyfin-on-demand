@@ -7,7 +7,7 @@ license obligations below and record the take in the [Steal log](#steal-log).
 **Product rule:** Seerr/Jellyseerr is **not** a runtime dependency and is
 **not** forked as a second product ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
 Discovery UX that originally talked to a Seerr process has been **rolled into
-this Jellyfin on Demand Jellyfin Enhanced fork** — same plugin, same GPL-3.0 shipping
+this Jellyfin on Demand fork** — same plugin, same GPL-3.0 shipping
 surface under `plugin/Jellyfin.Plugin.JellyfinOnDemand/`. Seerr remains **reference
 only** (local clone + occasional MIT pattern takes).
 
@@ -17,7 +17,7 @@ only** (local clone + occasional MIT pattern takes).
 
 | Tree | Upstream | License | Role |
 |------|----------|---------|------|
-| [`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/) | Fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) → [abcdqfr/Jellyfin.Plugin.JellyfinOnDemand](https://github.com/abcdqfr/Jellyfin.Plugin.JellyfinOnDemand) | **GPL-3.0** | Product plugin (derivative work). Includes JE's former Seerr/Jellyseerr **client chrome** (`js/jellyseerr/*`, proxy controllers) **rolled in** and retargeted to JellyfinOnDemand/TMDB — no Seerr process. |
+| [`plugin/Jellyfin.Plugin.JellyfinOnDemand/`](plugin/Jellyfin.Plugin.JellyfinOnDemand/) | Fork of [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) → [abcdqfr/jellyfin-on-demand](https://github.com/abcdqfr/jellyfin-on-demand) | **GPL-3.0** | Product plugin (derivative work). Includes JE's former Seerr/Jellyseerr **client chrome** (`js/jellyseerr/*`, proxy controllers) **rolled in** and retargeted to JellyfinOnDemand/TMDB — no Seerr process. |
 | [`third-party/jellyfin-enhanced/`](third-party/jellyfin-enhanced/) | [n00bcodr/Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) | **GPL-3.0** | Pristine upstream reference |
 | [`third-party/seerr/`](third-party/seerr/) | [seerr-team/seerr](https://github.com/seerr-team/seerr) (MIT; copyright notice: © 2020 sct — Overseerr lineage; Seerr is the Jellyseerr successor tree we clone) | **MIT** | Discovery/request **patterns** for retarget into plugin; not a runtime dep |
 | [`third-party/vlc-bittorrent/`](third-party/vlc-bittorrent/) | [johang/vlc-bittorrent](https://github.com/johang/vlc-bittorrent) | **GPL-3.0-or-later** (Johan Gunnarsson) | libtorrent in-process session lean (O7a) |
@@ -34,7 +34,7 @@ License texts on disk:
 
 ## Jellyseerr / Seerr chrome inside this fork (rolled-in)
 
-Upstream **Jellyfin Enhanced** shipped a Seerr/Jellyseerr *integration*
+Upstream **Jellyfin on Demand** shipped a Seerr/Jellyseerr *integration*
 (poster search chrome, request buttons, proxy routes under names like
 `jellyseerr/*`). That code is part of the JE GPL-3.0 tree.
 
@@ -61,7 +61,7 @@ retain the MIT notice.
 
 ## Compliance rules (what “steal” requires)
 
-### GPL-3.0 sources (Jellyfin Enhanced, vlc-bittorrent)
+### GPL-3.0 sources (Jellyfin on Demand, vlc-bittorrent)
 
 - Jellyfin on Demand plugin that **is** a JE fork remains **GPL-3.0**. Keep LICENSE;
   preserve copyright notices in modified files.

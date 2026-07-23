@@ -56,7 +56,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // (mirrors SpoilerFieldStripFilter's fast-path pattern).
         public Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var cfg = JellyfinEnhanced.Instance?.Configuration;
+            var cfg = JellyfinOnDemand.Instance?.Configuration;
             if (cfg?.SpoilerBlurEnabled != true)
             {
                 return next();

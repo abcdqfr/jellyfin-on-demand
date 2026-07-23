@@ -56,7 +56,7 @@ Default floors: start in the ~8+8 MiB class; tune with evidence, not lore.
 | ID | Choice | Status |
 |----|--------|--------|
 | O4a | New companion from scratch; study JE | superseded |
-| **O4b** | **Fork Jellyfin Enhanced** → gut Seerr/*arr; keep pane/proxy/settings/discovery chrome | **Locked** |
+| **O4b** | **Fork Jellyfin on Demand** → gut Seerr/*arr; keep pane/proxy/settings/discovery chrome | **Locked** |
 | O4c | JE config → external helper URL only | not the product spine |
 
 JE fork is the product shell. **Do not fork Seerr** — retarget discovery/request

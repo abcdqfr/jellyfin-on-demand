@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Falha ao guardar a avaliação. Tente novamente.",
     "panel_settings_language": "Configurações de idioma",
     "panel_settings_language_display": "Idioma de exibição",
-    "panel_settings_language_display_desc": "Selecione o idioma para a interface do Jellyfin Enhanced. As alterações entram em vigor após a atualização da página.",
+    "panel_settings_language_display_desc": "Selecione o idioma para a interface do Jellyfin on Demand. As alterações entram em vigor após a atualização da página.",
     "panel_settings_language_clear_cache": "Limpar cache de tradução",
     "panel_settings_language_clear_cache_desc": "Remove todas as traduções em cache. Útil para buscar uma tradução recentemente atualizada do Github.",
     "toast_language_changed": "{{icon:language}} Idioma alterado! Atualizando página…",

@@ -2,12 +2,12 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Genre Tags:';
+    const logPrefix = '🪼 Jellyfin on Demand: Genre Tags:';
     const containerClass = 'genre-overlay-container';
     const tagClass = 'genre-tag';
     const TAGGED_ATTR = 'jeGenreTagged';
-    const CACHE_KEY = 'JellyfinEnhanced-genreTagsCache';
-    const CACHE_TIMESTAMP_KEY = 'JellyfinEnhanced-genreTagsCacheTimestamp';
+    const CACHE_KEY = 'JellyfinOnDemand-genreTagsCache';
+    const CACHE_TIMESTAMP_KEY = 'JellyfinOnDemand-genreTagsCacheTimestamp';
     const ENABLE_LOCAL_STORAGE_FALLBACK =
         JE.pluginConfig?.TagCacheServerMode === false ||
         JE.pluginConfig?.EnableTagsLocalStorageFallback === true;
@@ -237,7 +237,7 @@
 
         const style = document.createElement('style');
         style.id = styleId;
-        const pos = (window.JellyfinEnhanced?.currentSettings?.genreTagsPosition || window.JellyfinEnhanced?.pluginConfig?.GenreTagsPosition || 'top-right');
+        const pos = (window.JellyfinOnDemand?.currentSettings?.genreTagsPosition || window.JellyfinOnDemand?.pluginConfig?.GenreTagsPosition || 'top-right');
         const isTop = pos.includes('top');
         const isLeft = pos.includes('left');
         const topVal = isTop ? '6px' : 'auto';
@@ -450,4 +450,4 @@
         JE.tagPipeline?.scheduleScan();
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

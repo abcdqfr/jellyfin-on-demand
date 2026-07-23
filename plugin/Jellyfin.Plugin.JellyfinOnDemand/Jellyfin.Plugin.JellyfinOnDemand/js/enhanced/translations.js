@@ -52,7 +52,7 @@
                 return pluginVersion;
             }
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to fetch plugin version', e);
+            console.warn('🪼 Jellyfin on Demand: Failed to fetch plugin version', e);
         }
 
         return 'unknown';
@@ -65,12 +65,12 @@
                 if (key && (key.startsWith('JE_translation_') || key.startsWith('JE_translation_ts_'))) {
                     if (!key.includes(`_${pluginVersion}`)) {
                         localStorage.removeItem(key);
-                        console.log(`🪼 Jellyfin Enhanced: Removed old translation cache: ${key}`);
+                        console.log(`🪼 Jellyfin on Demand: Removed old translation cache: ${key}`);
                     }
                 }
             }
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to clean up old translation caches', e);
+            console.warn('🪼 Jellyfin on Demand: Failed to clean up old translation caches', e);
         }
     }
 
@@ -83,16 +83,16 @@
         if (cachedTranslations && cachedTimestamp) {
             const age = Date.now() - parseInt(cachedTimestamp, 10);
             if (age < CACHE_DURATION) {
-                console.log(`🪼 Jellyfin Enhanced: Using cached translations for ${code} (age: ${Math.round(age / 1000 / 60)} minutes, version: ${pluginVersion})`);
+                console.log(`🪼 Jellyfin on Demand: Using cached translations for ${code} (age: ${Math.round(age / 1000 / 60)} minutes, version: ${pluginVersion})`);
                 try {
                     return { translations: JSON.parse(cachedTranslations), usedLang: code };
                 } catch (e) {
-                    console.warn('🪼 Jellyfin Enhanced: Failed to parse cached translations, will fetch fresh', e);
+                    console.warn('🪼 Jellyfin on Demand: Failed to parse cached translations, will fetch fresh', e);
                 }
             }
         }
 
-        console.log(`🪼 Jellyfin Enhanced: Loading bundled translations for ${code}...`);
+        console.log(`🪼 Jellyfin on Demand: Loading bundled translations for ${code}...`);
         try {
             const bundledResponse = await fetch(ApiClient.getUrl(`/JellyfinOnDemand/locales/${code}.json`));
             if (bundledResponse.ok) {
@@ -100,16 +100,16 @@
                 try {
                     localStorage.setItem(cacheKey, JSON.stringify(translations));
                     localStorage.setItem(timestampKey, Date.now().toString());
-                    console.log(`🪼 Jellyfin Enhanced: Successfully loaded and cached bundled translations for ${code} (version: ${pluginVersion})`);
+                    console.log(`🪼 Jellyfin on Demand: Successfully loaded and cached bundled translations for ${code} (version: ${pluginVersion})`);
                 } catch (e) { /* ignore */ }
                 return { translations, usedLang: code };
             }
         } catch (bundledError) {
-            console.warn('🪼 Jellyfin Enhanced: Bundled translations failed, falling back to GitHub:', bundledError.message);
+            console.warn('🪼 Jellyfin on Demand: Bundled translations failed, falling back to GitHub:', bundledError.message);
         }
 
         try {
-            console.log(`🪼 Jellyfin Enhanced: Fetching translations for ${code} from GitHub...`);
+            console.log(`🪼 Jellyfin on Demand: Fetching translations for ${code} from GitHub...`);
             const githubResponse = await fetch(remoteLocaleUrl(code), {
                 method: 'GET',
                 cache: 'no-cache',
@@ -121,15 +121,15 @@
                 try {
                     localStorage.setItem(cacheKey, JSON.stringify(translations));
                     localStorage.setItem(timestampKey, Date.now().toString());
-                    console.log(`🪼 Jellyfin Enhanced: Successfully fetched and cached translations for ${code} from GitHub (version: ${pluginVersion})`);
+                    console.log(`🪼 Jellyfin on Demand: Successfully fetched and cached translations for ${code} from GitHub (version: ${pluginVersion})`);
                 } catch (storageError) {
-                    console.warn('🪼 Jellyfin Enhanced: Failed to cache translations (localStorage full?)', storageError);
+                    console.warn('🪼 Jellyfin on Demand: Failed to cache translations (localStorage full?)', storageError);
                 }
                 return { translations, usedLang: code };
             }
 
             if (githubResponse.status === 404 && code !== 'en') {
-                console.warn(`🪼 Jellyfin Enhanced: Language ${code} not found on GitHub, falling back to English`);
+                console.warn(`🪼 Jellyfin on Demand: Language ${code} not found on GitHub, falling back to English`);
                 const englishResponse = await fetch(remoteLocaleUrl('en'), {
                     method: 'GET',
                     cache: 'no-cache',
@@ -149,17 +149,17 @@
             }
 
             if (githubResponse.status === 403) {
-                console.warn('🪼 Jellyfin Enhanced: GitHub rate limit detected, using bundled fallback');
+                console.warn('🪼 Jellyfin on Demand: GitHub rate limit detected, using bundled fallback');
             } else if (githubResponse.status >= 500) {
-                console.warn(`🪼 Jellyfin Enhanced: GitHub server error (${githubResponse.status}), using bundled fallback`);
+                console.warn(`🪼 Jellyfin on Demand: GitHub server error (${githubResponse.status}), using bundled fallback`);
             }
 
             throw new Error(`GitHub fetch failed with status ${githubResponse.status}`);
         } catch (githubError) {
-            console.warn('🪼 Jellyfin Enhanced: GitHub fetch failed, falling back to bundled translations:', githubError.message);
+            console.warn('🪼 Jellyfin on Demand: GitHub fetch failed, falling back to bundled translations:', githubError.message);
         }
 
-        console.log(`🪼 Jellyfin Enhanced: Loading bundled translations for ${code}...`);
+        console.log(`🪼 Jellyfin on Demand: Loading bundled translations for ${code}...`);
         let response = await fetch(ApiClient.getUrl(`/JellyfinOnDemand/locales/${code}.json`));
 
         if (response.ok) {
@@ -171,7 +171,7 @@
             return { translations, usedLang: code };
         }
 
-        console.warn(`🪼 Jellyfin Enhanced: Bundled ${code} not found, falling back to bundled English`);
+        console.warn(`🪼 Jellyfin on Demand: Bundled ${code} not found, falling back to bundled English`);
         response = await fetch(ApiClient.getUrl('/JellyfinOnDemand/locales/en.json'));
         if (response.ok) {
             return { translations: await response.json(), usedLang: 'en' };
@@ -218,15 +218,15 @@
                         return result.translations;
                     }
                 } catch (e) {
-                    console.warn(`🪼 Jellyfin Enhanced: Failed to load translations for ${code}`, e);
+                    console.warn(`🪼 Jellyfin on Demand: Failed to load translations for ${code}`, e);
                 }
             }
 
-            console.error('🪼 Jellyfin Enhanced: Failed to load translations from any source');
+            console.error('🪼 Jellyfin on Demand: Failed to load translations from any source');
             return {};
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Failed to load translations:', error);
+            console.error('🪼 Jellyfin on Demand: Failed to load translations:', error);
             return {};
         }
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

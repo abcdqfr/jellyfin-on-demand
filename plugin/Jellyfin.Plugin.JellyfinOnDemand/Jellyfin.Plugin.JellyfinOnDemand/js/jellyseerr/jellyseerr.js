@@ -10,17 +10,17 @@
         // JellyfinOnDemand discovery reuses this chrome with TMDB (no Seerr process).
         const swarmDiscovery = JE.pluginConfig.JellyfinOnDemandDiscoveryEnabled !== false;
         if (!JE.pluginConfig.JellyseerrEnabled && !swarmDiscovery) {
-            console.log('🪼 Jellyfin Enhanced: Seerr Search: Integration is disabled in plugin settings.');
+            console.log('🪼 Jellyfin on Demand: Seerr Search: Integration is disabled in plugin settings.');
             return;
         }
         // When JellyfinOnDemand discovery is on, always show results — ignore the
         // legacy JellyseerrShowSearchResults=false default from ADR-004 unload.
         if (!swarmDiscovery && JE.pluginConfig.JellyseerrShowSearchResults === false) {
-            console.log('🪼 Jellyfin Enhanced: Seerr Search: Search results are disabled in plugin settings.');
+            console.log('🪼 Jellyfin on Demand: Seerr Search: Search results are disabled in plugin settings.');
             return;
         }
 
-        const logPrefix = '🪼 Jellyfin Enhanced: Seerr:';
+        const logPrefix = '🪼 Jellyfin on Demand: Seerr:';
         const escapeHtml = JE.escapeHtml;
         console.log(`${logPrefix} Initializing...`);
 
@@ -632,4 +632,4 @@
         console.log(`${logPrefix} Initialization complete.`);
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

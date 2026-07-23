@@ -10,13 +10,13 @@
      */
     JE.initializeQualityTags = function() {
         // --- CONSTANTS ---
-        const logPrefix = '🪼 Jellyfin Enhanced: Quality Tags:';
+        const logPrefix = '🪼 Jellyfin on Demand: Quality Tags:';
         const overlayClass = 'quality-overlay-label';
         const containerClass = 'quality-overlay-container';
         const TAGGED_ATTR = 'jeQualityTagged';
         // Use static cache key (not version-based) to persist across plugin updates
-        const CACHE_KEY = 'JellyfinEnhanced-qualityTagsCache';
-        const CACHE_TIMESTAMP_KEY = 'JellyfinEnhanced-qualityTagsCacheTimestamp';
+        const CACHE_KEY = 'JellyfinOnDemand-qualityTagsCache';
+        const CACHE_TIMESTAMP_KEY = 'JellyfinOnDemand-qualityTagsCacheTimestamp';
         const ENABLE_LOCAL_STORAGE_FALLBACK =
             JE.pluginConfig?.TagCacheServerMode === false ||
             JE.pluginConfig?.EnableTagsLocalStorageFallback === true;
@@ -868,7 +868,7 @@
                 }`;
             }).join("\n");
 
-            const pos = (window.JellyfinEnhanced?.currentSettings?.qualityTagsPosition || window.JellyfinEnhanced?.pluginConfig?.QualityTagsPosition || 'top-left');
+            const pos = (window.JellyfinOnDemand?.currentSettings?.qualityTagsPosition || window.JellyfinOnDemand?.pluginConfig?.QualityTagsPosition || 'top-left');
             const isTop = pos.includes('top');
             const isLeft = pos.includes('left');
             const topVal = isTop ? '6px' : 'auto';
@@ -1052,7 +1052,7 @@
      * Cleans up existing state and re-applies tags.
      */
     JE.reinitializeQualityTags = function() {
-        const logPrefix = '🪼 Jellyfin Enhanced: Quality Tags:';
+        const logPrefix = '🪼 Jellyfin on Demand: Quality Tags:';
         console.log(`${logPrefix} Re-initializing...`);
 
         // Always remove existing tags and clear tagged state
@@ -1074,4 +1074,4 @@
         JE.tagPipeline?.scheduleScan();
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

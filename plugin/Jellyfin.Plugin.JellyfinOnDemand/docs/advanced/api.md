@@ -1,12 +1,12 @@
-## Jellyfin Enhanced API
+## Jellyfin on Demand API
 
 ### Get Plugin Version
 
-Checks the installed version of the Jellyfin Enhanced plugin:
+Checks the installed version of the Jellyfin on Demand plugin:
 
 ```bash
 curl -X GET \
-  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/version"
+  "<JELLYFIN_ADDRESS>/JellyfinOnDemand/version"
 ```
 
 ## Bookmark API + Info
@@ -14,7 +14,7 @@ curl -X GET \
 ### Storage Directory
 Bookmarks are stored in the server's user data directory at:
 ```
-/config/data/users/{userId}/jellyfin-enhanced/bookmarks.json
+/config/data/users/{userId}/jellyfin-on-demand/bookmarks.json
 ```
 
 The data structure is:
@@ -39,17 +39,17 @@ The data structure is:
 
 ### API Access
 
-External applications can read and write bookmarks using the Jellyfin Enhanced API endpoints
+External applications can read and write bookmarks using the Jellyfin on Demand API endpoints
 
 #### Get Bookmarks
 ```http
-GET /JellyfinEnhanced/user-settings?fileName=bookmarks.json
+GET /JellyfinOnDemand/user-settings?fileName=bookmarks.json
 Authorization: MediaBrowser Token="{your-api-key}"
 ```
 
 #### Save Bookmarks
 ```http
-POST /JellyfinEnhanced/user-settings
+POST /JellyfinOnDemand/user-settings
 Authorization: MediaBrowser Token="{your-api-key}"
 Content-Type: application/json
 
@@ -70,7 +70,7 @@ Checks if the plugin can connect to any of the configured Seerr URLs using the p
 ```bash
 curl -X GET \
   -H "X-Emby-Token: <API_KEY>" \
-  "<JELLYFIN_URL>/JellyfinEnhanced/jellyseerr/status"
+  "<JELLYFIN_URL>/JellyfinOnDemand/jellyseerr/status"
 ```
 
 ### Check User Status
@@ -81,7 +81,7 @@ Verifies that the currently logged-in Jellyfin user is successfully linked to a 
 curl -X GET \
   -H "X-Emby-Token: <JELLYFIN_API_KEY>" \
   -H "X-Jellyfin-User-Id: <JELLYFIN_USER_ID>" \
-  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/jellyseerr/user-status"
+  "<JELLYFIN_ADDRESS>/JellyfinOnDemand/jellyseerr/user-status"
 ```
 
 ### Perform A Seerr Search
@@ -92,7 +92,7 @@ Executes a search query through the Seerr instance for the specified user.
 curl -X GET \
   -H "X-Emby-Token: <API_KEY>" \
   -H "X-Jellyfin-User-Id: <USER_ID>" \
-  "<JELLYFIN_URL>/JellyfinEnhanced/jellyseerr/search?query=Inception"
+  "<JELLYFIN_URL>/JellyfinOnDemand/jellyseerr/search?query=Inception"
 ```
 
 ### Make a Request on Seerr
@@ -108,7 +108,7 @@ curl -X POST \
   -H "X-Jellyfin-User-Id: <USER_ID>" \
   -H "Content-Type: application/json" \
   -d '{"mediaType": "movie", "mediaId": 27205}' \
-  "<JELLYFIN_URL>/JellyfinEnhanced/jellyseerr/request"
+  "<JELLYFIN_URL>/JellyfinOnDemand/jellyseerr/request"
 ```
 
 ## Admin Hidden Content API
@@ -122,7 +122,7 @@ Returns each user (except the caller) who has hidden at least one item, with the
 ```bash
 curl -X GET \
   -H "X-Emby-Token: <ADMIN_API_KEY>" \
-  "<JELLYFIN_URL>/JellyfinEnhanced/admin/hidden-content-users"
+  "<JELLYFIN_URL>/JellyfinOnDemand/admin/hidden-content-users"
 ```
 
 ### Get A User's Hidden Content
@@ -132,7 +132,7 @@ Returns a single user's hidden content (read-only).
 ```bash
 curl -X GET \
   -H "X-Emby-Token: <ADMIN_API_KEY>" \
-  "<JELLYFIN_URL>/JellyfinEnhanced/admin/hidden-content/<USER_ID>"
+  "<JELLYFIN_URL>/JellyfinOnDemand/admin/hidden-content/<USER_ID>"
 ```
 
 ### Unhide Items For A User
@@ -144,7 +144,7 @@ curl -X POST \
   -H "X-Emby-Token: <ADMIN_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '["a1b2c3d4e5f6...", "tmdb-27205"]' \
-  "<JELLYFIN_URL>/JellyfinEnhanced/admin/hidden-content/<USER_ID>/unhide"
+  "<JELLYFIN_URL>/JellyfinOnDemand/admin/hidden-content/<USER_ID>/unhide"
 ```
 
 ### Hide Items For A User
@@ -156,5 +156,5 @@ curl -X POST \
   -H "X-Emby-Token: <ADMIN_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '[{"TmdbId": "27205", "Name": "Inception", "Type": "Movie", "PosterPath": "/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg"}]' \
-  "<JELLYFIN_URL>/JellyfinEnhanced/admin/hidden-content/<USER_ID>/hide"
+  "<JELLYFIN_URL>/JellyfinOnDemand/admin/hidden-content/<USER_ID>/hide"
 ```

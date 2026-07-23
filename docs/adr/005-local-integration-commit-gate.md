@@ -20,7 +20,7 @@ a local Jellyfin host that loads this plugin — not a mock UI.
    hook runs it. No skip flag, no “docs-only” escape hatch in the hook.
 2. The gate must prove **real** local behavior, not mocks of the spine:
    - offline pure checks (`scripts/offline_check.sh`), including **client/route
-     integrity** (no stale `/JellyfinEnhanced/` admin API URLs; Jellyfin on Demand
+     integrity** (no stale `/JellyfinOnDemand/` admin API URLs; Jellyfin on Demand
      discovery must not be gated off by legacy `JellyseerrShowSearchResults=false`)
    - plugin build (`JellyfinTarget=jf10`)
    - native library present (`libjellyfin_on_demand_native.so`)

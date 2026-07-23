@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- **Product identity (ADR-011):** finish Jellyfin on Demand rename — display name, `window.JellyfinOnDemand`, new plugin GUID `935a72b9-7639-473b-bb54-4259f7a9695c`, manifest/docs/GitHub → `abcdqfr/jellyfin-on-demand`; storage-key migration for pre-rename caches.
 - **Product rename:** former name → **Jellyfin on Demand** (identifiers `JellyfinOnDemand` / `jellyfin-on-demand`; API `/JellyfinOnDemand/...`). Toasts no longer include the product name.
 
 ### Fixed
@@ -18,7 +19,7 @@
 ## 0.5.0 — 2026-07-22
 
 ### Added
-- **Discover pane:** sidebar entry next to Enhanced Panel / Bookmarks that mirrors Seerr Discover's default slider order — Trending, Popular Movies, Movie Genres, Upcoming Movies, Popular Series, Series Genres, Upcoming Series. Cards reuse the rolled-in jellyseerr poster chrome, so Play / Lucky / Library behave identically to search. TMDB-backed when Seerr is off (`GET /JellyfinOnDemand/jellyseerr/discover/{trending,movies,tv}` + genreslider). Search landing page (empty query) also gets a "Browse Discover" link. Genre color tones / slider titles from seerr Discover (MIT — steal-log in [`ATTRIBUTION.md`](ATTRIBUTION.md)).
+- **Discover pane:** sidebar entry next to On Demand Panel / Bookmarks that mirrors Seerr Discover's default slider order — Trending, Popular Movies, Movie Genres, Upcoming Movies, Popular Series, Series Genres, Upcoming Series. Cards reuse the rolled-in jellyseerr poster chrome, so Play / Lucky / Library behave identically to search. TMDB-backed when Seerr is off (`GET /JellyfinOnDemand/jellyseerr/discover/{trending,movies,tv}` + genreslider). Search landing page (empty query) also gets a "Browse Discover" link. Genre color tones / slider titles from seerr Discover (MIT — steal-log in [`ATTRIBUTION.md`](ATTRIBUTION.md)).
 
 ### Changed
 - **Attribution:** [`ATTRIBUTION.md`](ATTRIBUTION.md) now explicitly documents that upstream Jellyfin Enhanced's Seerr/Jellyseerr *client chrome* is rolled into this Jellyfin on Demand fork (GPL-3.0 JE derivative) and retargeted — Seerr/Jellyseerr remains reference-only, not a runtime ([ADR-004](docs/adr/004-one-product-no-seerr-fork.md)).
@@ -166,7 +167,7 @@
 
 ### Fixed
 - Jellyfin on Demand discovery search was dead: ADR-004 left `JellyseerrShowSearchResults=false`, and re-enabling poster chrome still gated on that flag after removing fixtures
-- Admin TMDB Test called `/JellyfinEnhanced/tmdb/validate` (404) after route rename to `/JellyfinOnDemand`
+- Admin TMDB Test called `/JellyfinOnDemand/tmdb/validate` (404) after route rename to `/JellyfinOnDemand`
 
 ### Changed
 - Commit gate: `offline_client_integrity_check.py` + `live_public_config_smoke.py` (route rename + discovery flags)

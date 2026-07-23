@@ -221,7 +221,7 @@
                 }`;
                 styleElement.sheet.insertRule(cueRule, 0);
             } catch (e) {
-                console.error("🪼 Jellyfin Enhanced: Failed to apply legacy ::cue styles:", e);
+                console.error("🪼 Jellyfin on Demand: Failed to apply legacy ::cue styles:", e);
             }
         }
     };
@@ -264,4 +264,4 @@
         }
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

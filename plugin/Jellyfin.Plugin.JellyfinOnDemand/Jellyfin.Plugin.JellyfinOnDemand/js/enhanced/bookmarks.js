@@ -4,11 +4,11 @@
   'use strict';
 
   if (!JE.pluginConfig?.BookmarksEnabled) {
-    console.log('🪼 Jellyfin Enhanced: Bookmarks feature is disabled');
+    console.log('🪼 Jellyfin on Demand: Bookmarks feature is disabled');
     return;
   }
 
-  const logPrefix = '🪼 Jellyfin Enhanced: Bookmarks:';
+  const logPrefix = '🪼 Jellyfin on Demand: Bookmarks:';
 
   // Notify other views (e.g., CustomTabs library) when bookmarks change
   function emitBookmarksUpdated(reason = 'updated') {
@@ -1164,4 +1164,4 @@
     };
   })();
 
-})(window.JellyfinEnhanced = window.JellyfinEnhanced || {});
+})(window.JellyfinOnDemand = window.JellyfinOnDemand || {});

@@ -3,13 +3,13 @@
 **Check Installation Status:**
 
 1. Go to `Dashboard` → `Plugins`
-2. Verify `Jellyfin Enhanced` is listed under `Installed`
+2. Verify `Jellyfin on Demand` is listed under `Installed`
 3. Check that it's enabled (not disabled)
 
 **Run Startup Task:**
 
 1. Go to `Dashboard` → `Scheduled Tasks`
-2. Under `Jellyfin Enhanced`, find the task: `Jellyfin Enhanced Startup`
+2. Under `Jellyfin on Demand`, find the task: `Jellyfin on Demand Startup`
 3. Execute the task manually *(click the button: `▶︎`)*
 4. Refresh your browser ++ctrl+f5++
 
@@ -38,15 +38,15 @@
 **Check Scheduled Task:**
 
 1. Jellyfin: `Dashboard` → `Scheduled Tasks`
-2. Look for the tasks under `Jellyfin Enhanced` — mainly `Jellyfin Enhanced Startup`
-3. `Jellyfin Enhanced Startup` should have the trigger: `On application startup`
+2. Look for the tasks under `Jellyfin on Demand` — mainly `Jellyfin on Demand Startup`
+3. `Jellyfin on Demand Startup` should have the trigger: `On application startup`
 4. If missing, add the trigger manually
 
 **Check Browser Console:**
 
 1. Press ++f12++ to open developer tools
 2. Go to `Console` tab
-3. Look for errors mentioning "Jellyfin Enhanced"
+3. Look for errors mentioning "Jellyfin on Demand"
 4. Report errors on GitHub if found
 
 
@@ -55,7 +55,7 @@
 **Clean Update Process:**
 
 1. Go to **Dashboard** → **Plugins** → **My Plugins**
-2. Find Jellyfin Enhanced
+2. Find Jellyfin on Demand
 3. Click **Uninstall**
 4. Restart server
 5. Reinstall from Catalog
@@ -159,7 +159,7 @@ See [GitHub issue #175](https://github.com/n00bcodr/Jellyfin-Enhanced/issues/175
 If you encounter issues:
 
 1. Check the [FAQ](../faq-support/faq.md) for common solutions
-2. [GitHub Issues](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
+2. [GitHub Issues](https://github.com/abcdqfr/jellyfin-on-demand/issues)
     - Search existing issues
     - Create a new issue *(please include log and details)*
 3. Join the [Discord Community](https://discord.gg/EYNFf7y4CG)
