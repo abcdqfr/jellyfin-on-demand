@@ -3,7 +3,7 @@
     'use strict';
 
     JE.initializeArrTagLinksScript = async function () {
-        const logPrefix = '🪼 Jellyfin Enhanced: Arr Tag Links:';
+        const logPrefix = '🪼 Jellyfin on Demand: Arr Tag Links:';
 
         if (!JE?.pluginConfig?.ArrTagsShowAsLinks) {
             console.log(`${logPrefix} Tag links display disabled in plugin settings.`);
@@ -218,4 +218,4 @@
 
         console.log(`${logPrefix} Initialized successfully`);
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

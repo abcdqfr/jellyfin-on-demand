@@ -12,7 +12,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
         private readonly Microsoft.Extensions.Logging.ILogger _jfLogger;
         private static readonly object _writeLock = new object();
         private const int LogRetentionDays = 3; // How many days of logs to keep
-        private const string LogFilePrefix = "JellyfinEnhanced_";
+        private const string LogFilePrefix = "JellyfinOnDemand_";
 
         public Logger(IApplicationPaths appPaths, ILoggerFactory loggerFactory)
         {
@@ -79,7 +79,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand
             catch (Exception ex)
             {
                 // Fallback to console if file logging fails
-                Console.WriteLine($"Failed to write to JellyfinEnhanced log file: {ex.Message}");
+                Console.WriteLine($"Failed to write to JellyfinOnDemand log file: {ex.Message}");
             }
         }
 

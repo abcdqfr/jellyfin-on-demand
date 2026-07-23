@@ -328,10 +328,10 @@ def main() -> None:
         fail("jellyseerr/api.js must expose fetchDiscoverTrending/Movies/Tv for Discover pane")
     enhanced_ctrl = (
         ROOT
-        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Controllers/JellyfinEnhancedController.cs"
+        / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/Controllers/JellyfinOnDemandController.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if 'HttpGet("jellyseerr/discover/trending")' not in enhanced_ctrl or 'HttpGet("jellyseerr/discover/movies")' not in enhanced_ctrl:
-        fail("JellyfinEnhancedController must expose discover/trending + discover/movies (TMDB-backed)")
+        fail("JellyfinOnDemandController must expose discover/trending + discover/movies (TMDB-backed)")
     if "IsJellyfinOnDemandTmdbMode" not in enhanced_ctrl or "FetchTmdbAsJellyseerrAsync" not in enhanced_ctrl:
         fail("Controller must route JellyfinOnDemand discover through TMDB (IsJellyfinOnDemandTmdbMode)")
     if "swarm/discover-page.js" not in (PLUGIN_JS / "plugin.js").read_text(encoding="utf-8", errors="replace"):
@@ -345,10 +345,10 @@ def main() -> None:
     if not discover_html.is_file():
         fail("PluginPages/DiscoverPage.html missing")
     enhanced_cs = (
-        ROOT / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinEnhanced.cs"
+        ROOT / "plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/JellyfinOnDemand.cs"
     ).read_text(encoding="utf-8", errors="replace")
     if 'Name = "discoverPage"' not in enhanced_cs:
-        fail("JellyfinEnhanced.GetViews must register discoverPage")
+        fail("JellyfinOnDemand.GetViews must register discoverPage")
 
     ui_js = (PLUGIN_JS / "jellyseerr/ui.js").read_text(encoding="utf-8", errors="replace")
     lucky_js = (PLUGIN_JS / "swarm/lucky.js").read_text(encoding="utf-8", errors="replace")

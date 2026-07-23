@@ -335,7 +335,7 @@
     "reviews_form_error_save": "A vélemény mentése nem sikerült. Próbáld újra.",
     "panel_settings_language": "Nyelvi beállítások",
     "panel_settings_language_display": "Megjelenítési nyelv",
-    "panel_settings_language_display_desc": "Válassza ki a Jellyfin Enhanced felület nyelvét. A módosítások az oldal frissítése után lépnek életbe.",
+    "panel_settings_language_display_desc": "Válassza ki a Jellyfin on Demand felület nyelvét. A módosítások az oldal frissítése után lépnek életbe.",
     "panel_settings_language_clear_cache": "Fordítási gyorsítótár törlése",
     "panel_settings_language_clear_cache_desc": "Eltávolítja az összes gyorsítótárazott fordítást. Hasznos egy nemrég frissített fordítás letöltéséhez a Githubról.",
     "toast_language_changed": "{{icon:language}} Nyelv megváltoztatva! Oldal frissítése…",

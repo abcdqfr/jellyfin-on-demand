@@ -1,5 +1,5 @@
 /**
- * @file Unified tag pipeline for Jellyfin Enhanced
+ * @file Unified tag pipeline for Jellyfin on Demand
  * Replaces the 5 independent scan/fetch/queue loops in the tag systems with a single
  * pipeline: ONE scan → ONE batch fetch → shared first-episode/series cache → fan out to renderers.
  *
@@ -13,7 +13,7 @@
 
     const MEDIA_TYPES = new Set(['Movie', 'Episode', 'Series', 'Season', 'BoxSet']);
     const FETCH_DEBOUNCE_MS = 150; // Debounce only the batch API call, not the scan
-    const logPrefix = '🪼 Jellyfin Enhanced [TagPipeline]:';
+    const logPrefix = '🪼 Jellyfin on Demand [TagPipeline]:';
     let serverCache = null; // Map<itemId, TagCacheEntry> loaded from server
     let serverCacheVersion = 0;
     let serverCacheTimestamp = 0;
@@ -810,4 +810,4 @@
 
     console.log(`${logPrefix} Module loaded`);
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

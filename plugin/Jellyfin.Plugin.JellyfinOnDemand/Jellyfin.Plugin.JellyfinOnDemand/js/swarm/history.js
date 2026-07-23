@@ -474,4 +474,4 @@
     setInterval(tick, 2500);
     document.addEventListener('viewshow', () => { closeDropdown(); tick(); }, true);
     console.log(`${logPrefix} loaded`);
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

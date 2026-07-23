@@ -11,7 +11,7 @@
      */
     JE.initializeElsewhereScript = function() {
         if (!JE.pluginConfig.ElsewhereEnabled) {
-            console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: Feature is disabled in plugin settings.');
+            console.log('🪼 Jellyfin on Demand: 🎬 Jellyfin Elsewhere: Feature is disabled in plugin settings.');
             return;
         }
         // --- Configuration ---
@@ -23,7 +23,7 @@
         const ELSEWHERE_CUSTOM_BRANDING_IMAGE_URL = JE.pluginConfig.ElsewhereCustomBrandingImageUrl || '';
 
         if (!TmdbEnabled) {
-            console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: TMDB is not configured, skipping initialization');
+            console.log('🪼 Jellyfin on Demand: 🎬 Jellyfin Elsewhere: TMDB is not configured, skipping initialization');
             return;
         }
 
@@ -46,7 +46,7 @@
             return a;
         });
 
-        console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere starting...');
+        console.log('🪼 Jellyfin on Demand: 🎬 Jellyfin Elsewhere starting...');
 
         // Load regions and providers from GitHub repo
         function loadRegionsAndProviders() {
@@ -603,7 +603,7 @@
                             !ignorePatterns.some(regex => regex.test(service.provider_name))
                         );
                     } catch (e) {
-                        console.error('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: Invalid regex in IGNORE_PROVIDERS.', e);
+                        console.error('🪼 Jellyfin on Demand: 🎬 Jellyfin Elsewhere: Invalid regex in IGNORE_PROVIDERS.', e);
                     }
                 }
             }
@@ -1166,7 +1166,7 @@
             setTimeout(addStreamingLookup, 1000);
         }
 
-        console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere loaded!');
+        console.log('🪼 Jellyfin on Demand: 🎬 Jellyfin Elsewhere loaded!');
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

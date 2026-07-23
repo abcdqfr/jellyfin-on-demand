@@ -92,7 +92,7 @@
             if (q === -1) return null;
             return new URLSearchParams(hash.substring(q + 1)).get('id');
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: frame-step item id parse failed', err);
+            console.warn('🪼 Jellyfin on Demand: frame-step item id parse failed', err);
             return null;
         }
     }
@@ -114,7 +114,7 @@
             if (q === -1) return null;
             return new URLSearchParams(src.substring(q + 1)).get('MediaSourceId') || null;
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: frame-step MediaSourceId parse failed', err);
+            console.warn('🪼 Jellyfin on Demand: frame-step MediaSourceId parse failed', err);
             return null;
         }
     }
@@ -134,7 +134,7 @@
                 if (fps) return fps;
             }
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: frame-step fps lookup failed', err);
+            console.warn('🪼 Jellyfin on Demand: frame-step fps lookup failed', err);
         }
         return null;
     }
@@ -175,7 +175,7 @@
                     ));
                     _fallbackFpsWarned.add(itemId);
                 } catch (err) {
-                    console.warn('🪼 Jellyfin Enhanced: frame-step fallback toast failed', err);
+                    console.warn('🪼 Jellyfin on Demand: frame-step fallback toast failed', err);
                 }
             }
             return fps;
@@ -193,13 +193,13 @@
         try {
             result = JE.t(key, params);
         } catch (err) {
-            console.warn(`🪼 Jellyfin Enhanced: JE.t('${key}') threw, using fallback:`, err);
+            console.warn(`🪼 Jellyfin on Demand: JE.t('${key}') threw, using fallback:`, err);
             result = null;
         }
         if (!result || result === key) {
             if (!_tFallbackWarned.has(key)) {
                 _tFallbackWarned.add(key);
-                console.warn(`🪼 Jellyfin Enhanced: missing translation key '${key}', using inline fallback`);
+                console.warn(`🪼 Jellyfin on Demand: missing translation key '${key}', using inline fallback`);
             }
             let out = fallback;
             if (params) {
@@ -259,10 +259,10 @@
                 const r = video.pause();
                 // pause() returns a Promise on Chromecast/MSE/PiP; swallow rejection.
                 if (r && typeof r.catch === 'function') {
-                    r.catch(err => console.warn('🪼 Jellyfin Enhanced: video.pause() rejected', err));
+                    r.catch(err => console.warn('🪼 Jellyfin on Demand: video.pause() rejected', err));
                 }
             } catch (err) {
-                console.warn('🪼 Jellyfin Enhanced: video.pause() threw', err);
+                console.warn('🪼 Jellyfin on Demand: video.pause() threw', err);
             }
         }
 
@@ -283,7 +283,7 @@
         );
         showFrameOverlay(text);
       } catch (err) {
-        console.warn('🪼 Jellyfin Enhanced: frameStep failed', err);
+        console.warn('🪼 Jellyfin on Demand: frameStep failed', err);
       }
     };
 
@@ -681,4 +681,4 @@
         }
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

@@ -3,7 +3,7 @@
 /**
  * Translation Validation and Helper Script
  *
- * This script helps manage translations for Jellyfin Enhanced by:
+ * This script helps manage translations for Jellyfin on Demand by:
  * - Validating all translation files against the base (en.json)
  * - Detecting missing keys in translations
  * - Finding unused translation keys not referenced in code
@@ -24,8 +24,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOCALES_DIR = path.join(__dirname, '../Jellyfin.Plugin.JellyfinEnhanced/js/locales');
-const JS_DIR = path.join(__dirname, '../Jellyfin.Plugin.JellyfinEnhanced/js');
+const LOCALES_DIR = path.join(__dirname, '../Jellyfin.Plugin.JellyfinOnDemand/js/locales');
+const JS_DIR = path.join(__dirname, '../Jellyfin.Plugin.JellyfinOnDemand/js');
 const BASE_LANG = 'en';
 const WEBLATE_URL = 'https://hosted.weblate.org/projects/jellyfinenhanced/';
 
@@ -226,7 +226,7 @@ function findUnusedKeys() {
             } else if (entry.isFile() && entry.name.endsWith('.js')) {
                 const content = fs.readFileSync(filePath, 'utf8');
 
-                const tMatches = content.matchAll(/(?:JE|window\.JellyfinEnhanced)\.t\s*(?:\?\.)?\s*\(\s*['"]([^'"]+)['"]/g);
+                const tMatches = content.matchAll(/(?:JE|window\.JellyfinOnDemand)\.t\s*(?:\?\.)?\s*\(\s*['"]([^'"]+)['"]/g);
                 for (const match of tMatches) {
                     usedKeys.add(match[1]);
                 }

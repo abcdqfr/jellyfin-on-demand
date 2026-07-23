@@ -61,19 +61,19 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 
         private static TimeSpan GetJellyseerrUserIdCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
         private static TimeSpan GetSeriesDetailsCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
         private async Task<string?> GetSeriesDetailsJsonAsync(string tmdbId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;
@@ -159,7 +159,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Event-driven entry point called when a user finishes or starts watching an episode.
         public async Task CheckEpisodeCompletionAsync(BaseItem episodeItem, Guid userId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.AutoSeasonRequestEnabled || !config.JellyseerrEnabled)
             {
                 return;
@@ -191,7 +191,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Checks if a specific season needs its next season requested
         private async Task CheckSeasonForAutoRequest(Series series, int currentSeasonNumber, int currentEpisodeNumber, JUser user)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
             {
                 return;
@@ -367,7 +367,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets the total number of episodes in a season from TMDB
         private async Task<int?> GetTotalEpisodesInSeasonFromTmdb(string tmdbId, int seasonNumber)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;
@@ -428,7 +428,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets season status from Jellyseerr - always fetches fresh to ensure accurate request/availability state
         private async Task<SeasonStatus?> GetSeasonStatusFromJellyseerr(string tmdbId, int seasonNumber)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;
@@ -581,7 +581,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Requests the next season from Jellyseerr
         private async Task<bool> RequestNextSeason(string tmdbId, int seasonNumber, string jellyfinUserId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 _logger.Warning("[Auto-Season-Request] Jellyseerr configuration is missing");
@@ -637,7 +637,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets the Jellyseerr user ID for a Jellyfin user
         private async Task<string?> GetJellyseerrUserId(string jellyfinUserId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;

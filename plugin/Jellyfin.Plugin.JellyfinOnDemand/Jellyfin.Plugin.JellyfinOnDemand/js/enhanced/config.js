@@ -40,20 +40,20 @@
 
     JE.saveUserSettings = async (fileName, settings) => {
         if (typeof ApiClient === 'undefined' || !ApiClient.getCurrentUserId) {
-            console.error("🪼 Jellyfin Enhanced: ApiClient not available");
+            console.error("🪼 Jellyfin on Demand: ApiClient not available");
             return;
         }
         try {
             const userId = ApiClient.getCurrentUserId();
             if (!userId) {
-                console.error("🪼 Jellyfin Enhanced: User ID not available");
+                console.error("🪼 Jellyfin on Demand: User ID not available");
                 return;
             }
 
             // Convert data back to PascalCase for server C# deserialization
             let dataToSave = settings;
-            if ((fileName === 'bookmark.json' || fileName === 'settings.json') && typeof window.JellyfinEnhanced?.toPascalCase === 'function') {
-                dataToSave = window.JellyfinEnhanced.toPascalCase(settings);
+            if ((fileName === 'bookmark.json' || fileName === 'settings.json') && typeof window.JellyfinOnDemand?.toPascalCase === 'function') {
+                dataToSave = window.JellyfinOnDemand.toPascalCase(settings);
             }
 
             const serialized = JSON.stringify(dataToSave);
@@ -77,7 +77,7 @@
             // Update the cache on success so subsequent identical saves are skipped
             _lastSavedJson[cacheKey] = serialized;
         } catch (e) {
-            console.error(`🪼 Jellyfin Enhanced: Failed to save ${fileName}:`, e);
+            console.error(`🪼 Jellyfin on Demand: Failed to save ${fileName}:`, e);
         }
     };
 
@@ -185,4 +185,4 @@
         Object.assign(JE.state.activeShortcuts, defaultShortcuts, userShortcuts);
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

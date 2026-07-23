@@ -46,7 +46,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.EventHandlers
         {
             try
             {
-                var cfg = JellyfinEnhanced.Instance?.Configuration;
+                var cfg = JellyfinOnDemand.Instance?.Configuration;
                 if (cfg?.SpoilerBlurEnabled != true) return Task.CompletedTask;
                 if (cfg?.SpoilerAutoEnableOnFirstPlay != true) return Task.CompletedTask;
 

@@ -1,6 +1,6 @@
 # Other Settings
 
-Settings for custom branding, icon styles, extras, timeouts, and more — all found under the **Other Settings** tab in the plugin configuration page (**Dashboard** → **Plugins** → **Jellyfin Enhanced** → **Other Settings**).
+Settings for custom branding, icon styles, extras, timeouts, and more — all found under the **Other Settings** tab in the plugin configuration page (**Dashboard** → **Plugins** → **Jellyfin on Demand** → **Other Settings**).
 
 ---
 
@@ -20,7 +20,7 @@ Upload your own logos, banners, and favicon to personalize your Jellyfin instanc
 
 Files are stored in:
 ```text
-/plugins/configurations/Jellyfin.Plugin.JellyfinEnhanced/custom_branding/
+/plugins/configurations/Jellyfin.Plugin.JellyfinOnDemand/custom_branding/
 ```
 
 After saving, do a hard refresh (++ctrl+f5++) to see changes.

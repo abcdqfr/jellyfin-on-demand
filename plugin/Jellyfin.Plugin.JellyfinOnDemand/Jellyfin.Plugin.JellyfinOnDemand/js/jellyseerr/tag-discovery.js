@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Tag Discovery:';
+    const logPrefix = '🪼 Jellyfin on Demand: Tag Discovery:';
     const MODULE_NAME = 'tag';
 
     const keywordIdCache = new Map();
@@ -670,4 +670,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

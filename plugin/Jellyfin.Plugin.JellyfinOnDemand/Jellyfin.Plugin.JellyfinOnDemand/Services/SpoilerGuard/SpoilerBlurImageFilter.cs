@@ -295,7 +295,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
             }
 
             // Plugin-level master switch. Saves the per-user file read on every image.
-            var pluginConfig = JellyfinEnhanced.Instance?.Configuration;
+            var pluginConfig = JellyfinOnDemand.Instance?.Configuration;
             if (pluginConfig?.SpoilerBlurEnabled != true)
             {
                 return next();

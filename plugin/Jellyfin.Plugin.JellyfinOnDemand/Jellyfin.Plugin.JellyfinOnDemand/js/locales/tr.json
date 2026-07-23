@@ -335,7 +335,7 @@
     "reviews_form_error_save": "İnceleme kaydedilemedi. Lütfen tekrar deneyin.",
     "panel_settings_language": "Dil Ayarları",
     "panel_settings_language_display": "Görüntüleme Dili",
-    "panel_settings_language_display_desc": "Jellyfin Enhanced arayüzü için dili seçin. Değişiklikler sayfa yenilemesinden sonra geçerli olur.",
+    "panel_settings_language_display_desc": "Jellyfin on Demand arayüzü için dili seçin. Değişiklikler sayfa yenilemesinden sonra geçerli olur.",
     "panel_settings_language_clear_cache": "Çeviri Önbelleğini Temizle",
     "panel_settings_language_clear_cache_desc": "Önbelleğe alınmış tüm çevirileri kaldırır. Github'dan yakın zamanda güncellenmiş bir çeviri almak için kullanışlıdır.",
     "toast_language_changed": "{{icon:language}} Dil değiştirildi! Sayfa yenileniyor…",

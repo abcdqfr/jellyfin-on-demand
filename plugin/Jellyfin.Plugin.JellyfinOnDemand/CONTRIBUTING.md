@@ -1,14 +1,14 @@
-# Contributing to Jellyfin Enhanced
+# Contributing to Jellyfin on Demand
 
-Thank you for your interest in contributing to Jellyfin Enhanced! This document provides guidelines and information to help you get started.
+Thank you for your interest in contributing to Jellyfin on Demand! This document provides guidelines and information to help you get started.
 
 ## 🤝 Ways to Contribute
 
 ### 1. Code Contributions
 
 You can contribute code through:
-- **Open Pull Requests**: Check the [open PRs](https://github.com/n00bcodr/Jellyfin-Enhanced/pulls) for issues that need help
-- **Discussions**: Browse [Discussions](https://github.com/n00bcodr/Jellyfin-Enhanced/discussions) for feature requests and ideas that interest you
+- **Open Pull Requests**: Check the [open PRs](https://github.com/abcdqfr/jellyfin-on-demand/pulls) for issues that need help
+- **Discussions**: Browse [Discussions](https://github.com/abcdqfr/jellyfin-on-demand/discussions) for feature requests and ideas that interest you
 - **Bug Fixes**: Fix any bugs you encounter and submit a PR
 
 > [!NOTE]
@@ -16,7 +16,7 @@ You can contribute code through:
 
 ### 2. Translation Contributions
 
-Help make Jellyfin Enhanced accessible to more users by contributing translations through Weblate:
+Help make Jellyfin on Demand accessible to more users by contributing translations through Weblate:
 
 - https://hosted.weblate.org/projects/jellyfinenhanced/
 
@@ -31,14 +31,14 @@ See the [Contributing Translations](/Jellyfin-Enhanced/faq-support/contributing-
 Before contributing, familiarize yourself with the project structure. See the [Project Structure](README.md#-project-structure) section in the README for a detailed breakdown of the codebase and what each file does.
 
 Key directories:
-- `Jellyfin.Plugin.JellyfinEnhanced/js/enhanced/` - Core functionality
-- `Jellyfin.Plugin.JellyfinEnhanced/js/elsewhere/` - Elsewhere and reviews functionality
-- `Jellyfin.Plugin.JellyfinEnhanced/js/extras/` - Other Scripts
-- `Jellyfin.Plugin.JellyfinEnhanced/js/jellyseerr/` - Seerr integration
-- `Jellyfin.Plugin.JellyfinEnhanced/js/arr/` - *arr integration including calendar and requests
-- `Jellyfin.Plugin.JellyfinEnhanced/js/tags/` - Tag scripts (genre, language, people, quality, rating)
-- `Jellyfin.Plugin.JellyfinEnhanced/js/others/` - Miscellaneous scripts (letterboxd, splashscreen)
-- `Jellyfin.Plugin.JellyfinEnhanced/js/locales/` - Translation files
+- `Jellyfin.Plugin.JellyfinOnDemand/js/enhanced/` - Core functionality
+- `Jellyfin.Plugin.JellyfinOnDemand/js/elsewhere/` - Elsewhere and reviews functionality
+- `Jellyfin.Plugin.JellyfinOnDemand/js/extras/` - Other Scripts
+- `Jellyfin.Plugin.JellyfinOnDemand/js/jellyseerr/` - Seerr integration
+- `Jellyfin.Plugin.JellyfinOnDemand/js/arr/` - *arr integration including calendar and requests
+- `Jellyfin.Plugin.JellyfinOnDemand/js/tags/` - Tag scripts (genre, language, people, quality, rating)
+- `Jellyfin.Plugin.JellyfinOnDemand/js/others/` - Miscellaneous scripts (letterboxd, splashscreen)
+- `Jellyfin.Plugin.JellyfinOnDemand/js/locales/` - Translation files
 
 ## 📝 Code Contribution Guidelines
 
@@ -193,4 +193,4 @@ For UI changes:
 
 ---
 
-**Thank you for contributing to Jellyfin Enhanced! Your efforts help make Jellyfin better for everyone.** 💜
+**Thank you for contributing to Jellyfin on Demand! Your efforts help make Jellyfin better for everyone.** 💜

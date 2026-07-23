@@ -10,7 +10,7 @@
      */
     function panelKeyListener(e) {
         // Don't open if the panel is already open or if typing in an input field.
-        if (document.getElementById('jellyfin-enhanced-panel') || ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        if (document.getElementById('jellyfin-on-demand-panel') || ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             return;
         }
 
@@ -72,7 +72,7 @@
                 if (JE.bookmarks?.showModal) {
                     JE.bookmarks.showModal('add');
                 } else {
-                    console.warn('🪼 Jellyfin Enhanced: New bookmark system not loaded, using fallback');
+                    console.warn('🪼 Jellyfin on Demand: New bookmark system not loaded, using fallback');
                 }
                 break;
             case activeShortcuts.CycleAspectRatio:
@@ -229,7 +229,7 @@
             if (typeof JE.addRemoveButton === 'function') {
                 JE.addRemoveButton();
             } else {
-                console.warn('🪼 Jellyfin Enhanced: addRemoveButton not available');
+                console.warn('🪼 Jellyfin on Demand: addRemoveButton not available');
             }
             // Also offer Remove in the multi-select / long-press menu (touch devices
             // with no per-item "…" button).
@@ -271,7 +271,7 @@
             const surface = (typeof JE.detectCardSurface === 'function') ? JE.detectCardSurface(card) : null;
             JE.state.removeContext = { itemId, surface, card, ts: Date.now() };
             if (surface) {
-                console.log(`🪼 Jellyfin Enhanced: ${surface} item detected for Remove action sheet:`, itemId);
+                console.log(`🪼 Jellyfin on Demand: ${surface} item detected for Remove action sheet:`, itemId);
             }
         };
 
@@ -302,15 +302,15 @@
     }
 
     /**
-     * Initializes all event listeners for the core Jellyfin Enhanced script.
+     * Initializes all event listeners for the core Jellyfin on Demand script.
      */
     JE.initializeEnhancedScript = function() {
         // Check if local storage needs to be cleared by admin request
         const serverClearTimestamp = JE.pluginConfig.ClearLocalStorageTimestamp || 0;
-        const localClearedTimestamp = parseInt(localStorage.getItem('jellyfinEnhancedLastCleared') || '0', 10);
+        const localClearedTimestamp = parseInt(localStorage.getItem('jellyfinOnDemandLastCleared') || '0', 10);
         if (serverClearTimestamp > localClearedTimestamp) {
-            localStorage.removeItem('jellyfinEnhancedSettings');
-            localStorage.setItem('jellyfinEnhancedLastCleared', serverClearTimestamp.toString());
+            localStorage.removeItem('jellyfinOnDemandSettings');
+            localStorage.setItem('jellyfinOnDemandLastCleared', serverClearTimestamp.toString());
         }
 
         // Initial UI setup
@@ -335,8 +335,8 @@
         if (JE.currentSettings.longPress2xEnabled) {
             const videoPageCheck = (handler) => (e) => {
                 if (JE.isVideoPage()) {
-                    // Don't interfere with clicks on OSD buttons / the pause screen overlay / Enhanced Panel
-                    if (e.target && e.target.closest && e.target.closest('.osdControls, .pause-screen-active, .jellyfin-enhanced-panel')) return;
+                    // Don't interfere with clicks on OSD buttons / the pause screen overlay / On Demand Panel
+                    if (e.target && e.target.closest && e.target.closest('.osdControls, .pause-screen-active, .jellyfin-on-demand-panel')) return;
                     handler(e);
                 }
             };
@@ -365,7 +365,7 @@
                     video.dataset.wasPlayingBeforeHidden = 'true';
                 }
                 if (JE.currentSettings.autoPipEnabled && !document.pictureInPictureElement) {
-                    video.requestPictureInPicture().catch(err => console.error("🪼 Jellyfin Enhanced: Auto PiP Error:", err));
+                    video.requestPictureInPicture().catch(err => console.error("🪼 Jellyfin on Demand: Auto PiP Error:", err));
                 }
             } else {
                 if (video.paused && video.dataset.wasPlayingBeforeHidden === 'true' && JE.currentSettings.autoResumeEnabled) {
@@ -373,10 +373,10 @@
                 }
                 delete video.dataset.wasPlayingBeforeHidden;
                 if (JE.currentSettings.autoPipEnabled && document.pictureInPictureElement) {
-                    document.exitPictureInPicture().catch(err => console.error("🪼 Jellyfin Enhanced: Auto PiP Error:", err));
+                    document.exitPictureInPicture().catch(err => console.error("🪼 Jellyfin on Demand: Auto PiP Error:", err));
                 }
             }
         });
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

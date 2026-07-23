@@ -174,11 +174,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 MediaType = request?.MediaType,
                 Season = request?.Season,
                 Episode = request?.Episode,
-                TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
-                    ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
+                TailMib = JellyfinOnDemand.Instance?.Configuration?.WarmTailMib > 0
+                    ? JellyfinOnDemand.Instance.Configuration.WarmTailMib
                     : 8,
-                HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
-                    ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
+                HeadMib = JellyfinOnDemand.Instance?.Configuration?.WarmHeadMib > 0
+                    ? JellyfinOnDemand.Instance.Configuration.WarmHeadMib
                     : 8
             };
 
@@ -902,11 +902,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 {
                     Btih = btih,
                     FileIndex = fileIndex,
-                    TailMib = JellyfinEnhanced.Instance?.Configuration?.WarmTailMib > 0
-                        ? JellyfinEnhanced.Instance.Configuration.WarmTailMib
+                    TailMib = JellyfinOnDemand.Instance?.Configuration?.WarmTailMib > 0
+                        ? JellyfinOnDemand.Instance.Configuration.WarmTailMib
                         : 8,
-                    HeadMib = JellyfinEnhanced.Instance?.Configuration?.WarmHeadMib > 0
-                        ? JellyfinEnhanced.Instance.Configuration.WarmHeadMib
+                    HeadMib = JellyfinOnDemand.Instance?.Configuration?.WarmHeadMib > 0
+                        ? JellyfinOnDemand.Instance.Configuration.WarmHeadMib
                         : 8
                 },
                 cancellationToken).ConfigureAwait(false);
@@ -943,7 +943,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             string query,
             CancellationToken cancellationToken)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             var endpoints = new List<(string Indexer, string Url)>();
             var nyaa = NormalizeTorznabUrl(config?.TorznabNyaaUrl);
             var tpb = NormalizeTorznabUrl(config?.TorznabTpbUrl);

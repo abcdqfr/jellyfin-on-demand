@@ -36,11 +36,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public string Name => "Sync Tags from *arr to Jellyfin";
 
-        public string Key => "JellyfinEnhancedArrTagsSync";
+        public string Key => "JellyfinOnDemandArrTagsSync";
 
         public string Description => "Fetches tags from Radarr and Sonarr and adds them to Jellyfin items as metadata tags. \n\n Configure the task triggers to run this task periodically for new items to be synced automatically.";
 
-        public string Category => "Jellyfin Enhanced";
+        public string Category => "Jellyfin on Demand";
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
@@ -50,7 +50,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
 
             if (config == null || !config.ArrTagsSyncEnabled)
             {

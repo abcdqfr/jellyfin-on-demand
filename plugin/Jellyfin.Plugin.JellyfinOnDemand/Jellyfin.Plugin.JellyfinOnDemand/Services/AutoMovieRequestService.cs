@@ -55,7 +55,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 
         private static TimeSpan GetJellyseerrUserIdCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
@@ -63,7 +63,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Event-driven entry point called when a user starts watching a movie.
         public async Task CheckMovieForCollectionRequestAsync(BaseItem movieItem, Guid userId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.AutoMovieRequestEnabled || !config.JellyseerrEnabled)
             {
                 return;
@@ -202,7 +202,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets TMDB collection ID and name for a movie
         private async Task<CollectionInfo?> GetTmdbCollectionIdAsync(string tmdbId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.TMDB_API_KEY))
             {
                 return null;
@@ -250,7 +250,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets next movie in collection from Jellyseerr collection endpoint
         private async Task<MovieInfo?> GetNextMovieInCollectionAsync(int collectionId, string currentTmdbId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;
@@ -370,7 +370,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets the quality profile of a movie from its existing Jellyseerr request
         private async Task<QualityProfileSettings?> GetOriginalMovieQualityProfileAsync(string tmdbId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;
@@ -459,7 +459,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Resolves quality profile settings based on configuration mode
         private async Task<QualityProfileSettings?> ResolveQualityProfileAsync(string watchedTmdbId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
             {
                 return null;
@@ -532,7 +532,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Requests a movie from Jellyseerr
         private async Task<bool> RequestMovie(string tmdbId, string jellyfinUserId, QualityProfileSettings? qualitySettings = null)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 _logger.Warning("[Auto-Movie-Request] Jellyseerr configuration is missing");
@@ -599,7 +599,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
         // Gets the Jellyseerr user ID for a Jellyfin user
         private async Task<string?> GetJellyseerrUserId(string jellyfinUserId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 return null;

@@ -31,11 +31,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public string Name => "Import Jellyfin Users to Seerr";
 
-        public string Key => "JellyfinEnhancedJellyseerrUserImport";
+        public string Key => "JellyfinOnDemandJellyseerrUserImport";
 
         public string Description => "Imports all Jellyfin users into Seerr so they can use Seerr Search without needing to visit the Seerr UI.\n\nAlready imported users are automatically skipped. Configure the task triggers to run this task periodically.";
 
-        public string Category => "Jellyfin Enhanced";
+        public string Category => "Jellyfin on Demand";
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
@@ -51,7 +51,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
 
             if (config == null || !config.JellyseerrAutoImportUsers || !config.JellyseerrEnabled)
             {
@@ -89,7 +89,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
             {
                 // Only flush caches when at least one user was actually
                 // imported — otherwise a 0-imported partial-failure run wipes
-                // every healthy cache entry..                 JellyfinEnhancedController.ClearUserCaches();
+                // every healthy cache entry..                 JellyfinOnDemandController.ClearUserCaches();
             }
 
             if (importResult.Reached)

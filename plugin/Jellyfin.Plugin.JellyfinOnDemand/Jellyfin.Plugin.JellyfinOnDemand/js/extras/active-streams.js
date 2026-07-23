@@ -4,7 +4,7 @@
 (function (JE) {
     'use strict';
 
-    const LOG = '🪼 Jellyfin Enhanced:';
+    const LOG = '🪼 Jellyfin on Demand:';
 
     // ── State ────────────────────────────────────────────────────────────────
     let _pollTimer = null;
@@ -1231,4 +1231,4 @@
         }
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

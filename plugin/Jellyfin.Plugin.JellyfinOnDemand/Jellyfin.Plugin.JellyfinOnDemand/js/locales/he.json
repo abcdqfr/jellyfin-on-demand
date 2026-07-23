@@ -1,6 +1,6 @@
 {
     "toast_search": "{{icon:search}} חיפוש",
-    "panel_settings_language_display_desc": "Select the language for Jellyfin Enhanced interface. Changes take effect after page refresh.",
+    "panel_settings_language_display_desc": "Select the language for Jellyfin on Demand interface. Changes take effect after page refresh.",
     "discovery_more_with_tag": "More with the tag - \"{tag}\"",
     "jellyseerr_seasons_requested_count": "{count}/{total} requested",
     "hidden_content_show_buttons_desc": "Show the eye icon buttons for hiding content. Turning this off keeps hidden items filtered but removes the buttons.",

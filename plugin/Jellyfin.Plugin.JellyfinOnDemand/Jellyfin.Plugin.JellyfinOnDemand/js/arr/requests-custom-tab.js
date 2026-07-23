@@ -17,21 +17,21 @@
 (function () {
   'use strict';
 
-  if (!window.JellyfinEnhanced?.pluginConfig?.DownloadsPageEnabled) {
+  if (!window.JellyfinOnDemand?.pluginConfig?.DownloadsPageEnabled) {
     return;
   }
 
-  var useCustomTabs = !!window.JellyfinEnhanced?.pluginConfig?.DownloadsUseCustomTabs;
-  var useNativeTab = !!window.JellyfinEnhanced?.pluginConfig?.DownloadsUseNativeTab;
+  var useCustomTabs = !!window.JellyfinOnDemand?.pluginConfig?.DownloadsUseCustomTabs;
+  var useNativeTab = !!window.JellyfinOnDemand?.pluginConfig?.DownloadsUseNativeTab;
 
-  console.log('🪼 Jellyfin Enhanced: [requests-custom-tab] DownloadsUseCustomTabs=' + useCustomTabs + ', DownloadsUseNativeTab=' + useNativeTab);
+  console.log('🪼 Jellyfin on Demand: [requests-custom-tab] DownloadsUseCustomTabs=' + useCustomTabs + ', DownloadsUseNativeTab=' + useNativeTab);
 
   if (!useCustomTabs && !useNativeTab) {
     return;
   }
 
   if (useNativeTab) {
-    window.JellyfinEnhanced.nativeTabs.register('requests', 'Requests', function (panel) {
+    window.JellyfinOnDemand.nativeTabs.register('requests', 'Requests', function (panel) {
       var marker = document.createElement('div');
       marker.className = 'jellyfinenhanced requests';
       panel.appendChild(marker);
@@ -64,7 +64,7 @@
     var attempts = 0;
     var check = setInterval(function () {
       if (++attempts > 300) { clearInterval(check); return; }
-      var JE = window.JE || window.JellyfinEnhanced;
+      var JE = window.JE || window.JellyfinOnDemand;
       if (JE?.downloadsPage) {
         clearInterval(check);
         callback(JE);
@@ -104,7 +104,7 @@
   /**
    * Render downloads into the given container using a scoped child element.
    * @param {HTMLElement} container - The active .jellyfinenhanced.requests element.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function renderDownloads(container, JE) {
     container.classList.remove('hide');
@@ -124,7 +124,7 @@
    * Persistent watcher -- observes document.body (via shared observer) for
    * DOM rebuilds and remounts the requests tab when a new active container
    * appears. Suspends checks when not on the home page.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function watchForContainer(JE) {
     /** Whether we were on the home page on the last check. */

@@ -110,14 +110,14 @@
 
                 // If the unique identifier exists and is not empty use the variables from the theme
                 if (identifierValue && identifierValue !== '' && identifierValue !== 'none') {
-                    console.log(`🪼 Jellyfin Enhanced: Detected ${theme.name} theme`);
+                    console.log(`🪼 Jellyfin on Demand: Detected ${theme.name} theme`);
                     this.activeTheme = { key: themeKey, ...theme };
                     return this.activeTheme;
                 }
             }
 
             // Default fallback
-            console.log('🪼 Jellyfin Enhanced: Using default theme (no specific theme detected)');
+            console.log('🪼 Jellyfin on Demand: Using default theme (no specific theme detected)');
             this.activeTheme = { key: 'default', ...this.supportedThemes.default };
             return this.activeTheme;
         },
@@ -182,7 +182,7 @@
          */
         registerTheme(themeKey, themeConfig) {
             this.supportedThemes[themeKey] = themeConfig;
-            console.log(`🪼 Jellyfin Enhanced: Registered theme - ${themeConfig.name} (identifier: ${themeConfig.uniqueIdentifier})`);
+            console.log(`🪼 Jellyfin on Demand: Registered theme - ${themeConfig.name} (identifier: ${themeConfig.uniqueIdentifier})`);
         },
 
         /**
@@ -193,4 +193,4 @@
         }
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

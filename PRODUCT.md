@@ -1,10 +1,19 @@
-# jellyfin-on-demand — product (experimental)
+# Jellyfin on Demand — product (experimental)
+
+**Jellyfin on Demand** is an on-demand discovery and playback layer for Jellyfin.
+It expands Jellyfin search beyond the local library and can resolve discovered
+titles into immediate streams, persistent virtual-library entries, or
+conventional downloads.
+
+It began as a fork of Jellyfin Enhanced and incorporates selected concepts from
+Seerr. It is an independent community project and is **not affiliated** with
+Jellyfin, Jellyfin Enhanced, or Seerr. See [ADR-011](docs/adr/011-product-identity.md).
 
 ## Mission
 
-Make **pick → swarm → play** work inside Jellyfin (via Jellyfin Enhanced), with
-BitTorrent info-hash as the media identity and **sequential bytes** as the only
-delivery contract.
+Make **discover → resolve → play** work inside Jellyfin, with BitTorrent
+info-hash as the media identity and **sequential bytes** as the only delivery
+contract.
 
 ## Stack (target)
 

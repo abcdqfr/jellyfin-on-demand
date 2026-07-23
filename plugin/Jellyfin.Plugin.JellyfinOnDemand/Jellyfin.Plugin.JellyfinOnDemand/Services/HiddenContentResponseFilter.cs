@@ -88,8 +88,8 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
                 return;
             }
 
-            var hcEnabled = JellyfinEnhanced.Instance?.Configuration?.HiddenContentEnabled == true;
-            var rcwEnabled = JellyfinEnhanced.Instance?.Configuration?.RemoveContinueWatchingEnabled == true;
+            var hcEnabled = JellyfinOnDemand.Instance?.Configuration?.HiddenContentEnabled == true;
+            var rcwEnabled = JellyfinOnDemand.Instance?.Configuration?.RemoveContinueWatchingEnabled == true;
 
             // /Items doubles as library list + search results — searchTerm wins, then fall back to library.
             var surface = (route.Surface == "library" && HasSearchTerm(context))

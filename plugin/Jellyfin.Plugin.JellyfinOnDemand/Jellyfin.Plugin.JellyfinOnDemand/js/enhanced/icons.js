@@ -1,7 +1,7 @@
 (function (JE) {
     'use strict';
 
-    console.log('🪼 Jellyfin Enhanced: Icons: Module loading...');
+    console.log('🪼 Jellyfin on Demand: Icons: Module loading...');
 
     // Poor mans enum for icon name constants
     // usage: JE.IconName.PLAYBACK
@@ -232,6 +232,6 @@
     JE.IconName = IconName;
     JE.icons = { EMOJI, LUCIDE, MUI };
 
-    console.log('🪼 Jellyfin Enhanced: Icons: Module loaded successfully. JE.icon is now available.');
+    console.log('🪼 Jellyfin on Demand: Icons: Module loaded successfully. JE.icon is now available.');
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

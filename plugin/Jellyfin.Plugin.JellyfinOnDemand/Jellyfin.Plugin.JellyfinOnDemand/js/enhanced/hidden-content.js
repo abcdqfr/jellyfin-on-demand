@@ -1,5 +1,5 @@
 /**
- * @file Hidden Content — per-user content hiding for Jellyfin Enhanced.
+ * @file Hidden Content — per-user content hiding for Jellyfin on Demand.
  *
  * Allows users to hide specific movies, series, episodes, and seasons from all
  * rendering surfaces (library, discovery, search, calendar, etc.).  Hidden state
@@ -132,7 +132,7 @@
                 const sent = await directSaveHiddenContent();
                 reconcileAfterSave(sent);
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: debouncedSave failed; scheduling background retry', e);
+                console.warn('🪼 Jellyfin on Demand: debouncedSave failed; scheduling background retry', e);
                 if (pendingRetryHandle == null) scheduleFlushRetry(0);
             }
         }, SAVE_DEBOUNCE_MS);
@@ -189,7 +189,7 @@
                 parentSeriesCache.set(itemId, seriesId);
                 return seriesId;
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: Failed to fetch parent series for', itemId, e);
+                console.warn('🪼 Jellyfin on Demand: Failed to fetch parent series for', itemId, e);
                 parentSeriesCache.set(itemId, null);
                 return null;
             } finally {
@@ -1332,7 +1332,7 @@
                 card.removeAttribute(HIDDEN_PARENT_ATTR);
             }
         }).catch((e) => {
-            console.warn('🪼 Jellyfin Enhanced: Parent series check failed for', itemId, e);
+            console.warn('🪼 Jellyfin on Demand: Parent series check failed for', itemId, e);
         });
     }
 
@@ -1419,7 +1419,7 @@
                     }
                 });
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: Batch parent series check failed', e);
+                console.warn('🪼 Jellyfin on Demand: Batch parent series check failed', e);
                 // Fall back to individual lookups for this chunk
                 for (let i = 0; i < chunk.length; i++) {
                     checkAndHideByParentSeries(chunk[i].card, chunk[i].itemId);
@@ -1722,7 +1722,7 @@
                             : await ApiClient.getItem(userId, seriesId);
                         seriesTmdbId = series?.ProviderIds?.Tmdb || '';
                     } catch (err) {
-                        console.warn('🪼 Jellyfin Enhanced: Failed to fetch series TMDB ID', err);
+                        console.warn('🪼 Jellyfin on Demand: Failed to fetch series TMDB ID', err);
                     }
                     hideItem({
                         itemId: seriesId,
@@ -1739,7 +1739,7 @@
                 };
             }
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to fetch item data for scoped hide', err);
+            console.warn('🪼 Jellyfin on Demand: Failed to fetch item data for scoped hide', err);
             dialogOpts.onChooseScoped = () => {
                 hideItem({ itemId, name: cardName, hideScope: surface });
                 card.classList.add('je-hidden');
@@ -1887,7 +1887,7 @@
         try {
             window.dispatchEvent(new CustomEvent('je-hidden-content-changed'));
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to emit hidden-content-changed event', e);
+            console.warn('🪼 Jellyfin on Demand: Failed to emit hidden-content-changed event', e);
         }
     }
 
@@ -1909,7 +1909,7 @@
             emitChange();
             return true;
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: Failed to refresh hidden-content', e);
+            console.warn('🪼 Jellyfin on Demand: Failed to refresh hidden-content', e);
             return false;
         }
     }
@@ -1935,7 +1935,7 @@
             });
             return (res && Array.isArray(res.users)) ? res.users : [];
         } catch (e) {
-            if (e && e.status === 403) console.warn('🪼 Jellyfin Enhanced: Hidden Content admin user-list denied (not an admin).');
+            if (e && e.status === 403) console.warn('🪼 Jellyfin on Demand: Hidden Content admin user-list denied (not an admin).');
             return null;
         }
     }
@@ -1964,7 +1964,7 @@
             const items = (hc && hc.items) || {};
             return Object.entries(items).map(([key, item]) => ({ ...item, _key: key }));
         } catch (e) {
-            if (e && e.status === 403) console.warn('🪼 Jellyfin Enhanced: Hidden Content admin read denied (not an admin).');
+            if (e && e.status === 403) console.warn('🪼 Jellyfin on Demand: Hidden Content admin read denied (not an admin).');
             return null;
         }
     }
@@ -1988,7 +1988,7 @@
             });
             return true;
         } catch (e) {
-            if (e && e.status === 403) console.warn('🪼 Jellyfin Enhanced: Hidden Content admin unhide denied (not an admin).');
+            if (e && e.status === 403) console.warn('🪼 Jellyfin on Demand: Hidden Content admin unhide denied (not an admin).');
             return false;
         }
     }
@@ -2011,7 +2011,7 @@
             });
             return (res && typeof res.added === 'number') ? res.added : true;
         } catch (e) {
-            if (e && e.status === 403) console.warn('🪼 Jellyfin Enhanced: Hidden Content admin hide denied (not an admin / disabled).');
+            if (e && e.status === 403) console.warn('🪼 Jellyfin on Demand: Hidden Content admin hide denied (not an admin / disabled).');
             return false;
         }
     }
@@ -2061,7 +2061,7 @@
 
     function scheduleFlushRetry(attempt) {
         if (attempt >= FLUSH_RETRY_DELAYS_MS.length) {
-            console.error('🪼 Jellyfin Enhanced: hidden-content save retries exhausted; local change may be lost on reload');
+            console.error('🪼 Jellyfin on Demand: hidden-content save retries exhausted; local change may be lost on reload');
             // User-visible toast — the bulk-save endpoint is genuinely down at this point.
             try {
                 if (typeof JE?.toast === 'function') {
@@ -2075,7 +2075,7 @@
             pendingRetryHandle = RETRY_INFLIGHT; // mark in-flight so a concurrent debouncedSave failure doesn't spawn a parallel ladder
             // Guard for ApiClient teardown / signed-out state during the window.
             if (typeof ApiClient === 'undefined' || typeof ApiClient.getCurrentUserId !== 'function' || !ApiClient.getCurrentUserId()) {
-                console.error('🪼 Jellyfin Enhanced: abandoning hidden-content retry; ApiClient unavailable');
+                console.error('🪼 Jellyfin on Demand: abandoning hidden-content retry; ApiClient unavailable');
                 pendingRetryHandle = null;
                 return;
             }
@@ -2087,7 +2087,7 @@
                 if (pendingRetryHandle === RETRY_INFLIGHT) pendingRetryHandle = null;
                 reconcileAfterSave(sent);
             } catch (err) {
-                console.warn(`🪼 Jellyfin Enhanced: hidden-content save retry ${attempt + 1} failed`, err);
+                console.warn(`🪼 Jellyfin on Demand: hidden-content save retry ${attempt + 1} failed`, err);
                 scheduleFlushRetry(attempt + 1);
             }
         }, FLUSH_RETRY_DELAYS_MS[attempt]);
@@ -2103,7 +2103,7 @@
             const sent = await directSaveHiddenContent();
             reconcileAfterSave(sent);
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: flushPendingSave failed; scheduling background retry', e);
+            console.warn('🪼 Jellyfin on Demand: flushPendingSave failed; scheduling background retry', e);
             if (pendingRetryHandle == null) scheduleFlushRetry(0);
             throw e;
         }
@@ -2115,7 +2115,7 @@
         window.addEventListener('pagehide', cancelPendingRetry);
     } catch (_) { /* non-browser env, harmless */ }
 
-    // Client-side mirror of MergeHomeScope in JellyfinEnhancedController.cs (scoped home-row hide write).
+    // Client-side mirror of MergeHomeScope in JellyfinOnDemandController.cs (scoped home-row hide write).
     function mergeCwScope(existing, incoming) {
         const ex = (existing || '').toLowerCase();
         const inc = (incoming || 'continuewatching').toLowerCase();
@@ -2463,7 +2463,7 @@
             adminHideForUser
         };
 
-        console.log(`🪼 Jellyfin Enhanced: Hidden Content initialized (${getHiddenCount()} items hidden)`);
+        console.log(`🪼 Jellyfin on Demand: Hidden Content initialized (${getHiddenCount()} items hidden)`);
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

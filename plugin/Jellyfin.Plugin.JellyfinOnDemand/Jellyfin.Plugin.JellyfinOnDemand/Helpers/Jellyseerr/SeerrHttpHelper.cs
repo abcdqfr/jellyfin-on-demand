@@ -88,12 +88,12 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Helpers.Jellyseerr
 
     public static class SeerrHttpHelper
     {
-        public static string UserAgent { get; set; } = "JellyfinEnhanced/unknown";
+        public static string UserAgent { get; set; } = "JellyfinOnDemand/unknown";
 
         // Named client registered with AllowAutoRedirect=false so a 302 to a
         // login URL is detected (UpstreamRedirect) instead of being followed
         // and producing a 200 + login-page HTML body.
-        public const string NamedClient = "JellyfinEnhancedSeerr";
+        public const string NamedClient = "JellyfinOnDemandSeerr";
 
         public static HttpClient CreateClient(IHttpClientFactory factory)
         {

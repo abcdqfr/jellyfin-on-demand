@@ -15,19 +15,19 @@
 (function () {
   'use strict';
 
-  if (!window.JellyfinEnhanced?.pluginConfig?.HiddenContentEnabled) {
+  if (!window.JellyfinOnDemand?.pluginConfig?.HiddenContentEnabled) {
     return;
   }
 
-  var useCustomTabs = !!window.JellyfinEnhanced?.pluginConfig?.HiddenContentUseCustomTabs;
-  var useNativeTab = !!window.JellyfinEnhanced?.pluginConfig?.HiddenContentUseNativeTab;
+  var useCustomTabs = !!window.JellyfinOnDemand?.pluginConfig?.HiddenContentUseCustomTabs;
+  var useNativeTab = !!window.JellyfinOnDemand?.pluginConfig?.HiddenContentUseNativeTab;
 
   if (!useCustomTabs && !useNativeTab) {
     return;
   }
 
   if (useNativeTab) {
-    window.JellyfinEnhanced.nativeTabs.register('hidden-content', 'Hidden Content', function (panel) {
+    window.JellyfinOnDemand.nativeTabs.register('hidden-content', 'Hidden Content', function (panel) {
       var marker = document.createElement('div');
       marker.className = 'jellyfinenhanced hidden-content';
       panel.appendChild(marker);
@@ -60,7 +60,7 @@
     var attempts = 0;
     var check = setInterval(function () {
       if (++attempts > 300) { clearInterval(check); return; }
-      var JE = window.JE || window.JellyfinEnhanced;
+      var JE = window.JE || window.JellyfinOnDemand;
       if (JE?.hiddenContentPage && JE?.hiddenContent) {
         clearInterval(check);
         callback(JE);
@@ -93,7 +93,7 @@
   /**
    * Render hidden content into the given container using a scoped child element.
    * @param {HTMLElement} container - The active .jellyfinenhanced.hidden-content element.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function renderHiddenContent(container, JE) {
     if (!container || !JE.hiddenContentPage) return;
@@ -115,7 +115,7 @@
    * Persistent watcher -- observes document.body (via shared observer) for
    * DOM rebuilds and remounts the hidden content tab when a new active
    * container appears. Suspends checks when not on the home page.
-   * @param {Object} JE - The JellyfinEnhanced global object.
+   * @param {Object} JE - The JellyfinOnDemand global object.
    */
   function watchForContainer(JE) {
     function tryMount() {

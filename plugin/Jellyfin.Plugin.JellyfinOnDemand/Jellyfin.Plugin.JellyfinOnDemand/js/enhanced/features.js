@@ -1,5 +1,5 @@
 /**
- * @file Implements core, non-playback features for Jellyfin Enhanced.
+ * @file Implements core, non-playback features for Jellyfin on Demand.
  */
 (function(JE) {
     'use strict';
@@ -40,10 +40,10 @@
             } else if (window.Emby?.Notifications) {
                 window.Emby.Notifications.show({ title: message, type: type, timeout: 3000 });
             } else {
-                console.log(`🪼 Jellyfin Enhanced: Notification (${type}): ${message}`);
+                console.log(`🪼 Jellyfin on Demand: Notification (${type}): ${message}`);
             }
         } catch (e) {
-            console.error("🪼 Jellyfin Enhanced: Failed to show notification", e);
+            console.error("🪼 Jellyfin on Demand: Failed to show notification", e);
         }
     };
 
@@ -54,7 +54,7 @@
     async function getRandomItem() {
         const userId = ApiClient.getCurrentUserId();
         if (!userId) {
-            console.error("🪼 Jellyfin Enhanced: User not logged in.");
+            console.error("🪼 Jellyfin on Demand: User not logged in.");
             return null;
         }
 
@@ -93,7 +93,7 @@
             }
             throw new Error('No items found in selected libraries.');
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Error fetching random item:', error);
+            console.error('🪼 Jellyfin on Demand: Error fetching random item:', error);
             JE.toast(`${JE.icon(JE.IconName.ERROR)} ${error.message || 'Unknown error'}`, 2000);
             return null;
         }
@@ -118,7 +118,7 @@
             }
             JE.toast(JE.t('toast_random_item_loaded'), 2000);
         } else {
-            console.error('🪼 Jellyfin Enhanced: Invalid item object or ID:', item);
+            console.error('🪼 Jellyfin on Demand: Invalid item object or ID:', item);
             JE.toast(JE.t('toast_generic_error'), 2000);
         }
     }
@@ -221,11 +221,11 @@
         };
 
         const persistWatchProgressMode = (mode) => {
-            if (!window.JellyfinEnhanced) return;
-            window.JellyfinEnhanced.currentSettings = window.JellyfinEnhanced.currentSettings || {};
-            window.JellyfinEnhanced.currentSettings.watchProgressMode = mode;
-            if (typeof window.JellyfinEnhanced.saveUserSettings === 'function') {
-                window.JellyfinEnhanced.saveUserSettings('settings.json', window.JellyfinEnhanced.currentSettings);
+            if (!window.JellyfinOnDemand) return;
+            window.JellyfinOnDemand.currentSettings = window.JellyfinOnDemand.currentSettings || {};
+            window.JellyfinOnDemand.currentSettings.watchProgressMode = mode;
+            if (typeof window.JellyfinOnDemand.saveUserSettings === 'function') {
+                window.JellyfinOnDemand.saveUserSettings('settings.json', window.JellyfinOnDemand.currentSettings);
             }
         };
 
@@ -286,7 +286,7 @@
             const totalYears = Math.floor(totalDays / 365);
 
             let result = '';
-            const format = (window.JellyfinEnhanced?.currentSettings?.watchProgressTimeFormat || 'hours');
+            const format = (window.JellyfinOnDemand?.currentSettings?.watchProgressTimeFormat || 'hours');
             if (format === 'hours') {
                 // Show hours and minutes (or just minutes if under an hour)
                 if (totalHours >= 1) {
@@ -328,7 +328,7 @@
         const getWatchProgressValue = (watchProgress) => {
             const valueDiv = document.createElement('div');
             valueDiv.className = 'mediaInfoItem-watchProgress-value';
-            const defaultMode = (window.JellyfinEnhanced?.currentSettings?.watchProgressMode || 'percentage');
+            const defaultMode = (window.JellyfinOnDemand?.currentSettings?.watchProgressMode || 'percentage');
             const resolvedMode = (defaultMode === 'time' || defaultMode === 'remaining') ? defaultMode : 'percentage';
             valueDiv.dataset.type = resolvedMode;
             valueDiv.innerHTML = getWatchProgressDisplay(watchProgress, resolvedMode);
@@ -372,7 +372,7 @@
 
                 watchProgressCache.set(itemId, watchProgress);
             } catch (error) {
-                console.error('🪼 Jellyfin Enhanced: Error fetching watch progress for ID %s:', itemId, error);
+                console.error('🪼 Jellyfin on Demand: Error fetching watch progress for ID %s:', itemId, error);
                 // Keep placeholder with 0 to prevent repeated calls
                 renderUnavailable();
                 watchProgressCache.set(itemId, { progress: 0, totalPlaybackTicks: 0, totalRuntimeTicks: 0, ts: now });
@@ -451,7 +451,7 @@
                     fileSizeCache.set(itemId, { size: null, unavailable: true, ts: now });
                 }
             } catch (error) {
-                console.error('🪼 Jellyfin Enhanced: Error fetching item size for ID %s:', itemId, error);
+                console.error('🪼 Jellyfin on Demand: Error fetching item size for ID %s:', itemId, error);
                 // Keep placeholder with dash to prevent repeated calls
                 renderUnavailable();
                 fileSizeCache.set(itemId, { size: null, unavailable: true, ts: now });
@@ -712,7 +712,7 @@
                     audioLanguageCache.set(itemId, { languages: [], unavailable: true, ts: Date.now() });
                 }
             } catch (error) {
-                console.error('🪼 Jellyfin Enhanced: Error fetching audio languages for %s:', itemId, error);
+                console.error('🪼 Jellyfin on Demand: Error fetching audio languages for %s:', itemId, error);
                 renderUnavailable();
                 audioLanguageCache.set(itemId, { languages: [], unavailable: true, ts: Date.now() });
             }
@@ -738,7 +738,7 @@
         return fetch(url, { headers: { "Authorization": `MediaBrowser Token="${ApiClient.accessToken()}"`, "X-Emby-Token": ApiClient.accessToken() } })
             .then(r => r.ok ? r.json() : Promise.reject(`API Error: ${r.status}`))
             .catch(error => {
-                console.error(`🪼 Jellyfin Enhanced: Release Date: TMDB request failed for ${path}`, error);
+                console.error(`🪼 Jellyfin on Demand: Release Date: TMDB request failed for ${path}`, error);
                 return null;
             });
     }
@@ -931,7 +931,7 @@
                     placeholder.remove();
                 }
             } catch (error) {
-                console.error(`🪼 Jellyfin Enhanced: Release Date: Error fetching release info for ${itemId}:`, error);
+                console.error(`🪼 Jellyfin on Demand: Release Date: Error fetching release info for ${itemId}:`, error);
                 releaseDateCache.set(itemId, { infos: [], ts: now });
                 placeholder.remove();
             }
@@ -1135,7 +1135,7 @@
                     seasonNumber = item?.ParentIndexNumber != null ? item.ParentIndexNumber : null;
                     episodeNumber = item?.IndexNumber != null ? item.IndexNumber : null;
                 } catch (err) {
-                    console.warn('🪼 Jellyfin Enhanced: Could not fetch item metadata for hide button', err);
+                    console.warn('🪼 Jellyfin on Demand: Could not fetch item metadata for hide button', err);
                 }
 
                 const isEpisode = lastDetailsItemType === 'Episode';
@@ -1167,7 +1167,7 @@
                                 const series = await ApiClient.getItem(userId, seriesId);
                                 seriesTmdbId = series?.ProviderIds?.Tmdb || '';
                             } catch (err) {
-                                console.warn('🪼 Jellyfin Enhanced: Could not fetch series metadata for hide-show action', err);
+                                console.warn('🪼 Jellyfin on Demand: Could not fetch series metadata for hide-show action', err);
                             }
                             JE.hiddenContent.hideItem({
                                 itemId: seriesId,
@@ -1276,7 +1276,7 @@
                 displayReleaseDate(itemId, container);
             }
         } catch (e) {
-        console.warn('🪼 Jellyfin Enhanced: Error in item details handler', e);
+        console.warn('🪼 Jellyfin on Demand: Error in item details handler', e);
     }
     }, 100);
 
@@ -1439,7 +1439,7 @@
                 }
             });
         } catch (e) {
-            console.warn('🪼 Jellyfin Enhanced: optimistic DOM-hide failed', e);
+            console.warn('🪼 Jellyfin on Demand: optimistic DOM-hide failed', e);
         }
     }
 
@@ -1485,7 +1485,7 @@
             try {
                 JE.hiddenContent?.markScopedHidden?.(itemId, surface);
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: markScopedHidden mirror failed', e);
+                console.warn('🪼 Jellyfin on Demand: markScopedHidden mirror failed', e);
             }
             return true;
         } catch (error) {
@@ -1523,7 +1523,7 @@
             }
             return true;
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: action sheet close failed', err);
+            console.warn('🪼 Jellyfin on Demand: action sheet close failed', err);
             return false;
         }
     }
@@ -1549,7 +1549,7 @@
                 if (visibleCount === 0) section.style.display = 'none';
             }
         } catch (err) {
-            console.warn('🪼 Jellyfin Enhanced: hideEmptyHomeSections failed', err);
+            console.warn('🪼 Jellyfin on Demand: hideEmptyHomeSections failed', err);
         }
     }
     JE.hideEmptyHomeSections = hideEmptyHomeSections;
@@ -1897,4 +1897,4 @@
         fitRemoveItemToMenu(removeButton, scroller);
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

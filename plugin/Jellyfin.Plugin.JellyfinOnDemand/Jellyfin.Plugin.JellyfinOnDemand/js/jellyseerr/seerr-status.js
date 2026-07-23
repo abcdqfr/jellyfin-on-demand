@@ -253,4 +253,4 @@
 
     JE.seerrStatus = seerrStatus;
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

@@ -613,4 +613,4 @@
         applyFilterVisibility
     };
 
-})(window.JellyfinEnhanced || (window.JellyfinEnhanced = {}));
+})(window.JellyfinOnDemand || (window.JellyfinOnDemand = {}));

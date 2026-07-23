@@ -5,8 +5,8 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Jellyseerr Recommendations:';
-    const requestMoreLogPrefix = '🪼 Jellyfin Enhanced: Series Request More:';
+    const logPrefix = '🪼 Jellyfin on Demand: Jellyseerr Recommendations:';
+    const requestMoreLogPrefix = '🪼 Jellyfin on Demand: Series Request More:';
 
     // Track processed items to avoid duplicate renders
     const processedItems = new Set();
@@ -749,4 +749,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

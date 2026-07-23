@@ -27,11 +27,11 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.ScheduledTasks
 
         public string Name => "Refresh CDN Assets";
 
-        public string Key => "JellyfinEnhancedRefreshCdnAssets";
+        public string Key => "JellyfinOnDemandRefreshCdnAssets";
 
         public string Description => "Downloads and refreshes the local copies of external CDN assets (icons, fonts, theme colours, logos) so clients are served them from the plugin instead of third-party CDNs. Runs on startup and every 24 hours.";
 
-        public string Category => "Jellyfin Enhanced";
+        public string Category => "Jellyfin on Demand";
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {

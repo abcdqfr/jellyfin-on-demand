@@ -335,7 +335,7 @@
     "reviews_form_error_save": "فشل حفظ المراجعة. يرجى المحاولة مرة أخرى.",
     "panel_settings_language": "إعدادات اللغة",
     "panel_settings_language_display": "لغة العرض",
-    "panel_settings_language_display_desc": "حدد اللغة لواجهة Jellyfin Enhanced. تسري التغييرات بعد تحديث الصفحة.",
+    "panel_settings_language_display_desc": "حدد اللغة لواجهة Jellyfin on Demand. تسري التغييرات بعد تحديث الصفحة.",
     "panel_settings_language_clear_cache": "مسح ذاكرة التخزين المؤقت للترجمة",
     "panel_settings_language_clear_cache_desc": "يزيل جميع الترجمات المخزنة مؤقتاً. مفيد لجلب ترجمة تم تحديثها مؤخراً من Github.",
     "toast_language_changed": "{{icon:language}} تم تغيير اللغة! جاري تحديث الصفحة…",

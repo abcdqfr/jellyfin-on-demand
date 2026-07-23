@@ -30,7 +30,7 @@ If applicable, add screenshots to help explain your problem.
 
 Please provide server logs and browser console logs as applicable (make sure sensitive information is redacted)
 
-[How to gather logs?](https://n00bcodr.github.io/Jellyfin-Enhanced/faq-support/faq/#troubleshooting
+[How to gather logs?](https://github.com/abcdqfr/jellyfin-on-demand#readme
 
 **Additional context**
 Add any other context about the problem here.

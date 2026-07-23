@@ -7,7 +7,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: HSS Discovery Handler:';
+    const logPrefix = '🪼 Jellyfin on Demand: HSS Discovery Handler:';
 
     function initDiscoveryHandler() {
 
@@ -44,4 +44,4 @@
 
     initDiscoveryHandler();
 
-})(window.JellyfinEnhanced || {});
+})(window.JellyfinOnDemand || {});

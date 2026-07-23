@@ -144,4 +144,4 @@
         normalizeTitle, significantWords
     };
     JE.ranker = JE.swarmRanker;
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

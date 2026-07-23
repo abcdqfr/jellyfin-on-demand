@@ -97,13 +97,13 @@ def ensure_plugin() -> None:
     plug.mkdir(parents=True, exist_ok=True)
     shutil.copy2(PLUGIN_DLL, plug / "Jellyfin.Plugin.JellyfinOnDemand.dll")
     meta = {
-        "guid": "f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b",
-        "name": "Jellyfin Enhanced",
+        "guid": "935a72b9-7639-473b-bb54-4259f7a9695c",
+        "name": "Jellyfin on Demand",
         "description": "JellyfinOnDemand",
         "overview": "JellyfinOnDemand",
         "owner": "jellyfin-on-demand",
         "category": "General",
-        "version": "11.12.0.0",
+        "version": "0.5.1.0",
         "targetAbi": "10.11.0.0",
         "timestamp": "2026-07-21T00:00:00.0000000Z",
         "autoUpdate": False,

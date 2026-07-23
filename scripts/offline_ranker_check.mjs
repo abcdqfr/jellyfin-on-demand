@@ -5,14 +5,14 @@ import vm from 'node:vm';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const fixture = JSON.parse(readFileSync(`${root}docs/design/fixtures/ranker-cases.json`, 'utf8'));
-const context = { window: { JellyfinEnhanced: {} } };
+const context = { window: { JellyfinOnDemand: {} } };
 vm.runInNewContext(
   readFileSync(`${root}plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js/swarm/ranker.js`, 'utf8'),
   context,
 );
 
 const releases = fixture.releases.map(release => ({ ...release, query_title: fixture.query_title }));
-const actual = context.window.JellyfinEnhanced.swarmRanker.rank(releases).map(release => release.id);
+const actual = context.window.JellyfinOnDemand.swarmRanker.rank(releases).map(release => release.id);
 const expected = fixture.expected_order;
 
 if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -21,7 +21,7 @@ if (JSON.stringify(actual) !== JSON.stringify(expected)) {
 }
 
 // Apostrophe / stopword relevance (Straight A's → From Straight As…; reject "Straight To The A").
-const R = context.window.JellyfinEnhanced.swarmRanker;
+const R = context.window.JellyfinOnDemand.swarmRanker;
 const q = "Straight A's to XXX 2017";
 const keep = R.filterRelevant(
   [

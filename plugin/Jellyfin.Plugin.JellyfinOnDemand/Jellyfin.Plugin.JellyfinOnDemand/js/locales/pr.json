@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Failed t' save yer tale. Try again, matey.",
     "panel_settings_language": "Tongue Settings",
     "panel_settings_language_display": "Display Tongue",
-    "panel_settings_language_display_desc": "Pick th' speakin' tongue fer Jellyfin Enhanced interface. Changes take effect after reloadin' th' page.",
+    "panel_settings_language_display_desc": "Pick th' speakin' tongue fer Jellyfin on Demand interface. Changes take effect after reloadin' th' page.",
     "panel_settings_language_clear_cache": "Clear Translation Hold",
     "panel_settings_language_clear_cache_desc": "Tosses all cached translations overboard. Useful to fetch a freshly updated translation from Github.",
     "toast_language_changed": "{{icon:language}} Tongue changed! Reloadin' th' page…",

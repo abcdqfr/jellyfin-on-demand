@@ -5,7 +5,7 @@
   </div>
 </div>
 <div id="je-error" style="display:none">
-  Jellyfin Enhanced not ready.
+  Jellyfin on Demand not ready.
 </div>
 <script>
 (function () {
@@ -37,12 +37,12 @@
   }
 
   const timer = setInterval(() => {
-    const JE = window.JellyfinEnhanced;
+    const JE = window.JellyfinOnDemand;
 
     if (JE && JE.userConfig && JE.bookmarks) {
       clearInterval(timer);
       loadingEl.remove();
-      console.log("🪼 Jellyfin Enhanced: Bookmarks Page Loaded.");
+      console.log("🪼 Jellyfin on Demand: Bookmarks Page Loaded.");
       return;
     }
 

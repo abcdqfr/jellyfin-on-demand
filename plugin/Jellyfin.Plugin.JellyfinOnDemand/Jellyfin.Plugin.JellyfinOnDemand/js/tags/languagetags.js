@@ -4,12 +4,12 @@
     'use strict';
 
     JE.initializeLanguageTags = function() {
-        const logPrefix = '🪼 Jellyfin Enhanced: Language Tags:';
+        const logPrefix = '🪼 Jellyfin on Demand: Language Tags:';
         const containerClass = 'language-overlay-container';
         const flagClass = 'language-flag';
         const TAGGED_ATTR = 'jeLanguageTagged';
-        const CACHE_KEY = 'JellyfinEnhanced-languageTagsCache';
-        const CACHE_TIMESTAMP_KEY = 'JellyfinEnhanced-languageTagsCacheTimestamp';
+        const CACHE_KEY = 'JellyfinOnDemand-languageTagsCache';
+        const CACHE_TIMESTAMP_KEY = 'JellyfinOnDemand-languageTagsCacheTimestamp';
         const ENABLE_LOCAL_STORAGE_FALLBACK =
             JE.pluginConfig?.TagCacheServerMode === false ||
             JE.pluginConfig?.EnableTagsLocalStorageFallback === true;
@@ -401,7 +401,7 @@
      * Cleans up existing state and re-applies tags.
      */
     JE.reinitializeLanguageTags = function() {
-        const logPrefix = '🪼 Jellyfin Enhanced: Language Tags:';
+        const logPrefix = '🪼 Jellyfin on Demand: Language Tags:';
         console.log(`${logPrefix} Re-initializing...`);
 
         // Always remove existing tags and clear tagged state
@@ -423,4 +423,4 @@
         JE.tagPipeline?.scheduleScan();
     };
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

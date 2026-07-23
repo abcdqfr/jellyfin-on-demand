@@ -48,7 +48,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.EventHandlers
                 // Mirror the response filter's HC + RCW gate (HiddenContentResponseFilter.cs). When admin runs
                 // RCW=on / HC=off, the filter still strips continuewatching-scope entries; without this branch
                 // resume would never auto-clear those entries and the user would see them stay hidden forever.
-                var cfg = JellyfinEnhanced.Instance?.Configuration;
+                var cfg = JellyfinOnDemand.Instance?.Configuration;
                 var hcEnabled = cfg?.HiddenContentEnabled == true;
                 var rcwEnabled = cfg?.RemoveContinueWatchingEnabled == true;
                 if (!hcEnabled && !rcwEnabled)

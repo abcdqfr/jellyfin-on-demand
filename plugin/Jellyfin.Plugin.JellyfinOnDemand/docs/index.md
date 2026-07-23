@@ -1,15 +1,16 @@
-# Jellyfin Enhanced
+# Jellyfin on Demand
 
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/n00bcodr/Jellyfin-Enhanced/main?logo=semantic-release&logoColor=white&label=Last%20Updated&labelColor=black&color=AA5CC3&cacheSeconds=3600" alt="Last Updated">
-  <img src="https://img.shields.io/github/commit-activity/w/n00bcodr/Jellyfin-Enhanced?logo=git&label=Commit%20Activity&labelColor=black&color=00A4DC&cacheSeconds=600" alt="Commit Activity">
+  <img src="https://img.shields.io/github/last-commit/abcdqfr/jellyfin-on-demand/main?logo=semantic-release&logoColor=white&label=Last%20Updated&labelColor=black&color=AA5CC3&cacheSeconds=3600" alt="Last Updated">
+  <img src="https://img.shields.io/github/commit-activity/w/abcdqfr/jellyfin-on-demand?logo=git&label=Commit%20Activity&labelColor=black&color=00A4DC&cacheSeconds=600" alt="Commit Activity">
   <img src="https://img.shields.io/badge/Jellyfin%20Version-10.11-AA5CC3?logo=jellyfin&logoColor=00A4DC&labelColor=black" alt="Jellyfin Version">
 </p>
 
 
 <p align="center">
-The essential enhancement suite for Jellyfin, bundling advanced features and customizations into one convenient plugin.<br><br>
-  <img src="images/icon.png" alt="Jellyfin Enhanced Logo" width="50%" />
+On-demand discovery and playback for Jellyfin — expand search beyond the local library, then stream, save, or download.<br>
+Derived from Jellyfin Enhanced. Independent community project — not affiliated with Jellyfin, Jellyfin Enhanced, or Seerr.<br><br>
+  <img src="images/icon.png" alt="Jellyfin on Demand Logo" width="50%" />
 </p>
 
 ## Compatibility

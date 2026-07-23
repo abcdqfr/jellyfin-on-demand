@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Неуспешно запазване на отзива. Моля, опитайте отново.",
     "panel_settings_language": "Езикови настройки",
     "panel_settings_language_display": "Език на интерфейса",
-    "panel_settings_language_display_desc": "Изберете език за интерфейса на Jellyfin Enhanced. Промените влизат в сила след презареждане на страницата.",
+    "panel_settings_language_display_desc": "Изберете език за интерфейса на Jellyfin on Demand. Промените влизат в сила след презареждане на страницата.",
     "panel_settings_language_clear_cache": "Изчистване на кеша за преводи",
     "panel_settings_language_clear_cache_desc": "Премахва всички кеширани преводи. Полезно за извличане на наскоро актуализиран превод от Github.",
     "toast_language_changed": "{{icon:language}} Езикът е променен! Презареждане на страницата…",

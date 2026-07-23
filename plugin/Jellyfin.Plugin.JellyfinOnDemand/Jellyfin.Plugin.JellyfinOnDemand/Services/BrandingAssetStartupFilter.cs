@@ -24,7 +24,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
     /// plugin middleware ahead of the static-file handler.
     ///
     /// The custom images are uploaded through the plugin's existing controller and
-    /// stored under <see cref="JellyfinEnhanced.BrandingDirectory"/> using fixed,
+    /// stored under <see cref="JellyfinOnDemand.BrandingDirectory"/> using fixed,
     /// un-hashed names. When a custom file exists this middleware short-circuits the
     /// request and streams those bytes directly (no buffering, no de/recompression —
     /// PNG/ICO are already compressed). When it does not, it calls next() and the
@@ -85,7 +85,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
                 return;
             }
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || config.DisableBrandingMiddleware)
             {
                 await nextMw().ConfigureAwait(false);
@@ -101,7 +101,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 
             try
             {
-                var brandingDir = JellyfinEnhanced.BrandingDirectory;
+                var brandingDir = JellyfinOnDemand.BrandingDirectory;
                 if (!string.IsNullOrWhiteSpace(brandingDir))
                 {
                     // Resolve under BrandingDirectory and confirm the candidate stays
@@ -152,7 +152,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
 
                             if (Interlocked.Exchange(ref _loggedOnce, 1) == 0)
                             {
-                                _logger.Info("Jellyfin Enhanced: serving custom branding via request-time middleware (IStartupFilter).");
+                                _logger.Info("Jellyfin on Demand: serving custom branding via request-time middleware (IStartupFilter).");
                             }
 
                             // HEAD: headers only, no body.

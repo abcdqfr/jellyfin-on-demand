@@ -5,7 +5,7 @@
   </div>
 </div>
 <div id="je-error" style="display:none">
-  Jellyfin Enhanced not ready.
+  Jellyfin on Demand not ready.
 </div>
 <script>
 (function () {
@@ -31,7 +31,7 @@
     target.appendChild(newContainer);
   }
 
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
 
   const timer = setInterval(() => {
 
@@ -44,7 +44,7 @@
       JE.calendarPage.renderPage();
       JE.calendarPage.refresh()
       document.addEventListener("click", JE.calendarPage.handleEventClick);
-      console.log('🪼 Jellyfin Enhanced: Calendar Page Loaded.');
+      console.log('🪼 Jellyfin on Demand: Calendar Page Loaded.');
       return;
     }
 

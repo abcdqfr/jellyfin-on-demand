@@ -3,7 +3,7 @@
     'use strict';
 
     JE.initializeArrLinksScript = async function () {
-        const logPrefix = '🪼 Jellyfin Enhanced: Arr Links:';
+        const logPrefix = '🪼 Jellyfin on Demand: Arr Links:';
 
         if (!JE?.pluginConfig?.ArrLinksEnabled) {
             console.log(`${logPrefix} Integration disabled in plugin settings.`);
@@ -61,11 +61,11 @@
         // an action endpoint. The backend ships boolean flags in /private-config so the frontend
         // can toast without round-tripping an action call.
         if (JE?.pluginConfig?.SonarrInstancesCorrupt && typeof JE.toast === 'function') {
-            JE.toast('⚠ Sonarr instance configuration is corrupt. Open the Jellyfin Enhanced config page to reset it.');
+            JE.toast('⚠ Sonarr instance configuration is corrupt. Open the Jellyfin on Demand config page to reset it.');
             console.error(`${logPrefix} SonarrInstances stored JSON is corrupt.`);
         }
         if (JE?.pluginConfig?.RadarrInstancesCorrupt && typeof JE.toast === 'function') {
-            JE.toast('⚠ Radarr instance configuration is corrupt. Open the Jellyfin Enhanced config page to reset it.');
+            JE.toast('⚠ Radarr instance configuration is corrupt. Open the Jellyfin on Demand config page to reset it.');
             console.error(`${logPrefix} RadarrInstances stored JSON is corrupt.`);
         }
 
@@ -784,4 +784,4 @@
             console.error(`${logPrefix} Failed to initialize`, err);
         }
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

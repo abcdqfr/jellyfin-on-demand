@@ -21,7 +21,7 @@
             const loggedIn = window.ApiClient && window.ApiClient._currentUser && window.ApiClient._currentUser.Id;
             return !!loggedIn;
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: Login Image - Error checking login status.', error);
+            console.error('🪼 Jellyfin on Demand: Login Image - Error checking login status.', error);
             return false;
         }
     };
@@ -131,7 +131,7 @@
             url.searchParams.set('quality', quality.toString());
             return url.toString();
         } catch (e) {
-            console.error('🪼 Jellyfin Enhanced: Login Image - Invalid URL', e);
+            console.error('🪼 Jellyfin on Demand: Login Image - Invalid URL', e);
             return rawUrl;
         }
     };
@@ -196,7 +196,7 @@
 
         // Handle errors
         imgElement.onerror = () => {
-            console.warn('🪼 Jellyfin Enhanced: Login Image - Failed to load image');
+            console.warn('🪼 Jellyfin on Demand: Login Image - Failed to load image');
             resetFormState();
         };
 
@@ -397,7 +397,7 @@
                 }, 300);
             };
             highQualityImg.onerror = () => {
-                console.warn(`🪼 Jellyfin Enhanced: Login Image - Card ${index + 1} high quality failed, keeping low quality`);
+                console.warn(`🪼 Jellyfin on Demand: Login Image - Card ${index + 1} high quality failed, keeping low quality`);
                 container.style.backgroundImage = `url("${lowQualityUrl}")`;
                 if (blurOverlay.parentNode) {
                     blurOverlay.remove();
@@ -415,7 +415,7 @@
         const manualLoginForm = document.querySelector('.manualLoginForm');
 
         if (!userNameInput || !manualLoginForm) {
-            console.error('🪼 Jellyfin Enhanced: Login Image - Required elements not found.');
+            console.error('🪼 Jellyfin on Demand: Login Image - Required elements not found.');
             return;
         }
 
@@ -484,7 +484,7 @@
 
         if (userNameInput && manualLoginForm) {
             // Elements found, so we are on the login page. Run the main script logic.
-            console.log('🪼 Jellyfin Enhanced: Login Image initialized');
+            console.log('🪼 Jellyfin on Demand: Login Image initialized');
             setupObservers();
 
             // Clean up when page unloads
@@ -499,8 +499,8 @@
     };
 
     // Export functions to global namespace
-    window.JellyfinEnhanced = window.JellyfinEnhanced || {};
-    window.JellyfinEnhanced.initializeLoginImage = initializeLoginImage;
+    window.JellyfinOnDemand = window.JellyfinOnDemand || {};
+    window.JellyfinOnDemand.initializeLoginImage = initializeLoginImage;
 
     // Start the initialization process when the script loads.
     initializeLoginImage();

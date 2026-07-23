@@ -3,7 +3,7 @@
     'use strict';
 
     JE.initializeLetterboxdLinksScript = async function () {
-        const logPrefix = '🪼 Jellyfin Enhanced: Letterboxd Links:';
+        const logPrefix = '🪼 Jellyfin on Demand: Letterboxd Links:';
 
         if (!JE?.pluginConfig?.LetterboxdEnabled) {
             console.log(`${logPrefix} Integration disabled in plugin settings.`);
@@ -214,4 +214,4 @@
             console.error(`${logPrefix} Failed to initialize`, err);
         }
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

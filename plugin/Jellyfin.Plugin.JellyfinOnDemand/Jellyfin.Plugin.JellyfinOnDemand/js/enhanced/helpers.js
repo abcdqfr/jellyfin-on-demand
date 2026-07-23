@@ -1,5 +1,5 @@
 /**
- * @file Centralized helper utilities for Jellyfin Enhanced
+ * @file Centralized helper utilities for Jellyfin on Demand
  * Provides standardized functionality for hooking into page views and managing MutationObservers
  */
 (function(JE) {
@@ -179,19 +179,19 @@
                 try {
                     sub.callback(mutations);
                 } catch (err) {
-                    console.error(`🪼 Jellyfin Enhanced: Error in body observer subscriber "${id}":`, err);
+                    console.error(`🪼 Jellyfin on Demand: Error in body observer subscriber "${id}":`, err);
                 }
             }
         });
         bodyObserver.observe(document.body, { childList: true, subtree: true });
-        console.log('🪼 Jellyfin Enhanced: Shared body observer started');
+        console.log('🪼 Jellyfin on Demand: Shared body observer started');
     }
 
     function stopBodyObserverIfEmpty() {
         if (bodyObserver && bodySubscribers.size === 0) {
             bodyObserver.disconnect();
             bodyObserver = null;
-            console.log('🪼 Jellyfin Enhanced: Shared body observer stopped (no subscribers)');
+            console.log('🪼 Jellyfin on Demand: Shared body observer stopped (no subscribers)');
         }
     }
 
@@ -222,18 +222,18 @@
     function onBodyMutation(id, callback, options) {
         const priority = (options && typeof options.priority === 'number') ? options.priority : 0;
         if (bodySubscribers.has(id)) {
-            console.warn(`🪼 Jellyfin Enhanced: Replacing body observer subscriber: ${id}`);
+            console.warn(`🪼 Jellyfin on Demand: Replacing body observer subscriber: ${id}`);
         }
         bodySubscribers.set(id, { callback, priority });
         if (priority !== 0) {
             resortBodySubscribers();
         }
         ensureBodyObserver();
-        console.log(`🪼 Jellyfin Enhanced: Body subscriber registered: ${id} (priority: ${priority}, total: ${bodySubscribers.size})`);
+        console.log(`🪼 Jellyfin on Demand: Body subscriber registered: ${id} (priority: ${priority}, total: ${bodySubscribers.size})`);
         const cleanup = () => {
             if (!bodySubscribers.has(id)) return;
             bodySubscribers.delete(id);
-            console.log(`🪼 Jellyfin Enhanced: Body subscriber removed: ${id} (remaining: ${bodySubscribers.size})`);
+            console.log(`🪼 Jellyfin on Demand: Body subscriber removed: ${id} (remaining: ${bodySubscribers.size})`);
             stopBodyObserverIfEmpty();
         };
         return { unsubscribe: cleanup, disconnect: cleanup };
@@ -247,7 +247,7 @@
     function removeBodySubscriber(id) {
         const removed = bodySubscribers.delete(id);
         if (removed) {
-            console.log(`🪼 Jellyfin Enhanced: Body subscriber removed: ${id} (remaining: ${bodySubscribers.size})`);
+            console.log(`🪼 Jellyfin on Demand: Body subscriber removed: ${id} (remaining: ${bodySubscribers.size})`);
             stopBodyObserverIfEmpty();
         }
         return removed;
@@ -355,7 +355,7 @@
      */
     function initialize() {
         if (!window.Emby?.Page) {
-            console.warn('🪼 Jellyfin Enhanced: Emby.Page not available, retrying in 100ms');
+            console.warn('🪼 Jellyfin on Demand: Emby.Page not available, retrying in 100ms');
             setTimeout(initialize, 100);
             return;
         }
@@ -373,7 +373,7 @@
                 try {
                     originalOnViewShow.call(this, view, element, hash);
                 } catch (err) {
-                    console.warn('🪼 Jellyfin Enhanced: Error in original onViewShow:', err);
+                    console.warn('🪼 Jellyfin on Demand: Error in original onViewShow:', err);
                 }
             }
 
@@ -381,7 +381,7 @@
             notifyHandlers(view, element, hash);
         };
 
-        console.log('🪼 Jellyfin Enhanced: Successfully hooked into Emby.Page.onViewShow');
+        console.log('🪼 Jellyfin on Demand: Successfully hooked into Emby.Page.onViewShow');
     }
 
     /**
@@ -409,7 +409,7 @@
                 // Call the handler
                 callback(view, element, hash, itemPromise);
             } catch (err) {
-                console.error('🪼 Jellyfin Enhanced: Error in handler:', err);
+                console.error('🪼 Jellyfin on Demand: Error in handler:', err);
             }
         });
     }
@@ -427,7 +427,7 @@
             if (!itemId) return null;
             return await getItemCached(itemId);
         } catch (err) {
-            console.error('🪼 Jellyfin Enhanced: Error fetching item:', err);
+            console.error('🪼 Jellyfin on Demand: Error fetching item:', err);
             return null;
         }
     }
@@ -452,7 +452,7 @@
         };
 
         handlers.push(handlerConfig);
-        console.log(`🪼 Jellyfin Enhanced: Registered onViewPage handler (total: ${handlers.length})`);
+        console.log(`🪼 Jellyfin on Demand: Registered onViewPage handler (total: ${handlers.length})`);
 
         // Call immediately if requested and we're on a matching page
         if (options.immediate) {
@@ -469,7 +469,7 @@
                     callback(currentView, element, currentHash, itemPromise);
                 }
             } catch (err) {
-                console.error('🪼 Jellyfin Enhanced: Error in immediate handler call:', err);
+                console.error('🪼 Jellyfin on Demand: Error in immediate handler call:', err);
             }
         }
 
@@ -478,7 +478,7 @@
             const index = handlers.indexOf(handlerConfig);
             if (index !== -1) {
                 handlers.splice(index, 1);
-                console.log(`🪼 Jellyfin Enhanced: Unregistered onViewPage handler (remaining: ${handlers.length})`);
+                console.log(`🪼 Jellyfin on Demand: Unregistered onViewPage handler (remaining: ${handlers.length})`);
             }
         };
     }
@@ -534,14 +534,14 @@
         if (activeObservers.has(id)) {
             const existing = activeObservers.get(id);
             existing.disconnect();
-            console.warn(`🪼 Jellyfin Enhanced: Replacing existing observer: ${id}`);
+            console.warn(`🪼 Jellyfin on Demand: Replacing existing observer: ${id}`);
         }
 
         const observer = new MutationObserver(callback);
         observer.observe(target, config);
 
         activeObservers.set(id, observer);
-        console.log(`🪼 Jellyfin Enhanced: Created dedicated observer: ${id} (total: ${activeObservers.size})`);
+        console.log(`🪼 Jellyfin on Demand: Created dedicated observer: ${id} (total: ${activeObservers.size})`);
 
         return observer;
     }
@@ -562,7 +562,7 @@
             const observer = activeObservers.get(id);
             observer.disconnect();
             activeObservers.delete(id);
-            console.log(`🪼 Jellyfin Enhanced: Disconnected observer: ${id} (remaining: ${activeObservers.size})`);
+            console.log(`🪼 Jellyfin on Demand: Disconnected observer: ${id} (remaining: ${activeObservers.size})`);
             return true;
         }
         return false;
@@ -581,7 +581,7 @@
             bodyObserver.disconnect();
             bodyObserver = null;
         }
-        console.log('🪼 Jellyfin Enhanced: All observers and body subscribers disconnected');
+        console.log('🪼 Jellyfin on Demand: All observers and body subscribers disconnected');
     }
 
     /**
@@ -613,7 +613,7 @@
             // Set timeout
             timeoutId = setTimeout(() => {
                 handle.unsubscribe();
-                console.warn(`🪼 Jellyfin Enhanced: Timeout waiting for element: ${selector}`);
+                console.warn(`🪼 Jellyfin on Demand: Timeout waiting for element: ${selector}`);
                 resolve(null);
             }, timeout);
         });
@@ -697,12 +697,12 @@
                 lastError = error;
 
                 if (attempt === maxAttempts) {
-                    console.error(`🪼 Jellyfin Enhanced: Failed after ${maxAttempts} attempts:`, error);
+                    console.error(`🪼 Jellyfin on Demand: Failed after ${maxAttempts} attempts:`, error);
                     throw error;
                 }
 
                 const delay = baseDelay * Math.pow(2, attempt - 1);
-                console.warn(`🪼 Jellyfin Enhanced: Attempt ${attempt}/${maxAttempts} failed, retrying in ${delay}ms...`, error);
+                console.warn(`🪼 Jellyfin on Demand: Attempt ${attempt}/${maxAttempts} failed, retrying in ${delay}ms...`, error);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
@@ -840,7 +840,7 @@
                 }
 
                 if (Date.now() - startTime >= timeout) {
-                    console.warn('🪼 Jellyfin Enhanced: Timeout waiting for condition');
+                    console.warn('🪼 Jellyfin on Demand: Timeout waiting for condition');
                     resolve(false);
                     return;
                 }
@@ -869,7 +869,7 @@
         style.textContent = css;
         document.head.appendChild(style);
 
-        console.log(`🪼 Jellyfin Enhanced: Added CSS: ${id}`);
+        console.log(`🪼 Jellyfin on Demand: Added CSS: ${id}`);
     }
 
     /**
@@ -881,7 +881,7 @@
         const existing = document.getElementById(id);
         if (existing) {
             existing.remove();
-            console.log(`🪼 Jellyfin Enhanced: Removed CSS: ${id}`);
+            console.log(`🪼 Jellyfin on Demand: Removed CSS: ${id}`);
             return true;
         }
         return false;
@@ -975,6 +975,6 @@
         getBodySubscriberCount: () => bodySubscribers.size
     };
 
-    console.log('🪼 Jellyfin Enhanced: Helpers initialized successfully');
+    console.log('🪼 Jellyfin on Demand: Helpers initialized successfully');
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

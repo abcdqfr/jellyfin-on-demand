@@ -142,7 +142,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Services
                     ["fdbkXQdP/jellyseerr-poster-not-found.png"] = "https://i.ibb.co/fdbkXQdP/jellyseerr-poster-not-found.png"
                 }),
             // Remote (newer-than-bundled) locale JSON from the upstream repo's main branch
-            ["locales"] = new("https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/Jellyfin.Plugin.JellyfinOnDemand/js/locales", Types("application/json", "text/plain")),
+            ["locales"] = new("https://raw.githubusercontent.com/abcdqfr/jellyfin-on-demand/main/plugin/Jellyfin.Plugin.JellyfinOnDemand/Jellyfin.Plugin.JellyfinOnDemand/js/locales", Types("application/json", "text/plain")),
             // Documentation screenshots shown on the admin config page
             ["je-docs-img"] = new("https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/docs/images", Types("image/png", "image/jpeg")),
             // The plugin's own bundled-on-CDN stylesheets (e.g. colored-ratings CSS)

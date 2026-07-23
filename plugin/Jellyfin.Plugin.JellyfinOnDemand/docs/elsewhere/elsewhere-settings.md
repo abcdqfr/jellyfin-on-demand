@@ -6,7 +6,7 @@
 
     - **TMDB API Key**
         - [Free from TMDB](https://www.themoviedb.org/settings/api)
-    - **Jellyfin Enhanced** plugin installed
+    - **Jellyfin on Demand** plugin installed
 
 
 ## Prerequisites
@@ -21,7 +21,7 @@
 
 ## Setup
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Elsewhere Settings** tab
 3. Check "Enable Elsewhere"
 4. Enter your **TMDB API Key**
@@ -164,7 +164,7 @@ Elsewhere can be displayed on Seerr discovery pages.
 
 **Enable:**
 
-1. Go to **Dashboard** → **Plugins** → **Jellyfin Enhanced**
+1. Go to **Dashboard** → **Plugins** → **Jellyfin on Demand**
 2. Navigate to **Seerr Settings** tab
 3. Check "Show Elsewhere on Seerr"
 4. Click **Save**
@@ -209,6 +209,6 @@ If you encounter issues:
 1. Check [FAQ](../faq-support/faq.md) for common solutions
 2. Verify TMDB API key is valid
 3. Check browser console for errors
-4. Report issues on [GitHub](https://github.com/n00bcodr/Jellyfin-Enhanced/issues)
+4. Report issues on [GitHub](https://github.com/abcdqfr/jellyfin-on-demand/issues)
 
 ---

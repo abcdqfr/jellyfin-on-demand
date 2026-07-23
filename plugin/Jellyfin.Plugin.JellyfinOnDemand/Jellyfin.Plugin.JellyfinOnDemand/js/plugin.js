@@ -3,7 +3,7 @@
     'use strict';
 
     // Create the global namespace immediately with placeholders
-    window.JellyfinEnhanced = {
+    window.JellyfinOnDemand = {
         pluginConfig: {},
         userConfig: { settings: {}, shortcuts: { Shortcuts: [] }, bookmarks: { Bookmarks: {} }, elsewhere: {}, hiddenContent: { items: {}, settings: {} } },
         translations: {},
@@ -89,7 +89,7 @@
         },
         // Placeholder functions
         t: (key, params = {}) => { // Actual implementation defined later
-            const translations = window.JellyfinEnhanced?.translations || {};
+            const translations = window.JellyfinOnDemand?.translations || {};
             let text = translations[key] || key;
             if (params) {
                 for (const [param, value] of Object.entries(params)) {
@@ -99,7 +99,7 @@
             // Replace {{icon:name}} tokens with JE.icon() calls
             text = text.replace(/\{\{icon:([a-zA-Z]+)\}\}/g, (match, iconName) => {
                 const iconKey = iconName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
-                const iconConstant = window.JellyfinEnhanced.IconName?.[iconKey];
+                const iconConstant = window.JellyfinOnDemand.IconName?.[iconKey];
 
                 // If IconName not loaded yet, keep the placeholder
                 if (!iconConstant) {
@@ -107,7 +107,7 @@
                     return match;
                 }
 
-                const iconResult = window.JellyfinEnhanced.icon?.(iconConstant);
+                const iconResult = window.JellyfinOnDemand.icon?.(iconConstant);
 
                 // If icon function returns a pending token, keep original placeholder
                 if (iconResult && iconResult.startsWith('{{ICON_PENDING:')) {
@@ -120,13 +120,55 @@
 
             return text;
         },
-        loadSettings: () => { console.warn("🪼 Jellyfin Enhanced: loadSettings called before config.js loaded"); return {}; },
-        initializeShortcuts: () => { console.warn("🪼 Jellyfin Enhanced: initializeShortcuts called before config.js loaded"); },
-        saveUserSettings: async (fileName) => { console.warn(`🪼 Jellyfin Enhanced: saveUserSettings(${fileName}) called before config.js loaded`); }
+        loadSettings: () => { console.warn("🪼 Jellyfin on Demand: loadSettings called before config.js loaded"); return {}; },
+        initializeShortcuts: () => { console.warn("🪼 Jellyfin on Demand: initializeShortcuts called before config.js loaded"); },
+        saveUserSettings: async (fileName) => { console.warn(`🪼 Jellyfin on Demand: saveUserSettings(${fileName}) called before config.js loaded`); }
     };
 
-    // Alias retained P0-09: existing modules depend on window.JellyfinEnhanced and JE.
-    const JE = window.JellyfinEnhanced; // Alias for internal use
+    // Short alias for modules; optional legacy global for cached pages.
+    const JE = window.JellyfinOnDemand;
+    window.JE = JE;
+    if (!window.JellyfinEnhanced) {
+        window.JellyfinEnhanced = window.JellyfinOnDemand;
+    }
+
+    // Migrate browser storage keys from the pre-identity rename.
+    (function migrateLegacyStorageKeys() {
+        const pairs = [
+            ['jellyfinEnhancedSettings', 'jellyfinOnDemandSettings'],
+            ['jellyfinEnhancedLastCleared', 'jellyfinOnDemandLastCleared'],
+            ['JellyfinEnhanced-qualityTagsCache', 'JellyfinOnDemand-qualityTagsCache'],
+            ['JellyfinEnhanced-qualityTagsCacheTimestamp', 'JellyfinOnDemand-qualityTagsCacheTimestamp'],
+            ['JellyfinEnhanced-ratingTagsCache', 'JellyfinOnDemand-ratingTagsCache'],
+            ['JellyfinEnhanced-ratingTagsCacheTimestamp', 'JellyfinOnDemand-ratingTagsCacheTimestamp'],
+            ['JellyfinEnhanced-genreTagsCache', 'JellyfinOnDemand-genreTagsCache'],
+            ['JellyfinEnhanced-genreTagsCacheTimestamp', 'JellyfinOnDemand-genreTagsCacheTimestamp'],
+            ['JellyfinEnhanced-languageTagsCache', 'JellyfinOnDemand-languageTagsCache'],
+            ['JellyfinEnhanced-languageTagsCacheTimestamp', 'JellyfinOnDemand-languageTagsCacheTimestamp'],
+            ['JellyfinEnhanced-peopleTagsCache', 'JellyfinOnDemand-peopleTagsCache'],
+            ['JellyfinEnhanced-peopleTagsCacheTimestamp', 'JellyfinOnDemand-peopleTagsCacheTimestamp'],
+        ];
+        for (const [from, to] of pairs) {
+            try {
+                if (localStorage.getItem(to) == null) {
+                    const v = localStorage.getItem(from);
+                    if (v != null) {
+                        localStorage.setItem(to, v);
+                        localStorage.removeItem(from);
+                    }
+                }
+            } catch (_) { /* private mode */ }
+        }
+        try {
+            if (sessionStorage.getItem('jellyfinOnDemandActiveTab') == null) {
+                const v = sessionStorage.getItem('jellyfinEnhancedActiveTab');
+                if (v != null) {
+                    sessionStorage.setItem('jellyfinOnDemandActiveTab', v);
+                    sessionStorage.removeItem('jellyfinEnhancedActiveTab');
+                }
+            }
+        } catch (_) { /* private mode */ }
+    })();
 
     /**
      * Converts PascalCase object keys to camelCase recursively.
@@ -193,7 +235,7 @@
      * @returns {string}
      */
     function getScriptVersion() {
-        const scriptEl = document.querySelector('script[plugin="Jellyfin Enhanced"]');
+        const scriptEl = document.querySelector('script[plugin="Jellyfin on Demand"]');
         if (scriptEl?.getAttribute('dev') === 'true') return Date.now();
         // Always prefer the script tag's version attribute, it holds the full
         // cacheKey (version + DLL timestamp) baked in at server startup.
@@ -213,7 +255,7 @@
             script.src = ApiClient.getUrl(`/JellyfinOnDemand/js/enhanced/translations.js?v=${getScriptVersion()}`);
             script.onload = () => resolve();
             script.onerror = (e) => {
-                console.error('🪼 Jellyfin Enhanced: Failed to load translations module', e);
+                console.error('🪼 Jellyfin on Demand: Failed to load translations module', e);
                 resolve();
             };
             document.head.appendChild(script);
@@ -229,7 +271,7 @@
         if (typeof JE.loadTranslations === 'function') {
             return JE.loadTranslations();
         }
-        console.warn('🪼 Jellyfin Enhanced: Translations module not loaded, falling back to empty translations');
+        console.warn('🪼 Jellyfin on Demand: Translations module not loaded, falling back to empty translations');
         return {};
     }
 
@@ -243,7 +285,7 @@
             url: ApiClient.getUrl('/JellyfinOnDemand/public-config'),
             dataType: 'json'
         }).catch((e) => {
-            console.error("🪼 Jellyfin Enhanced: Failed to fetch public config", e);
+            console.error("🪼 Jellyfin on Demand: Failed to fetch public config", e);
             return {}; // Return empty object on error
         });
 
@@ -252,7 +294,7 @@
             url: ApiClient.getUrl('/JellyfinOnDemand/version'),
             dataType: 'text'
         }).catch((e) => {
-             console.error("🪼 Jellyfin Enhanced: Failed to fetch version", e);
+             console.error("🪼 Jellyfin on Demand: Failed to fetch version", e);
             return 'unknown'; // Return placeholder on error
         });
 
@@ -273,7 +315,7 @@
             // Merge the sensitive keys into the main config object
             Object.assign(JE.pluginConfig, privateConfig);
         } catch (error) {
-            console.warn('🪼 Jellyfin Enhanced: Could not load private configuration. Some features may be limited.', error);
+            console.warn('🪼 Jellyfin on Demand: Could not load private configuration. Some features may be limited.', error);
             // Don't assign anything if it fails
         }
     }
@@ -300,7 +342,7 @@
                     resolve({ status: 'fulfilled', script: scriptName });
                 };
                 script.onerror = (e) => {
-                    console.error(`🪼 Jellyfin Enhanced: Failed to load script '${scriptName}'`, e);
+                    console.error(`🪼 Jellyfin on Demand: Failed to load script '${scriptName}'`, e);
                     resolve({ status: 'rejected', script: scriptName, error: e }); // Resolve even on error
                 };
                 document.head.appendChild(script);
@@ -325,7 +367,7 @@
                 JE.initializeSplashScreen(); // Initialize if available
             }
         };
-         splashScript.onerror = () => console.error('🪼 Jellyfin Enhanced: Failed to load splash screen script.');
+         splashScript.onerror = () => console.error('🪼 Jellyfin on Demand: Failed to load splash screen script.');
         document.head.appendChild(splashScript);
     }
 
@@ -390,11 +432,11 @@
             if (config?.EnableLoginImage === true) {
                 const loginImageScript = document.createElement('script');
                 loginImageScript.src = ApiClient.getUrl('/JellyfinOnDemand/js/extras/login-image.js?v=' + getScriptVersion());
-                loginImageScript.onerror = () => console.error('🪼 Jellyfin Enhanced: Failed to load login image script.');
+                loginImageScript.onerror = () => console.error('🪼 Jellyfin on Demand: Failed to load login image script.');
                 document.head.appendChild(loginImageScript);
             }
         }).catch(() => {
-            console.warn('🪼 Jellyfin Enhanced: Could not fetch config for login image, skipping.');
+            console.warn('🪼 Jellyfin on Demand: Could not fetch config for login image, skipping.');
         });
     }
 
@@ -435,7 +477,7 @@
         if (hasServerIdMismatch()) {
             mismatchRetryCount++;
             if (mismatchRetryCount >= MAX_MISMATCH_RETRIES) {
-                console.warn('🪼 Jellyfin Enhanced: Server ID mismatch detected - stopping to allow re-authentication');
+                console.warn('🪼 Jellyfin on Demand: Server ID mismatch detected - stopping to allow re-authentication');
                 window.JE?.hideSplashScreen?.();
                 return;
             }
@@ -463,7 +505,7 @@
             JE.pluginConfig = config && typeof config === 'object' ? config : {};
             JE.pluginVersion = version || 'unknown';
             JE.translations = translations || {};
-            JE.t = window.JellyfinEnhanced.t; // Ensure the real function is assigned
+            JE.t = window.JellyfinOnDemand.t; // Ensure the real function is assigned
             await loadPrivateConfig();
 
             // Clear stale UseCustomTabs / UsePluginPages config flags when those
@@ -490,14 +532,14 @@
                     JE.pluginConfig.CalendarUsePluginPages = false;
                 }
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: Could not verify installed plugins:', e);
+                console.warn('🪼 Jellyfin on Demand: Could not verify installed plugins:', e);
             }
 
             // Check if server has triggered a translation cache clear
             const serverTranslationClearTs = JE.pluginConfig.ClearTranslationCacheTimestamp || 0;
             const localTranslationClearTs = parseInt(localStorage.getItem('JE_translation_clear_ts') || '0', 10);
             if (serverTranslationClearTs > localTranslationClearTs) {
-                console.log(`🪼 Jellyfin Enhanced: Server-triggered translation cache clear (${new Date(serverTranslationClearTs).toISOString()})`);
+                console.log(`🪼 Jellyfin on Demand: Server-triggered translation cache clear (${new Date(serverTranslationClearTs).toISOString()})`);
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const key = localStorage.key(i);
                     if (key && (key.startsWith('JE_translation_') || key.startsWith('JE_translation_ts_'))) {
@@ -507,14 +549,14 @@
                 localStorage.setItem('JE_translation_clear_ts', serverTranslationClearTs.toString());
                 // Reload translations with fresh data
                 JE.translations = await loadTranslations() || {};
-                JE.t = window.JellyfinEnhanced.t;
+                JE.t = window.JellyfinOnDemand.t;
             }
 
             // Inject metadata icons CSS if enabled
             try {
                 injectMetadataIcons(!!JE.pluginConfig?.MetadataIconsEnabled);
             } catch (e) {
-                console.warn('🪼 Jellyfin Enhanced: Failed to inject Metadata icons CSS', e);
+                console.warn('🪼 Jellyfin on Demand: Failed to inject Metadata icons CSS', e);
             }
 
             // Stage 2: Fetch user-specific settings
@@ -653,14 +695,14 @@
             ];
             // Intentionally omitted (*arr product spine — ADR-004): arr/*
             await loadScripts(allComponentScripts, basePath);
-            console.log('🪼 Jellyfin Enhanced: All component scripts loaded.');
+            console.log('🪼 Jellyfin on Demand: All component scripts loaded.');
 
             // Stage 4: Initialize core settings/shortcuts using potentially defined functions
             if (typeof JE.loadSettings === 'function' && typeof JE.initializeShortcuts === 'function') {
                 JE.currentSettings = JE.loadSettings(); // This happens AFTER config.js is loaded
                 JE.initializeShortcuts();
             } else {
-                 console.error("🪼 Jellyfin Enhanced: FATAL - config.js functions not defined after script loading.");
+                 console.error("🪼 Jellyfin on Demand: FATAL - config.js functions not defined after script loading.");
                  if (typeof JE.hideSplashScreen === 'function') JE.hideSplashScreen();
                  return;
             }
@@ -687,7 +729,7 @@
             // Stage 5: Initialize theme system first
             if (typeof JE.themer?.init === 'function') {
                 JE.themer.init();
-                console.log('🪼 Jellyfin Enhanced: Theme system initialized.');
+                console.log('🪼 Jellyfin on Demand: Theme system initialized.');
             }
 
             // Register unified cache save on page unload
@@ -756,7 +798,7 @@
                 JE.initializeHiddenContentPage();
             }
 
-            console.log('🪼 Jellyfin Enhanced: All components initialized successfully.');
+            console.log('🪼 Jellyfin on Demand: All components initialized successfully.');
 
             // Final Stage: Hide splash screen
             if (typeof JE.hideSplashScreen === 'function') {
@@ -764,7 +806,7 @@
             }
 
         } catch (error) {
-            console.error('🪼 Jellyfin Enhanced: CRITICAL INITIALIZATION FAILURE:', error);
+            console.error('🪼 Jellyfin on Demand: CRITICAL INITIALIZATION FAILURE:', error);
              if (typeof JE.hideSplashScreen === 'function') {
                 JE.hideSplashScreen();
             }

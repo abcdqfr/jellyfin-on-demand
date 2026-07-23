@@ -41,7 +41,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 {
     [Route("JellyfinOnDemand")]
     [ApiController]
-    public class JellyfinEnhancedController : ControllerBase
+    public class JellyfinOnDemandController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly Logger _logger;
@@ -119,19 +119,19 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private static TimeSpan GetResponseCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
         private static TimeSpan GetUserIdCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrUserIdCacheTtlMinutes ?? 30;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
         private static TimeSpan GetTmdbEnrichmentCacheTtl()
         {
-            var minutes = JellyfinEnhanced.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
+            var minutes = JellyfinOnDemand.Instance?.Configuration?.JellyseerrResponseCacheTtlMinutes ?? 10;
             return TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 
@@ -155,7 +155,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             "apple-touch-icon.png"
         }, StringComparer.OrdinalIgnoreCase);
 
-        public JellyfinEnhancedController(
+        public JellyfinOnDemandController(
             IHttpClientFactory httpClientFactory,
             Logger logger,
             IUserManager userManager,
@@ -189,7 +189,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<JellyseerrUser?> GetJellyseerrUser(string jellyfinUserId, bool bypassCache = false, bool allowAutoImport = true)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 _logger.Warning("Seerr configuration is missing. Cannot look up user ID.");
@@ -314,7 +314,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<(JellyseerrUser? User, bool Definite)> TryAutoImportJellyseerrUser(string jellyfinUserId, string[] urls, HttpClient httpClient)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             var apiKey = config?.JellyseerrApiKey ?? string.Empty;
 
             // Jellyseerr requires dashless UUIDs — dashed format causes empty email and UNIQUE constraint errors
@@ -454,7 +454,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<string?> GetJellyseerrUserId(string jellyfinUserId)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             bool cacheEnabled = config == null || !config.JellyseerrDisableCache;
 
             // Check cache first (unless disabled)
@@ -597,7 +597,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<IActionResult> ProxyJellyseerrRequest(string apiPath, HttpMethod method, string? content = null)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 _logger.Warning("Seerr integration is not configured or enabled.");
@@ -645,7 +645,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                         message = unreachableMsg
                     });
                 }
-                if (IsJellyseerrImportBlocked(jellyfinUserId, JellyfinEnhanced.Instance?.Configuration ?? new Configuration.PluginConfiguration()))
+                if (IsJellyseerrImportBlocked(jellyfinUserId, JellyfinOnDemand.Instance?.Configuration ?? new Configuration.PluginConfiguration()))
                 {
                     return StatusCode(403, new
                     {
@@ -866,7 +866,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> GetJellyseerrStatus()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrApiKey) || string.IsNullOrEmpty(config.JellyseerrUrls))
             {
                 return Ok(new { active = false });
@@ -1033,7 +1033,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // report a typed `reason` so the frontend can display
             // a meaningful banner instead of silently hiding discovery sections.
             // Possible reasons: disabled, no_user, blocked, unlinked, unreachable, jellyfin-on-demand.
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             // JellyfinOnDemand discovery (ADR-004): TMDB-backed search chrome without Seerr accounts.
             if (config != null && config.JellyfinOnDemandDiscoveryEnabled && !string.IsNullOrWhiteSpace(config.TMDB_API_KEY)
                 && (!config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey)))
@@ -1091,7 +1091,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         {
             if (!IsAdminUser()) return Forbid();
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.JellyseerrEnabled ||
                 string.IsNullOrEmpty(config.JellyseerrApiKey) ||
                 string.IsNullOrEmpty(config.JellyseerrUrls))
@@ -1236,7 +1236,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             }
             if (page < 1) page = 1;
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             // Prefer TMDB when JellyfinOnDemand discovery is on (no Seerr process — ADR-004).
             if (config != null && config.JellyfinOnDemandDiscoveryEnabled && !string.IsNullOrWhiteSpace(config.TMDB_API_KEY)
                 && (!config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey)))
@@ -1389,7 +1389,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<IActionResult> FetchTmdbAsJellyseerrAsync(string tmdbPathAndQuery, string? forcedMediaType = null)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             var apiKey = config?.TMDB_API_KEY ?? string.Empty;
             var separator = tmdbPathAndQuery.Contains('?', StringComparison.Ordinal) ? "&" : "?";
             var requestUri =
@@ -1447,7 +1447,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
         private async Task<IActionResult> FetchTmdbGenreSliderAsync(string mediaType)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             var apiKey = config?.TMDB_API_KEY ?? string.Empty;
             var genrePath = mediaType == "tv" ? "genre/tv/list" : "genre/movie/list";
             var requestUri = $"https://api.themoviedb.org/3/{genrePath}?api_key={Uri.EscapeDataString(apiKey)}&language=en";
@@ -1501,7 +1501,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 _ => "all"
             };
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 // TMDB trending/{media_type}/{time_window}
@@ -1523,7 +1523,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             [FromQuery] string? sortBy = null)
         {
             if (page < 1) page = 1;
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 var qs = new StringBuilder($"discover/movie?page={page}&language=en-US");
@@ -1554,7 +1554,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             [FromQuery] string? sortBy = null)
         {
             if (page < 1) page = 1;
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 var qs = new StringBuilder($"discover/tv?page={page}&language=en-US");
@@ -1618,7 +1618,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // replaces it with a synthesized envelope anyway.
             try
             {
-                var cfg = JellyfinEnhanced.Instance?.Configuration;
+                var cfg = JellyfinOnDemand.Instance?.Configuration;
                 if (cfg?.SpoilerBlurEnabled == true
                     && cfg?.SpoilerAutoEnableOnSeerrRequest == true
                     && IsSeerrRequestResultSuccessful(result))
@@ -1757,7 +1757,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 try
                 {
                     var quota = JObject.Parse(cr.Content ?? "{}");
-                    await EnrichQuotaWithResetAsync(quota, seerrUserId!, JellyfinEnhanced.Instance!.Configuration);
+                    await EnrichQuotaWithResetAsync(quota, seerrUserId!, JellyfinOnDemand.Instance!.Configuration);
                     return Content(quota.ToString(Newtonsoft.Json.Formatting.None), "application/json");
                 }
                 catch (Exception ex)
@@ -2148,7 +2148,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             try
             {
                 // Get TMDB API key from configuration
-                var config = JellyfinEnhanced.Instance?.Configuration;
+                var config = JellyfinOnDemand.Instance?.Configuration;
                 if (config == null || string.IsNullOrEmpty(config.TMDB_API_KEY))
                 {
                     _logger.Warning("TMDB API key not configured in plugin settings");
@@ -2292,7 +2292,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         public Task<IActionResult> DiscoverTvByGenre(int genreId, [FromQuery] int page = 1)
         {
             if (page < 1) page = 1;
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 return FetchTmdbAsJellyseerrAsync(
@@ -2308,7 +2308,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         public Task<IActionResult> DiscoverMoviesByGenre(int genreId, [FromQuery] int page = 1)
         {
             if (page < 1) page = 1;
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 return FetchTmdbAsJellyseerrAsync(
@@ -2373,7 +2373,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public Task<IActionResult> GetMovieGenreSlider()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 return FetchTmdbGenreSliderAsync("movie");
@@ -2386,7 +2386,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public Task<IActionResult> GetTvGenreSlider()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (IsJellyfinOnDemandTmdbMode(config))
             {
                 return FetchTmdbGenreSliderAsync("tv");
@@ -2486,7 +2486,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
             try
             {
-                var config = JellyfinEnhanced.Instance?.Configuration;
+                var config = JellyfinOnDemand.Instance?.Configuration;
                 if (config == null || !config.JellyseerrEnabled || !config.SyncJellyseerrWatchlist)
                 {
                     return BadRequest(new { error = "Jellyseerr watchlist sync is not enabled" });
@@ -2601,7 +2601,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
             try
             {
-                var config = JellyfinEnhanced.Instance?.Configuration;
+                var config = JellyfinOnDemand.Instance?.Configuration;
                 if (config == null || !config.JellyseerrEnabled)
                 {
                     return BadRequest(new { error = "Jellyseerr integration is not enabled" });
@@ -2692,7 +2692,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         {
             try
             {
-                var config = JellyfinEnhanced.Instance?.Configuration;
+                var config = JellyfinOnDemand.Instance?.Configuration;
                 if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
                 {
                     return null;
@@ -2758,7 +2758,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         {
             try
             {
-                var config = JellyfinEnhanced.Instance?.Configuration;
+                var config = JellyfinOnDemand.Instance?.Configuration;
                 if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
                 {
                     return null;
@@ -2922,7 +2922,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> GetJellyseerrPartialRequestsSetting()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
                 // previously returned 200+false, which made the
@@ -3044,13 +3044,13 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         // exposes its own version pre-auth too. CVEs against JE are tracked publicly
         // so attackers do not need this endpoint to fingerprint a vulnerable version.
         [HttpGet("version")]
-        public ActionResult GetVersion() => Content(JellyfinEnhanced.Instance?.Version.ToString() ?? "unknown");
+        public ActionResult GetVersion() => Content(JellyfinOnDemand.Instance?.Version.ToString() ?? "unknown");
 
         [HttpGet("private-config")]
         [Authorize]
         public ActionResult GetPrivateConfig()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
             {
                 return StatusCode(503);
@@ -3098,7 +3098,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [HttpGet("public-config")]
         public ActionResult GetPublicConfig()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
             {
                 return StatusCode(503);
@@ -3134,7 +3134,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
 
             return new JsonResult(new
             {
-                // Jellyfin Enhanced Settings
+                // Jellyfin on Demand Settings
                 TmdbEnabled = tmdbEnabled,
                 config.ToastDuration,
                 config.HelpPanelAutocloseDelay,
@@ -3347,7 +3347,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> ProxyTmdbRequest(string apiPath)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.TMDB_API_KEY))
             {
                 return StatusCode(503, "TMDB API key is not configured.");
@@ -3494,7 +3494,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // useful when iterating on JS without bumping the version number.
             // Production: the script URL includes ?v={version}-{dllTimestamp}, so the URL
             // changes on every build and immutable caching is safe.
-            var devMode = JellyfinEnhanced.Instance?.Configuration?.DevMode == true;
+            var devMode = JellyfinOnDemand.Instance?.Configuration?.DevMode == true;
             Response.Headers["Cache-Control"] = devMode ? "no-store" : "public, max-age=31536000, immutable";
             return new FileStreamResult(stream, contentType);
         }
@@ -3628,7 +3628,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return false;
             }
 
-            var brandingDir = JellyfinEnhanced.BrandingDirectory;
+            var brandingDir = JellyfinOnDemand.BrandingDirectory;
             if (string.IsNullOrWhiteSpace(brandingDir))
             {
                 return false;
@@ -3660,7 +3660,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // Populate defaults from plugin configuration if missing
             if (!_userConfigurationManager.UserConfigurationExists(authorizedUserId, "settings.json"))
             {
-                var defaultConfig = JellyfinEnhanced.Instance?.Configuration;
+                var defaultConfig = JellyfinOnDemand.Instance?.Configuration;
                 if (defaultConfig != null)
                 {
                     var defaultUserSettings = new UserSettings
@@ -4001,7 +4001,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             }
 
             // First-time init: seed Settings from admin defaults under RMW so a parallel CW hide can't clobber it.
-            var defaultConfig = JellyfinEnhanced.Instance?.Configuration;
+            var defaultConfig = JellyfinOnDemand.Instance?.Configuration;
             if (defaultConfig != null
                 && !_userConfigurationManager.UserConfigurationExists(authorizedUserId, "hidden-content.json"))
             {
@@ -4257,7 +4257,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return Forbid();
 
             // Honour the admin config toggle: the whole cross-user feature can be disabled.
-            if (JellyfinEnhanced.Instance?.Configuration?.HiddenContentAdmin != true)
+            if (JellyfinOnDemand.Instance?.Configuration?.HiddenContentAdmin != true)
                 return Forbid();
 
             // The caller's own list is reachable through the default "My hidden content" option,
@@ -4321,7 +4321,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return Forbid();
 
             // Honour the admin config toggle.
-            if (JellyfinEnhanced.Instance?.Configuration?.HiddenContentAdmin != true)
+            if (JellyfinOnDemand.Instance?.Configuration?.HiddenContentAdmin != true)
                 return Forbid();
 
             // Match the AdminUpsertReview contract: expect a 32-char hex (N-format) id. This also
@@ -4366,7 +4366,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return Forbid();
 
             // Honour the admin config toggle: cross-user management can be disabled.
-            if (JellyfinEnhanced.Instance?.Configuration?.HiddenContentAdmin != true)
+            if (JellyfinOnDemand.Instance?.Configuration?.HiddenContentAdmin != true)
                 return Forbid();
 
             if (string.IsNullOrWhiteSpace(userId) || !Guid.TryParseExact(userId, "N", out var userGuid) || userGuid == Guid.Empty)
@@ -4437,7 +4437,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return Forbid();
 
             // Adding is a management operation: gated by the admin config toggle.
-            if (JellyfinEnhanced.Instance?.Configuration?.HiddenContentAdmin != true)
+            if (JellyfinOnDemand.Instance?.Configuration?.HiddenContentAdmin != true)
                 return Forbid();
 
             if (string.IsNullOrWhiteSpace(userId) || !Guid.TryParseExact(userId, "N", out var userGuid) || userGuid == Guid.Empty)
@@ -5180,7 +5180,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Produces("application/json")]
         public IActionResult EnableSpoilerBlurPending(string mediaType, string tmdbId, [FromQuery] string? displayName = null)
         {
-            var cfg = JellyfinEnhanced.Instance?.Configuration;
+            var cfg = JellyfinOnDemand.Instance?.Configuration;
             if (cfg?.SpoilerBlurEnabled != true)
             {
                 return StatusCode(503, new { success = false, message = "Spoiler Guard is disabled by the administrator." });
@@ -5700,7 +5700,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 var keyN = itemGuid.ToString("N");
                 // Seed Settings from admin defaults if this RMW creates the file (Remove-from-CW before any HC UI was opened).
                 var preExistedHc = _userConfigurationManager.UserConfigurationExists(authorizedUserId, "hidden-content.json");
-                var hcDefaults = JellyfinEnhanced.Instance?.Configuration;
+                var hcDefaults = JellyfinOnDemand.Instance?.Configuration;
 
                 _userConfigurationManager.RmwUserConfiguration<UserHiddenContent>(
                     authorizedUserId, "hidden-content.json", h =>
@@ -5849,7 +5849,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             if (!IsValidTmdbKey(tmdbId))
                 return BadRequest(new { message = "Invalid TmdbId." });
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             var viewerIsAdmin = IsAdminUser();
             var hideHiddenAuthors = config?.HideReviewsFromHiddenUsers ?? true;
             var hideDisabledAuthors = config?.HideReviewsFromDisabledUsers ?? true;
@@ -6127,7 +6127,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return Forbid();
             }
 
-            var defaultConfig = JellyfinEnhanced.Instance?.Configuration;
+            var defaultConfig = JellyfinOnDemand.Instance?.Configuration;
 
             if (defaultConfig == null)
             {
@@ -6265,7 +6265,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Produces("application/json")]
         public IActionResult GetTagCache(Guid userId, [FromQuery] long? since = null)
         {
-            if (JellyfinEnhanced.Instance?.Configuration?.TagCacheServerMode != true)
+            if (JellyfinOnDemand.Instance?.Configuration?.TagCacheServerMode != true)
             {
                 return NotFound();
             }
@@ -6283,7 +6283,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // episodes whose parent series is in the spoiler list. Needed because the
             // JE tag-pipeline reads serverCache BEFORE GetTagData, so card overlays
             // would still leak despite the toggle. Mirrors the per-batch strip in GetTagData.
-            var spCfg = JellyfinEnhanced.Instance?.Configuration;
+            var spCfg = JellyfinOnDemand.Instance?.Configuration;
             // Each overlay has its own admin toggle; enter the block if ANY is on,
             // then gate each field individually below. Gating only on SpoilerStripTags
             // would silently leak ratings for users who enabled rating-strip but not tag-strip.
@@ -6505,7 +6505,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             // strip toggle are on and the user has entries in their spoiler list, skip
             // tag data for unwatched episodes. Loaded once per request (not per item).
             UserSpoilerBlur? spoilerState = null;
-            var spoilerCfg = JellyfinEnhanced.Instance?.Configuration;
+            var spoilerCfg = JellyfinOnDemand.Instance?.Configuration;
             var spStripGenres = spoilerCfg?.SpoilerStripTags == true;
             var spStripRatings = spoilerCfg?.SpoilerStripRatings == true;
             // Title replacement / overview strip MUST also enter the stub path, else
@@ -7096,7 +7096,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                     return BadRequest($"File too large (max 10MB)");
 
                 // Get branding directory from central location
-                var brandingDir = JellyfinEnhanced.BrandingDirectory;
+                var brandingDir = JellyfinOnDemand.BrandingDirectory;
                 if (string.IsNullOrWhiteSpace(brandingDir))
                     return StatusCode(500, "Could not determine branding directory");
 
@@ -7171,7 +7171,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                     return BadRequest($"fileName must be one of: {string.Join(", ", BrandingFileNames)}");
                 }
 
-                var brandingDir = JellyfinEnhanced.BrandingDirectory;
+                var brandingDir = JellyfinOnDemand.BrandingDirectory;
                 if (string.IsNullOrWhiteSpace(brandingDir))
                     return StatusCode(500, "Could not determine branding directory");
 
@@ -7380,7 +7380,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             if (tvdbId <= 0)
                 return BadRequest(new { error = "tvdbId must be a positive integer" });
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, new { error = "Plugin configuration not available" });
 
@@ -7417,7 +7417,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             if (tvdbId <= 0)
                 return BadRequest(new { error = "tvdbId must be a positive integer" });
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, new { error = "Plugin configuration not available" });
 
@@ -7580,7 +7580,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             if (tmdbId <= 0)
                 return BadRequest(new { error = "tmdbId must be a positive integer" });
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, new { error = "Plugin configuration not available" });
 
@@ -7643,7 +7643,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public IActionResult GetActiveSessions()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.ActiveStreamsEnabled)
                 return StatusCode(503, "Active Streams is not enabled.");
 
@@ -7727,7 +7727,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             if (request == null || string.IsNullOrWhiteSpace(request.Text))
                 return BadRequest("Message text is required.");
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || !config.ActiveStreamsEnabled)
                 return StatusCode(503, "Active Streams is not enabled.");
 
@@ -7904,7 +7904,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> GetDownloadQueue()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, "Plugin configuration not available");
 
@@ -8083,7 +8083,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
             take = Math.Clamp(take, 1, 200);
             skip = Math.Max(0, skip);
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, "Plugin configuration not available");
 
@@ -8457,7 +8457,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         {
             var action = HttpContext.Request.Path.Value?.Contains("/approve", StringComparison.OrdinalIgnoreCase) == true ? "approve" : "decline";
 
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrWhiteSpace(config.JellyseerrUrls) || string.IsNullOrWhiteSpace(config.JellyseerrApiKey))
                 return StatusCode(503, new { error = true, message = "Seerr not configured." });
 
@@ -8505,7 +8505,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> GetCalendarEvents()
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null)
                 return StatusCode(500, "Plugin configuration not available");
 
@@ -9106,7 +9106,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         {
             var cacheKey = $"{(type == "movie" ? "movie" : "tv")}:{tmdbId}";
             var cacheTtl = GetTmdbEnrichmentCacheTtl();
-            var cacheEnabled = !(JellyfinEnhanced.Instance?.Configuration?.JellyseerrDisableCache ?? false);
+            var cacheEnabled = !(JellyfinOnDemand.Instance?.Configuration?.JellyseerrDisableCache ?? false);
 
             if (cacheEnabled)
             {
@@ -9310,7 +9310,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [Authorize]
         public async Task<IActionResult> ProxyAvatar([FromQuery] string path)
         {
-            var config = JellyfinEnhanced.Instance?.Configuration;
+            var config = JellyfinOnDemand.Instance?.Configuration;
             if (config == null || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(path))
             {
                 return NotFound();
@@ -9571,12 +9571,12 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
         [HttpGet("{viewName}")]
         public ActionResult GetView([FromRoute] string viewName)
         {
-            if (JellyfinEnhanced.Instance == null)
+            if (JellyfinOnDemand.Instance == null)
             {
                 return BadRequest("No plugin instance found");
             }
 
-            IEnumerable<PluginPageInfo> pages = JellyfinEnhanced.Instance.GetViews();
+            IEnumerable<PluginPageInfo> pages = JellyfinOnDemand.Instance.GetViews();
 
             if (pages == null)
             {
@@ -9590,7 +9590,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Controllers
                 return NotFound("No matching view found");
             }
 
-            Stream? stream = JellyfinEnhanced.Instance.GetType().Assembly.GetManifestResourceStream(view.EmbeddedResourcePath);
+            Stream? stream = JellyfinOnDemand.Instance.GetType().Assembly.GetManifestResourceStream(view.EmbeddedResourcePath);
 
             if (stream == null)
             {

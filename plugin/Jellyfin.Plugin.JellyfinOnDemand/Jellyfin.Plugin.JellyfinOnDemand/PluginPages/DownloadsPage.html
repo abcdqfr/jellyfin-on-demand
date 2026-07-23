@@ -5,7 +5,7 @@
   </div>
 </div>
 <div id="je-error" style="display:none">
-  Jellyfin Enhanced not ready.
+  Jellyfin on Demand not ready.
 </div>
 <script>
 (function () {
@@ -31,7 +31,7 @@
     target.appendChild(newContainer);
   }
 
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
 
   const timer = setInterval(() => {
 
@@ -43,7 +43,7 @@
       JE.downloadsPage.renderPage();
       JE.downloadsPage.refresh();
       handleClickOnPlay();
-      console.log('🪼 Jellyfin Enhanced: Downloads Page Loaded.');
+      console.log('🪼 Jellyfin on Demand: Downloads Page Loaded.');
 
       // Use the main module's startPolling which properly respects config and visibility
       // Mark the page as visible for the polling logic
@@ -74,7 +74,7 @@
 })();
 
 function startPollingFallback() {
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
   if (!JE || !JE.downloadsPage || typeof JE.downloadsPage.refresh !== "function") return;
 
   // Check if polling is enabled
@@ -102,7 +102,7 @@ function startPollingFallback() {
 
 // Clean up polling when page is hidden or document is unloaded
 window.addEventListener('beforeunload', () => {
-  const JE = window.JellyfinEnhanced;
+  const JE = window.JellyfinOnDemand;
   if (JE?.downloadsPage?._pluginPagePollTimer) {
     clearInterval(JE.downloadsPage._pluginPagePollTimer);
   }

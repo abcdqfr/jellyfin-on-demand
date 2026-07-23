@@ -1,7 +1,7 @@
 (function (JE) {
     'use strict';
 
-    var logPrefix = '🪼 Jellyfin Enhanced [SpoilerBlur]:';
+    var logPrefix = '🪼 Jellyfin on Demand [SpoilerBlur]:';
 
     // In-memory cache of series IDs the current user has Spoiler Guard enabled
     // for. The image filter runs on the server, so already-displayed cards
@@ -41,7 +41,7 @@
     /** Fetch the user's enabled-series list from the server. */
     function loadState() {
         statePromise = ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/series'),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/series'),
             type: 'GET',
             dataType: 'json',
         }).then(function (data) {
@@ -121,7 +121,7 @@
     function enableForSeries(seriesId) {
         var normalized = normalizeId(seriesId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/series/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/series/' + encodeURIComponent(normalized)),
             type: 'POST',
             dataType: 'json',
         }).then(function () {
@@ -133,7 +133,7 @@
     function disableForSeries(seriesId) {
         var normalized = normalizeId(seriesId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/series/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/series/' + encodeURIComponent(normalized)),
             type: 'DELETE',
             dataType: 'json',
         }).then(function () {
@@ -148,7 +148,7 @@
     function enableForMovie(movieId, movieName) {
         var normalized = normalizeId(movieId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/movies/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/movies/' + encodeURIComponent(normalized)),
             type: 'POST',
             dataType: 'json',
             data: JSON.stringify({ MovieName: movieName || '' }),
@@ -161,7 +161,7 @@
     function disableForMovie(movieId) {
         var normalized = normalizeId(movieId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/movies/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/movies/' + encodeURIComponent(normalized)),
             type: 'DELETE',
             dataType: 'json',
         }).then(function () {
@@ -176,7 +176,7 @@
     function enableForCollection(collectionId, collectionName) {
         var normalized = normalizeId(collectionId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/collections/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/collections/' + encodeURIComponent(normalized)),
             type: 'POST',
             dataType: 'json',
             data: JSON.stringify({ CollectionName: collectionName || '' }),
@@ -189,7 +189,7 @@
     function disableForCollection(collectionId) {
         var normalized = normalizeId(collectionId);
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/collections/' + encodeURIComponent(normalized)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/collections/' + encodeURIComponent(normalized)),
             type: 'DELETE',
             dataType: 'json',
         }).then(function () {
@@ -240,7 +240,7 @@
         }
         var query = displayName ? '?displayName=' + encodeURIComponent(displayName) : '';
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/pending/' + t + '/' + encodeURIComponent(i) + query),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/pending/' + t + '/' + encodeURIComponent(i) + query),
             type: 'POST',
             dataType: 'json',
         }).then(function (resp) {
@@ -265,7 +265,7 @@
             return Promise.reject(new Error('invalid mediaType/tmdbId'));
         }
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/pending/' + t + '/' + encodeURIComponent(i)),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/pending/' + t + '/' + encodeURIComponent(i)),
             type: 'DELETE',
             dataType: 'json',
         }).then(function (resp) {
@@ -937,7 +937,7 @@
     function setUserPrefs(next) {
         var payload = next || {};
         return ApiClient.ajax({
-            url: ApiClient.getUrl('JellyfinEnhanced/spoiler-blur/user-prefs'),
+            url: ApiClient.getUrl('JellyfinOnDemand/spoiler-blur/user-prefs'),
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(payload),
@@ -974,4 +974,4 @@
         getUserPrefs: getUserPrefs,
         setUserPrefs: setUserPrefs,
     };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

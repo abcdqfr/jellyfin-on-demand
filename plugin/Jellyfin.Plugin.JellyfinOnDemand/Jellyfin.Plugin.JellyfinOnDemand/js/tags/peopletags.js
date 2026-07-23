@@ -1,17 +1,17 @@
 // /js/tags/peopletags.js
-// Jellyfin Enhanced People Tags - Show cast member information (birthplace, age, deceased status)
+// Jellyfin on Demand People Tags - Show cast member information (birthplace, age, deceased status)
 (function(JE) {
     'use strict';
 
     JE.initializePeopleTags = function() {
         if (!JE.currentSettings.peopleTagsEnabled) {
-            console.log('🪼 Jellyfin Enhanced: People Tags: Feature is disabled in settings.');
+            console.log('🪼 Jellyfin on Demand: People Tags: Feature is disabled in settings.');
             return;
         }
 
-        const logPrefix = '🪼 Jellyfin Enhanced: People Tags:';
-        const CACHE_KEY = 'JellyfinEnhanced-peopleTagsCache';
-        const CACHE_TIMESTAMP_KEY = 'JellyfinEnhanced-peopleTagsCacheTimestamp';
+        const logPrefix = '🪼 Jellyfin on Demand: People Tags:';
+        const CACHE_KEY = 'JellyfinOnDemand-peopleTagsCache';
+        const CACHE_TIMESTAMP_KEY = 'JellyfinOnDemand-peopleTagsCacheTimestamp';
         const CACHE_TTL = (JE.pluginConfig?.PeopleTagsCacheTtlDays || 30) * 24 * 60 * 60 * 1000;
 
         // Country mapping dictionary
@@ -582,4 +582,4 @@
         initialize();
     };
 
-})(window.JellyfinEnhanced || (window.JellyfinEnhanced = {}));
+})(window.JellyfinOnDemand || (window.JellyfinOnDemand = {}));

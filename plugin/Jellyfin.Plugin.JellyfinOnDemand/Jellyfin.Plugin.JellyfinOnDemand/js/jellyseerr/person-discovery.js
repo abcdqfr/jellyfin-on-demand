@@ -3,7 +3,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: Person Discovery:';
+    const logPrefix = '🪼 Jellyfin on Demand: Person Discovery:';
     const MODULE_NAME = 'person';
 
     // Cache for person ID mappings (personName -> TMDB personId)
@@ -631,4 +631,4 @@
         initialize();
     }
 
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

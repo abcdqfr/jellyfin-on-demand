@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const JE = window.JellyfinEnhanced;
+    const JE = window.JellyfinOnDemand;
     const logPrefix = 'jellyfin-on-demand:';
 
     function parse(input) {
@@ -26,4 +26,4 @@
     }
 
     JE.swarmMagnet = { parse, ensure };
-})(window.JellyfinEnhanced);
+})(window.JellyfinOnDemand);

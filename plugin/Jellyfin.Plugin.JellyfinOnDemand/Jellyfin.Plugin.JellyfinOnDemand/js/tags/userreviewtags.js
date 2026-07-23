@@ -6,7 +6,7 @@
 (function(JE) {
     'use strict';
 
-    const logPrefix = '🪼 Jellyfin Enhanced: User Review Tags:';
+    const logPrefix = '🪼 Jellyfin on Demand: User Review Tags:';
 
     // Per-session cache: tmdbKey → rating (1-5 or null)
     const _reviewCache = new Map();
@@ -220,4 +220,4 @@
         else _reviewCache.clear();
     };
 
-})(window.JellyfinEnhanced = window.JellyfinEnhanced || {});
+})(window.JellyfinOnDemand = window.JellyfinOnDemand || {});

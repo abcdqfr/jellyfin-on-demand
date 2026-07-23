@@ -335,7 +335,7 @@
     "reviews_form_error_save": "No s'ha pogut desar la ressenya. Torna-ho a provar.",
     "panel_settings_language": "Configuració d'idioma",
     "panel_settings_language_display": "Idioma de visualització",
-    "panel_settings_language_display_desc": "Seleccioneu l'idioma per a la interfície de Jellyfin Enhanced. Els canvis tenen efecte després d'actualitzar la pàgina.",
+    "panel_settings_language_display_desc": "Seleccioneu l'idioma per a la interfície de Jellyfin on Demand. Els canvis tenen efecte després d'actualitzar la pàgina.",
     "panel_settings_language_clear_cache": "Netejar la memòria cau de traducció",
     "panel_settings_language_clear_cache_desc": "Elimina totes les traduccions a la memòria cau. Útil per obtenir una traducció recentment actualitzada de Github.",
     "toast_language_changed": "{{icon:language}} Idioma canviat! Recarregant la pàgina…",

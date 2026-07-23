@@ -15,7 +15,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
     {
         public PluginConfiguration()
         {
-            // Jellyfin Enhanced Settings
+            // Jellyfin on Demand Settings
             ToastDuration = 1500;
             HelpPanelAutocloseDelay = 15000;
             EnableCustomSplashScreen = false;
@@ -344,7 +344,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         /// <summary>"all" or a JSON array of user ID strings.</summary>
         public string MaintenanceModeAffectedUsers { get; set; } = "all";
 
-        // Jellyfin Enhanced Settings
+        // Jellyfin on Demand Settings
         public int ToastDuration { get; set; }
         public int HelpPanelAutocloseDelay { get; set; }
         public bool EnableCustomSplashScreen { get; set; }
@@ -556,7 +556,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool BookmarksUseCustomTabs { get; set; }
         /// <summary>
         /// Shows Bookmarks as a self-contained tab on the Home page, created and
-        /// managed entirely by Jellyfin Enhanced's own injected script (see
+        /// managed entirely by Jellyfin on Demand's own injected script (see
         /// js/enhanced/native-tabs.js) -- no external Custom Tabs plugin required.
         /// Recommended on Jellyfin 12's experimental layout (the default there),
         /// where the legacy Custom-Tabs/Plugin-Pages integration points are hidden.
@@ -564,7 +564,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool BookmarksUseNativeTab { get; set; }
         /// <summary>
         /// When true (and the Custom Tabs plugin is detected with a recognized
-        /// config schema), Jellyfin Enhanced will manage the corresponding
+        /// config schema), Jellyfin on Demand will manage the corresponding
         /// Custom Tabs entry: creating it when <see cref="BookmarksUseCustomTabs"/>
         /// is enabled and removing it when disabled. The toggle in the UI is
         /// only shown when both conditions hold; it is silently ignored otherwise.
@@ -572,7 +572,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool BookmarksAutoCreateCustomTab { get; set; }
 
         /// <summary>
-        /// True if Jellyfin Enhanced created the corresponding Custom Tabs entry
+        /// True if Jellyfin on Demand created the corresponding Custom Tabs entry
         /// (set when sync ADDs an entry; cleared when sync REMOVES one). Sync uses
         /// this flag to ensure it never deletes a Custom Tabs entry the admin
         /// created manually. Hidden field — no UI; managed entirely by saveConfig.
@@ -599,7 +599,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool DownloadsUseCustomTabs { get; set; }
         /// <summary>
         /// Shows Requests as a self-contained tab on the Home page, created and
-        /// managed entirely by Jellyfin Enhanced's own injected script (see
+        /// managed entirely by Jellyfin on Demand's own injected script (see
         /// js/enhanced/native-tabs.js) -- no external Custom Tabs plugin required.
         /// Recommended on Jellyfin 12's experimental layout (the default there),
         /// where the legacy Custom-Tabs/Plugin-Pages integration points are hidden.
@@ -619,7 +619,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool CalendarUsePluginPages { get; set; }
         /// <summary>
         /// Shows Calendar as a self-contained tab on the Home page, created and
-        /// managed entirely by Jellyfin Enhanced's own injected script (see
+        /// managed entirely by Jellyfin on Demand's own injected script (see
         /// js/enhanced/native-tabs.js) -- no external Custom Tabs plugin required.
         /// Recommended on Jellyfin 12's experimental layout (the default there),
         /// where the legacy Custom-Tabs/Plugin-Pages integration points are hidden.
@@ -641,7 +641,7 @@ namespace Jellyfin.Plugin.JellyfinOnDemand.Configuration
         public bool HiddenContentUseCustomTabs { get; set; }
         /// <summary>
         /// Shows Hidden Content as a self-contained tab on the Home page, created
-        /// and managed entirely by Jellyfin Enhanced's own injected script (see
+        /// and managed entirely by Jellyfin on Demand's own injected script (see
         /// js/enhanced/native-tabs.js) -- no external Custom Tabs plugin required.
         /// Recommended on Jellyfin 12's experimental layout (the default there),
         /// where the legacy Custom-Tabs/Plugin-Pages integration points are hidden.

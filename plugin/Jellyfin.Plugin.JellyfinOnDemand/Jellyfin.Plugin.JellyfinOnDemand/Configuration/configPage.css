@@ -1,5 +1,5 @@
 /* =============================================================================
-   Jellyfin Enhanced — Config Page Stylesheet (Modernized)
+   Jellyfin on Demand — Config Page Stylesheet (Modernized)
    ============================================================================= */
 
 /* ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@
    the current theme has a light body. `@media (prefers-color-scheme: light)`
    acts as a secondary fallback for browser-level preferences.
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedPage {
+#JellyfinOnDemandPage {
     /* Surface lift layers — slightly lighter than body bg */
     --je-surface-1:      rgba(255, 255, 255, 0.03);
     --je-surface-2:      rgba(255, 255, 255, 0.05);
@@ -45,7 +45,7 @@
     --je-accent-border:  color-mix(in srgb, var(--primary-accent-color, #00a4dc) 40%, transparent);
 }
 
-#JellyfinEnhancedPage.je-light-theme {
+#JellyfinOnDemandPage.je-light-theme {
     --je-surface-1:      rgba(0, 0, 0, 0.025);
     --je-surface-2:      rgba(0, 0, 0, 0.05);
     --je-surface-3:      rgba(0, 0, 0, 0.08);
@@ -70,7 +70,7 @@
    detector hasn't explicitly declared the page dark (to let Jellyfin's
    user-selected dark themes stay dark even on a light OS). */
 @media (prefers-color-scheme: light) {
-    #JellyfinEnhancedPage:not(.je-dark-theme):not(.je-light-theme) {
+    #JellyfinOnDemandPage:not(.je-dark-theme):not(.je-light-theme) {
         --je-surface-1:      rgba(0, 0, 0, 0.025);
         --je-surface-2:      rgba(0, 0, 0, 0.05);
         --je-surface-3:      rgba(0, 0, 0, 0.08);
@@ -95,7 +95,7 @@
 /* ---------------------------------------------------------------------------
    Base Form Container & Typography
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedPage {
+#JellyfinOnDemandPage {
     color: inherit;
     font-family: inherit;
 }
@@ -108,7 +108,7 @@
    status dashboard, Integration Health, Quick Actions — all of which span
    `grid-column: 1 / -1`) from stretching across a 4K/5K viewport at a
    single huge column. 2400px = 4 full cards at 480px wide + gaps. */
-#JellyfinEnhancedPage #JellyfinEnhancedForm {
+#JellyfinOnDemandPage #JellyfinOnDemandForm {
     max-width: 2400px;
     width: 100%;
     margin: 0 auto;
@@ -140,7 +140,7 @@
    which kills `position: sticky`. Override that ancestor (scoped to
    our page) so sticky works on window scroll.
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedPage[data-role="page"] > [data-role="content"] {
+#JellyfinOnDemandPage[data-role="page"] > [data-role="content"] {
     overflow: visible;
 }
 .je-sticky-header {
@@ -165,7 +165,7 @@
 /* ---------------------------------------------------------------------------
    Header & Search Bar
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedPage .sectionTitleContainer {
+#JellyfinOnDemandPage .sectionTitleContainer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -175,7 +175,7 @@
     padding: 10px 0 10px 0;
     border-bottom: 1px solid var(--je-border);
 }
-#JellyfinEnhancedPage .sectionTitleContainer h2 {
+#JellyfinOnDemandPage .sectionTitleContainer h2 {
     font-size: 1.8em;
     font-weight: 600;
     margin: 0;
@@ -291,7 +291,7 @@
     opacity: 0.75;
     color: var(--primary-accent-color, #00a4dc);
 }
-#JellyfinEnhancedPage .sectionTitle .je-legend-icon { vertical-align: -4px; }
+#JellyfinOnDemandPage .sectionTitle .je-legend-icon { vertical-align: -4px; }
 .je-legend-icon-img {
     width: 20px;
     height: 20px;
@@ -592,11 +592,11 @@
     cursor: grabbing;
     scroll-behavior: auto;
 }
-#JellyfinEnhancedPage .je-tab-bar.je-dragging .jellyfin-tab-button {
+#JellyfinOnDemandPage .je-tab-bar.je-dragging .jellyfin-tab-button {
     pointer-events: none;
 }
 
-#JellyfinEnhancedPage .jellyfin-tab-button {
+#JellyfinOnDemandPage .jellyfin-tab-button {
     background: var(--je-surface-2);
     border: 1px solid var(--je-border);
     border-radius: 30px;
@@ -611,7 +611,7 @@
     transition: all 0.2s ease;
     white-space: nowrap;
 }
-#JellyfinEnhancedPage .jellyfin-tab-button h3 {
+#JellyfinOnDemandPage .jellyfin-tab-button h3 {
     margin: 0;
     font-size: 1em;
     font-weight: inherit;
@@ -620,8 +620,8 @@
     align-items: center;
     gap: 8px;
 }
-#JellyfinEnhancedPage .jellyfin-tab-button img,
-#JellyfinEnhancedPage .jellyfin-tab-button .je-tab-icon-img {
+#JellyfinOnDemandPage .jellyfin-tab-button img,
+#JellyfinOnDemandPage .jellyfin-tab-button .je-tab-icon-img {
     width: 18px;
     height: 18px;
     pointer-events: none;
@@ -638,20 +638,20 @@
     opacity: 0.85;
     pointer-events: none;
 }
-#JellyfinEnhancedPage .jellyfin-tab-button.active .je-tab-icon { opacity: 1; }
-#JellyfinEnhancedPage .jellyfin-tab-button:hover { background: var(--je-surface-3); }
-#JellyfinEnhancedPage .jellyfin-tab-button.active {
+#JellyfinOnDemandPage .jellyfin-tab-button.active .je-tab-icon { opacity: 1; }
+#JellyfinOnDemandPage .jellyfin-tab-button:hover { background: var(--je-surface-3); }
+#JellyfinOnDemandPage .jellyfin-tab-button.active {
     background: var(--primary-accent-color, #00a4dc);
     border-color: var(--primary-accent-color, #00a4dc);
     color: #fff !important;
     box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-accent-color, #00a4dc) 30%, transparent);
 }
 
-#JellyfinEnhancedPage .jellyfin-tab-content {
+#JellyfinOnDemandPage .jellyfin-tab-content {
     display: none;
     animation: slideUpFade 0.3s ease forwards;
 }
-#JellyfinEnhancedPage .jellyfin-tab-content.active {
+#JellyfinOnDemandPage .jellyfin-tab-content.active {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
     gap: 20px;
@@ -661,7 +661,7 @@
 /* ---------------------------------------------------------------------------
    Fieldsets (Cards)
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedForm fieldset {
+#JellyfinOnDemandForm fieldset {
     background: rgba(22, 22, 22, 0.94);
     border: 1px solid var(--je-border);
     border-radius: 12px;
@@ -671,7 +671,7 @@
     overflow: hidden;
     transition: border-color 0.2s ease, box-shadow 0.25s ease;
 }
-#JellyfinEnhancedForm fieldset:hover {
+#JellyfinOnDemandForm fieldset:hover {
     border-color: var(--je-border);
 }
 /* Native <legend> has peculiar layout — it's positioned relative to the
@@ -679,7 +679,7 @@
    `float: left; width: 100%;` trick normalizes it into a proper block
    header that spans the full fieldset width. configSection then
    `clear: both;` so its flow starts below the floated legend. */
-#JellyfinEnhancedForm legend.sectionTitle {
+#JellyfinOnDemandForm legend.sectionTitle {
     float: left;
     width: 100%;
     margin: 0;
@@ -694,12 +694,12 @@
 }
 /* Keep the icon inline with the title on a row, now that the legend
    is a floated block (display:flex would override the float). */
-#JellyfinEnhancedForm legend.sectionTitle .je-legend-icon {
+#JellyfinOnDemandForm legend.sectionTitle .je-legend-icon {
     display: inline-block;
     margin-right: 8px;
     vertical-align: -4px;
 }
-#JellyfinEnhancedPage .configSection {
+#JellyfinOnDemandPage .configSection {
     clear: both;
     padding: 20px 24px;
     display: flex;
@@ -724,15 +724,15 @@
 /* ---------------------------------------------------------------------------
    Inputs, Checkboxes & Form Elements
    --------------------------------------------------------------------------- */
-#JellyfinEnhancedPage .configSection > .inputContainer,
-#JellyfinEnhancedPage .configSection > .selectContainer {
+#JellyfinOnDemandPage .configSection > .inputContainer,
+#JellyfinOnDemandPage .configSection > .selectContainer {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-#JellyfinEnhancedPage .configSection > .inputContainer,
-#JellyfinEnhancedPage .configSection > .checkboxContainer,
-#JellyfinEnhancedPage .configSection > .selectContainer {
+#JellyfinOnDemandPage .configSection > .inputContainer,
+#JellyfinOnDemandPage .configSection > .checkboxContainer,
+#JellyfinOnDemandPage .configSection > .selectContainer {
     background: var(--je-surface-1);
     border: 1px solid var(--je-border);
     border-radius: 8px;
@@ -740,25 +740,25 @@
     margin-bottom: 5px !important;
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
-#JellyfinEnhancedPage .configSection > .inputContainer:hover,
-#JellyfinEnhancedPage .configSection > .checkboxContainer:hover,
-#JellyfinEnhancedPage .configSection > .selectContainer:hover {
+#JellyfinOnDemandPage .configSection > .inputContainer:hover,
+#JellyfinOnDemandPage .configSection > .checkboxContainer:hover,
+#JellyfinOnDemandPage .configSection > .selectContainer:hover {
     border-color: var(--je-border);
     background: var(--je-surface-1);
 }
-#JellyfinEnhancedPage .configSection > .inputContainer:focus-within,
-#JellyfinEnhancedPage .configSection > .checkboxContainer:focus-within,
-#JellyfinEnhancedPage .configSection > .selectContainer:focus-within {
+#JellyfinOnDemandPage .configSection > .inputContainer:focus-within,
+#JellyfinOnDemandPage .configSection > .checkboxContainer:focus-within,
+#JellyfinOnDemandPage .configSection > .selectContainer:focus-within {
     border-color: var(--primary-accent-color, #00a4dc);
     background: var(--je-surface-2);
     box-shadow: 0 0 0 1px var(--primary-accent-color, #00a4dc) inset;
 }
 
 /* Ensure inputs span fully where intended */
-#JellyfinEnhancedPage .configSection > .inputContainer .emby-input,
-#JellyfinEnhancedPage .configSection > .inputContainer .emby-select,
-#JellyfinEnhancedPage .configSection > .inputContainer .emby-textarea,
-#JellyfinEnhancedPage .configSection > .selectContainer .emby-select {
+#JellyfinOnDemandPage .configSection > .inputContainer .emby-input,
+#JellyfinOnDemandPage .configSection > .inputContainer .emby-select,
+#JellyfinOnDemandPage .configSection > .inputContainer .emby-textarea,
+#JellyfinOnDemandPage .configSection > .selectContainer .emby-select {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
@@ -770,7 +770,7 @@
    zero the native appearance and paint our own chevron SVG to guarantee a
    visible "this is a dropdown" affordance that matches the accent color on
    focus. */
-#JellyfinEnhancedPage select.emby-select {
+#JellyfinOnDemandPage select.emby-select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -781,18 +781,18 @@
     padding-right: 36px !important;
     cursor: pointer;
 }
-#JellyfinEnhancedPage select.emby-select:focus,
-#JellyfinEnhancedPage select.emby-select:focus-visible {
+#JellyfinOnDemandPage select.emby-select:focus,
+#JellyfinOnDemandPage select.emby-select:focus-visible {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%2300a4dc' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1.5 1.5 L6 6 L10.5 1.5'/></svg>");
 }
 /* IE/Edge legacy — hide the built-in dropdown arrow to avoid double chevrons */
-#JellyfinEnhancedPage select.emby-select::-ms-expand { display: none; }
+#JellyfinOnDemandPage select.emby-select::-ms-expand { display: none; }
 
-#JellyfinEnhancedPage .checkboxContainer {
+#JellyfinOnDemandPage .checkboxContainer {
     display: flex;
     align-items: center;
 }
-#JellyfinEnhancedPage .checkboxContainer label {
+#JellyfinOnDemandPage .checkboxContainer label {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -800,22 +800,22 @@
     cursor: pointer;
     word-break: break-word;
 }
-#JellyfinEnhancedPage .checkboxContainer input[type="checkbox"] {
+#JellyfinOnDemandPage .checkboxContainer input[type="checkbox"] {
     flex-shrink: 0;
     margin: 0;
 }
 /* Slightly brighter, medium-weight labels — when descriptions are off
    the label is the only cue, so make it readable first. */
-#JellyfinEnhancedPage .checkboxContainer label > span {
+#JellyfinOnDemandPage .checkboxContainer label > span {
     font-size: 0.95em;
     font-weight: 500;
     color: #e8e8e8;
     line-height: 1.35;
 }
-#JellyfinEnhancedPage .inputContainer > label.inputLabel,
-#JellyfinEnhancedPage .selectContainer > label.selectLabel,
-#JellyfinEnhancedPage .inputContainer > label.selectLabel,
-#JellyfinEnhancedPage .selectContainer > label.inputLabel {
+#JellyfinOnDemandPage .inputContainer > label.inputLabel,
+#JellyfinOnDemandPage .selectContainer > label.selectLabel,
+#JellyfinOnDemandPage .inputContainer > label.selectLabel,
+#JellyfinOnDemandPage .selectContainer > label.inputLabel {
     font-weight: 500;
     color: #d0d0d0;
     font-size: 0.9em;
@@ -825,7 +825,7 @@
    gradient bg + bold label to signal "this toggle masters the feature
    that this fieldset exists for." Add je-main-feature to the
    checkboxContainer in HTML to opt in. */
-#JellyfinEnhancedPage .configSection > .je-main-feature {
+#JellyfinOnDemandPage .configSection > .je-main-feature {
     background: linear-gradient(90deg,
         color-mix(in srgb, var(--primary-accent-color, #00a4dc) 14%, transparent) 0%,
         color-mix(in srgb, var(--primary-accent-color, #00a4dc) 2%, transparent) 100%);
@@ -833,7 +833,7 @@
     border-left: 3px solid var(--primary-accent-color, #00a4dc);
     margin-bottom: 12px !important;
 }
-#JellyfinEnhancedPage .configSection > .je-main-feature label > span {
+#JellyfinOnDemandPage .configSection > .je-main-feature label > span {
     font-weight: 600;
     font-size: 1.02em;
     color: #fff;
@@ -843,13 +843,13 @@
 /* Integration-choice toggles (Plugin Pages vs Custom Tabs) — pair of
    alternatives that answer "how do you want this feature delivered?".
    Subtle purple/blue accent to distinguish from the feature-master. */
-#JellyfinEnhancedPage .configSection > .checkboxContainer:has(> label > input[id$="UsePluginPages"]),
-#JellyfinEnhancedPage .configSection > .checkboxContainer:has(> label > input[id$="UseCustomTabs"]) {
+#JellyfinOnDemandPage .configSection > .checkboxContainer:has(> label > input[id$="UsePluginPages"]),
+#JellyfinOnDemandPage .configSection > .checkboxContainer:has(> label > input[id$="UseCustomTabs"]) {
     background: rgba(155, 89, 182, 0.05);
     border-left: 2px solid rgba(155, 89, 182, 0.4);
 }
 
-#JellyfinEnhancedPage .fieldDescription {
+#JellyfinOnDemandPage .fieldDescription {
     color: #aaa;
     font-size: 0.85em;
     margin-top: 8px;
@@ -857,26 +857,26 @@
 }
 
 /* Beautiful grouping of descriptions without negative margins */
-#JellyfinEnhancedPage .je-setting-description {
+#JellyfinOnDemandPage .je-setting-description {
     margin-top: 4px;
     margin-bottom: 12px;
     padding-left: 14px;
     border-left: 2px solid var(--je-border);
 }
-#JellyfinEnhancedPage .checkboxContainer + .fieldDescription,
-#JellyfinEnhancedPage .inputContainer + .fieldDescription,
-#JellyfinEnhancedPage .selectContainer + .fieldDescription {
+#JellyfinOnDemandPage .checkboxContainer + .fieldDescription,
+#JellyfinOnDemandPage .inputContainer + .fieldDescription,
+#JellyfinOnDemandPage .selectContainer + .fieldDescription {
     margin-top: 4px;
     margin-bottom: 12px;
     padding-left: 14px;
     border-left: 2px solid var(--je-border);
 }
-#JellyfinEnhancedPage .configSection > .je-setting-description,
-#JellyfinEnhancedPage .je-details-body > .je-setting-description {
+#JellyfinOnDemandPage .configSection > .je-setting-description,
+#JellyfinOnDemandPage .je-details-body > .je-setting-description {
     margin-top: 0;
     margin-bottom: 0;
 }
-#JellyfinEnhancedPage .je-setting-description > .fieldDescription {
+#JellyfinOnDemandPage .je-setting-description > .fieldDescription {
     margin-top: 0;
 }
 /* Tighten the gap inside accordion bodies — 15px reads as too loose for
@@ -1179,12 +1179,12 @@
    tab above other tabs that merely mention "Elsewhere" in service-
    status labels. Outside search mode, only a single tab-content is
    active and the form's default block flow is fine. */
-#JellyfinEnhancedForm.je-search-mode {
+#JellyfinOnDemandForm.je-search-mode {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
-#JellyfinEnhancedForm.je-search-mode > .jellyfin-tab-content.je-tab-name-match {
+#JellyfinOnDemandForm.je-search-mode > .jellyfin-tab-content.je-tab-name-match {
     order: -1;
 }
 .je-search-match {
@@ -1342,8 +1342,8 @@
    and crushing both pieces on narrow viewports (visible on phones: the label
    "Use Plugin Pages for Hidden Content" and the hint "Enable X to configure"
    end up squashed into half-width columns). Wrap the hint onto its own line. */
-#JellyfinEnhancedPage .checkboxContainer { flex-wrap: wrap; }
-#JellyfinEnhancedPage .checkboxContainer > .dep-hint-text { flex-basis: 100%; }
+#JellyfinOnDemandPage .checkboxContainer { flex-wrap: wrap; }
+#JellyfinOnDemandPage .checkboxContainer > .dep-hint-text { flex-basis: 100%; }
 .dep-required-icon { vertical-align: middle; margin-left: 6px; }
 
 /* ---------------------------------------------------------------------------
@@ -1587,7 +1587,7 @@ body.je-has-introskipper .je-needs-introskipper { display: none !important; }
 
 /* Custom Tabs auto-manage toggles — hidden by default. Revealed only when
    the Custom Tabs plugin is detected AND its config schema matches what
-   Jellyfin Enhanced knows how to write. JS sets `je-has-customtabs-compat`
+   Jellyfin on Demand knows how to write. JS sets `je-has-customtabs-compat`
    on body after a successful schema validation. */
 .je-customtabs-automanage { display: none; }
 body.je-has-customtabs-compat .je-customtabs-automanage { display: block; }
@@ -1783,10 +1783,10 @@ body.je-has-kefintweaks  .je-installed-badge[data-plugin="kefintweaks"]  { displ
     }
     .je-save-dock .je-save-dock-btn { width: 100%; justify-content: center; }
     .je-tab-bar { padding: 10px 0; }
-    /* Prefix with #JellyfinEnhancedPage to match the base rule's specificity
+    /* Prefix with #JellyfinOnDemandPage to match the base rule's specificity
        (1,1,0). Class-only selectors (0,1,0) here lose the cascade to the
        prefixed base, leaving desktop padding/grid values stuck on phones. */
-    #JellyfinEnhancedPage .jellyfin-tab-button { padding: 8px 14px; }
+    #JellyfinOnDemandPage .jellyfin-tab-button { padding: 8px 14px; }
     .je-tab-icon { font-size: 18px !important; }
 
     /* The tab content grid uses minmax(480px, 1fr) for desktop multi-column.
@@ -1794,7 +1794,7 @@ body.je-has-kefintweaks  .je-installed-badge[data-plugin="kefintweaks"]  { displ
        overflow (descriptions get cut off, page scrolls sideways). Collapse
        to single column under 768px so cards stack cleanly. The prefix is
        required for specificity parity with the base rule at line ~654. */
-    #JellyfinEnhancedPage .jellyfin-tab-content.active {
+    #JellyfinOnDemandPage .jellyfin-tab-content.active {
         grid-template-columns: 1fr;
         gap: 12px;
     }
@@ -1831,7 +1831,7 @@ body.je-has-kefintweaks  .je-installed-badge[data-plugin="kefintweaks"]  { displ
     }
     /* Same anti-overflow for the form itself in case any ancestor's min-width
        forces it wide; let it shrink to viewport. */
-    #JellyfinEnhancedForm {
+    #JellyfinOnDemandForm {
         min-width: 0;
     }
 
@@ -1839,8 +1839,8 @@ body.je-has-kefintweaks  .je-installed-badge[data-plugin="kefintweaks"]  { displ
        buttons ("Docs & Help" / "Descriptions") were wrapping to 3 lines
        and overflowing the viewport. Shrink padding + let the title row
        wrap so buttons drop below if needed. */
-    #JellyfinEnhancedPage .sectionTitleContainer { gap: 8px; }
-    #JellyfinEnhancedPage .sectionTitleContainer h2 { font-size: 1.4em; flex: 1 1 100%; }
+    #JellyfinOnDemandPage .sectionTitleContainer { gap: 8px; }
+    #JellyfinOnDemandPage .sectionTitleContainer h2 { font-size: 1.4em; flex: 1 1 100%; }
     .je-header-title-row {
         flex-wrap: wrap;
         gap: 8px;
@@ -1866,7 +1866,7 @@ body.je-has-kefintweaks  .je-installed-badge[data-plugin="kefintweaks"]  { displ
         padding: 8px 12px;
         font-size: 0.82em;
     }
-    #JellyfinEnhancedPage .sectionTitleContainer h2 { font-size: 1.25em; }
+    #JellyfinOnDemandPage .sectionTitleContainer h2 { font-size: 1.25em; }
 }
 
 #settingsSearchClear { display: none; }

@@ -335,7 +335,7 @@
     "reviews_form_error_save": "Recenzi se nepodařilo uložit. Zkuste to znovu.",
     "panel_settings_language": "Nastavení jazyka",
     "panel_settings_language_display": "Jazyk zobrazení",
-    "panel_settings_language_display_desc": "Vyberte jazyk pro rozhraní Jellyfin Enhanced. Změny se projeví po obnovení stránky.",
+    "panel_settings_language_display_desc": "Vyberte jazyk pro rozhraní Jellyfin on Demand. Změny se projeví po obnovení stránky.",
     "panel_settings_language_clear_cache": "Vymazat cache překladů",
     "panel_settings_language_clear_cache_desc": "Odstraní všechny cachované překlady. Užitečné pro získání nedávno aktualizovaného překladu z Githubu.",
     "toast_language_changed": "{{icon:language}} Jazyk změněn! Obnovuji stránku…",
